@@ -50,6 +50,11 @@ src/
 - `src/types/index.ts` - Všetky TypeScript typy a konstanty
 - `supabase/full_migration.sql` - Kompletná DB migrácia
 
+## Firemné farby a branding
+- **Modrá:** #004B87 (Pantone 2945C) - primárna farba
+- **Žltá:** #FFC72C (Pantone 123C) - accent farba
+- **Logo:** `public/logo.svg` (SVG pre ostré zobrazenie)
+
 ## Konvencie
 - **Jazyk UI:** Slovenčina
 - **Dátumový formát:** d.M.yyyy (slovenský)
