@@ -31,7 +31,7 @@ export default async function DriversPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Vodiči</h1>
-          <p className="text-muted-foreground">Správa vodičov vozidlového parku</p>
+          <p className="text-muted-foreground">Správa vodičov vozového parku</p>
         </div>
         <Button asChild>
           <Link href="/admin/vodici/novy">

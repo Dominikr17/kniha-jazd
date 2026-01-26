@@ -8,7 +8,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "Kniha jázd - ZVL SLOVAKIA",
-  description: "Elektronická kniha jázd pre správu vozidlového parku",
+  description: "Elektronická kniha jázd pre správu vozového parku",
 };
 
 export default function RootLayout({

@@ -32,7 +32,7 @@ export default async function VehiclesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Vozidlá</h1>
-          <p className="text-muted-foreground">Správa vozidlového parku</p>
+          <p className="text-muted-foreground">Správa vozového parku</p>
         </div>
         <Button asChild>
           <Link href="/admin/vozidla/nove">

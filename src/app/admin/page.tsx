@@ -4,9 +4,10 @@ import { Badge } from '@/components/ui/badge'
 import { Car, Users, Route, Fuel, AlertTriangle, Shield, CreditCard } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { differenceInDays, parseISO, format } from 'date-fns'
+import { differenceInDays, parseISO, format, startOfWeek, startOfMonth, startOfYear } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { VIGNETTE_COUNTRIES } from '@/types'
+import { PeriodFilter } from './period-filter'
 
 interface Alert {
   type: 'stk' | 'ek' | 'vignette'
@@ -18,7 +19,37 @@ interface Alert {
   country?: string
 }
 
-export default async function DashboardPage() {
+type Period = 'week' | 'month' | 'year'
+
+function getStartDate(period: Period): string {
+  const now = new Date()
+  let start: Date
+
+  switch (period) {
+    case 'week':
+      start = startOfWeek(now, { weekStartsOn: 1 }) // Pondelok
+      break
+    case 'month':
+      start = startOfMonth(now)
+      break
+    case 'year':
+      start = startOfYear(now)
+      break
+    default:
+      start = startOfMonth(now)
+  }
+
+  return start.toISOString().split('T')[0]
+}
+
+interface PageProps {
+  searchParams: Promise<{ period?: string }>
+}
+
+export default async function DashboardPage({ searchParams }: PageProps) {
+  const params = await searchParams
+  const period = (params.period as Period) || 'month'
+  const startDate = getStartDate(period)
   const supabase = await createClient()
 
   // Načítanie štatistík a upozornení
@@ -29,11 +60,12 @@ export default async function DashboardPage() {
     { count: fuelCount },
     { data: inspections },
     { data: vignettes },
+    { data: tripsData },
   ] = await Promise.all([
     supabase.from('vehicles').select('*', { count: 'exact', head: true }),
     supabase.from('drivers').select('*', { count: 'exact', head: true }),
-    supabase.from('trips').select('*', { count: 'exact', head: true }),
-    supabase.from('fuel_records').select('*', { count: 'exact', head: true }),
+    supabase.from('trips').select('*', { count: 'exact', head: true }).gte('date', startDate),
+    supabase.from('fuel_records').select('*', { count: 'exact', head: true }).gte('date', startDate),
     supabase
       .from('vehicle_inspections')
       .select('*, vehicle:vehicles(id, name, license_plate)')
@@ -44,7 +76,15 @@ export default async function DashboardPage() {
       .select('*, vehicle:vehicles(id, name, license_plate)')
       .gte('valid_until', new Date().toISOString().split('T')[0])
       .order('valid_until', { ascending: true }),
+    supabase
+      .from('trips')
+      .select('distance')
+      .gte('date', startDate)
+      .not('distance', 'is', null),
   ])
+
+  // Celkové najazdené km za obdobie
+  const totalDistance = tripsData?.reduce((sum, trip) => sum + (trip.distance || 0), 0) ?? 0
 
   const stats = [
     {
@@ -53,6 +93,7 @@ export default async function DashboardPage() {
       icon: Car,
       href: '/admin/vozidla',
       color: 'text-blue-600',
+      showPeriod: false,
     },
     {
       title: 'Vodiči',
@@ -60,6 +101,7 @@ export default async function DashboardPage() {
       icon: Users,
       href: '/admin/vodici',
       color: 'text-green-600',
+      showPeriod: false,
     },
     {
       title: 'Jazdy',
@@ -67,6 +109,7 @@ export default async function DashboardPage() {
       icon: Route,
       href: '/admin/jazdy',
       color: 'text-purple-600',
+      showPeriod: true,
     },
     {
       title: 'Tankovania',
@@ -74,6 +117,7 @@ export default async function DashboardPage() {
       icon: Fuel,
       href: '/admin/phm',
       color: 'text-orange-600',
+      showPeriod: true,
     },
   ]
 
@@ -139,11 +183,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Prehľad vozidlového parku ZVL SLOVAKIA
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Prehľad vozového parku ZVL SLOVAKIA
+          </p>
+        </div>
+        <PeriodFilter currentPeriod={period} />
       </div>
 
       {/* Štatistiky */}
@@ -159,11 +206,33 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">{stat.value}</div>
+                {stat.showPeriod && (
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {period === 'week' && 'tento týždeň'}
+                    {period === 'month' && 'tento mesiac'}
+                    {period === 'year' && 'tento rok'}
+                  </p>
+                )}
               </CardContent>
             </Card>
           </Link>
         ))}
       </div>
+
+      {/* Najazdené km */}
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg">Najazdené kilometre</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-3xl font-bold">{totalDistance.toLocaleString('sk')} km</div>
+          <p className="text-sm text-muted-foreground">
+            {period === 'week' && 'tento týždeň'}
+            {period === 'month' && 'tento mesiac'}
+            {period === 'year' && 'tento rok'}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Rýchle akcie */}
       <Card>

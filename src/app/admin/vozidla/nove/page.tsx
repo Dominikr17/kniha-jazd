@@ -72,7 +72,7 @@ export default function NewVehiclePage() {
         </Button>
         <div>
           <h1 className="text-2xl font-bold">Nové vozidlo</h1>
-          <p className="text-muted-foreground">Pridanie nového vozidla do vozidlového parku</p>
+          <p className="text-muted-foreground">Pridanie nového vozidla do vozového parku</p>
         </div>
       </div>
 

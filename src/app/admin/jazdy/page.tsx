@@ -69,7 +69,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold">Kniha jázd</h1>
-          <p className="text-muted-foreground">Evidencia jázd vozidlového parku</p>
+          <p className="text-muted-foreground">Evidencia jázd vozového parku</p>
         </div>
         <div className="flex gap-2">
           <ExportButtons trips={trips || []} />

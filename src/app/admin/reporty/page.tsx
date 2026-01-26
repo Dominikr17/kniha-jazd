@@ -24,7 +24,7 @@ export default async function ReportsPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Reporty</h1>
-        <p className="text-muted-foreground">Analýza a prehľad vozidlového parku</p>
+        <p className="text-muted-foreground">Analýza a prehľad vozového parku</p>
       </div>
 
       <Tabs defaultValue="comparison" className="space-y-4">
