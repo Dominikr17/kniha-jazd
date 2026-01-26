@@ -74,14 +74,12 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-6 py-4">
-        <Link href="/" className="flex items-center gap-2">
-          <div className="bg-primary rounded-lg p-1.5">
-            <Car className="h-5 w-5 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="font-semibold text-lg">Kniha jázd</h1>
-            <p className="text-xs text-muted-foreground">ZVL SLOVAKIA</p>
-          </div>
+        <Link href="/" className="flex items-center">
+          <img
+            src="/logo.svg"
+            alt="ZVL SLOVAKIA"
+            className="h-10 w-auto"
+          />
         </Link>
       </SidebarHeader>
       <SidebarContent>

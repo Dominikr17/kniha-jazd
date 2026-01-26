@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Car, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -43,13 +43,15 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <div className="bg-primary rounded-full p-3">
-              <Car className="h-8 w-8 text-primary-foreground" />
-            </div>
+            <img
+              src="/logo.svg"
+              alt="ZVL SLOVAKIA"
+              className="h-16 w-auto"
+            />
           </div>
           <CardTitle className="text-2xl">Kniha jázd</CardTitle>
           <CardDescription>
-            ZVL SLOVAKIA - Evidencia vozidiel
+            Evidencia vozidiel
           </CardDescription>
         </CardHeader>
         <CardContent>
