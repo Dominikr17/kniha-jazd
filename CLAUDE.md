@@ -17,20 +17,28 @@ Elektronická kniha jázd pre správu vozidlového parku firmy ZVL SLOVAKIA. Zá
 ```
 src/
 ├── app/
-│   ├── (auth)/login/          # Prihlásenie
-│   ├── (dashboard)/           # Hlavný layout s sidebar
-│   │   ├── page.tsx           # Dashboard
+│   ├── page.tsx               # Vstupná stránka (výber: Admin/Vodič)
+│   ├── (auth)/login/          # Prihlásenie admina
+│   ├── admin/                 # Admin sekcia (vyžaduje prihlásenie)
+│   │   ├── page.tsx           # Admin dashboard
 │   │   ├── vozidla/           # Správa vozidiel
 │   │   ├── vodici/            # Správa vodičov
 │   │   ├── jazdy/             # Kniha jázd
 │   │   ├── phm/               # Tankovanie PHM
 │   │   └── reporty/           # Reporty a grafy
+│   ├── vodic/                 # Vodičovská sekcia (bez prihlásenia)
+│   │   ├── page.tsx           # Výber vodiča
+│   │   └── (dashboard)/       # Vodičov dashboard
+│   │       ├── jazdy/         # Zoznam jázd, nová jazda, úprava
+│   │       └── phm/nova/      # Nové tankovanie
+│   ├── api/driver/            # API pre vodičov (login/logout cookie)
 │   └── auth/callback/         # Auth callback
 ├── components/
 │   ├── ui/                    # shadcn komponenty
 │   └── layout/                # Sidebar, header
 ├── lib/
-│   └── supabase/              # Supabase klienty (client, server, middleware)
+│   ├── supabase/              # Supabase klienty (client, server, middleware)
+│   └── driver-session.ts      # Helper pre vodičovské cookie
 ├── types/                     # TypeScript typy
 └── middleware.ts              # Auth middleware
 ```
@@ -47,6 +55,8 @@ src/
 ## Dôležité súbory
 - `src/lib/supabase/server.ts` - Server-side Supabase klient
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
+- `src/lib/supabase/middleware.ts` - Auth middleware (verejné/chránené cesty)
+- `src/lib/driver-session.ts` - Helper pre vodičovské cookie
 - `src/types/index.ts` - Všetky TypeScript typy a konstanty
 - `supabase/full_migration.sql` - Kompletná DB migrácia
 
@@ -73,13 +83,20 @@ npm run lint     # ESLint
 - **RLS:** Všetky tabuľky majú RLS, prístup pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 
+## Prístupové role
+| Rola | Prístup | Funkcie |
+|------|---------|---------|
+| **Admin** | Email + heslo (`/login`) | Všetko (vodiči, vozidlá, STK, diaľničné známky, reporty) |
+| **Vodič** | Výber mena (`/vodic`) | Len evidencia jázd a tankovania |
+
 ## Pri úpravách
 1. Typy definuj v `src/types/index.ts`
-2. Nové stránky vytváraj v príslušnom priečinku `(dashboard)/`
-3. Pre formuláre používaj shadcn komponenty + react-hook-form
-4. Server komponenty používaj pre načítanie dát
-5. Client komponenty ('use client') pre interaktívne časti
-6. Toast notifikácie cez `sonner` (`toast.success()`, `toast.error()`)
+2. Admin stránky vytváraj v `src/app/admin/`
+3. Vodičovské stránky vytváraj v `src/app/vodic/(dashboard)/`
+4. Pre formuláre používaj shadcn komponenty + react-hook-form
+5. Server komponenty používaj pre načítanie dát
+6. Client komponenty ('use client') pre interaktívne časti
+7. Toast notifikácie cez `sonner` (`toast.success()`, `toast.error()`)
 
 ## TODO / Plánované vylepšenia
 - [ ] Upload dokumentov (Supabase Storage)

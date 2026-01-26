@@ -1,0 +1,332 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, Save, AlertTriangle } from 'lucide-react'
+import { toast } from 'sonner'
+import { TRIP_PURPOSES } from '@/types'
+
+interface DriverNewTripFormProps {
+  vehicles: { id: string; name: string; license_plate: string }[]
+  driverId: string
+}
+
+export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps) {
+  const [vehicleId, setVehicleId] = useState('')
+  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [timeStart, setTimeStart] = useState('')
+  const [timeEnd, setTimeEnd] = useState('')
+  const [routeFrom, setRouteFrom] = useState('')
+  const [routeTo, setRouteTo] = useState('')
+  const [purpose, setPurpose] = useState('')
+  const [customPurpose, setCustomPurpose] = useState('')
+  const [odometerStart, setOdometerStart] = useState('')
+  const [odometerEnd, setOdometerEnd] = useState('')
+  const [notes, setNotes] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [lastOdometer, setLastOdometer] = useState<number | null>(null)
+  const [odometerWarning, setOdometerWarning] = useState<string | null>(null)
+  const router = useRouter()
+  const supabase = createClient()
+
+  // Načítanie posledného stavu tachometra pre vybrané vozidlo
+  useEffect(() => {
+    if (!vehicleId) {
+      setLastOdometer(null)
+      setOdometerStart('')
+      return
+    }
+
+    const fetchLastOdometer = async () => {
+      const { data: lastTrip } = await supabase
+        .from('trips')
+        .select('odometer_end')
+        .eq('vehicle_id', vehicleId)
+        .not('odometer_end', 'is', null)
+        .order('date', { ascending: false })
+        .order('time_start', { ascending: false })
+        .limit(1)
+        .single()
+
+      if (lastTrip?.odometer_end) {
+        setLastOdometer(lastTrip.odometer_end)
+        setOdometerStart(lastTrip.odometer_end.toString())
+      } else {
+        const { data: vehicle } = await supabase
+          .from('vehicles')
+          .select('initial_odometer')
+          .eq('id', vehicleId)
+          .single()
+
+        if (vehicle) {
+          setLastOdometer(vehicle.initial_odometer)
+          setOdometerStart(vehicle.initial_odometer.toString())
+        }
+      }
+    }
+
+    fetchLastOdometer()
+  }, [vehicleId, supabase])
+
+  // Validácia tachometra
+  useEffect(() => {
+    if (!odometerStart || lastOdometer === null) {
+      setOdometerWarning(null)
+      return
+    }
+
+    const start = parseInt(odometerStart)
+    if (start < lastOdometer) {
+      setOdometerWarning(`Hodnota je nižšia ako posledný stav (${lastOdometer} km)`)
+    } else if (start > lastOdometer + 10) {
+      setOdometerWarning(`Hodnota je vyššia o viac ako 10 km od posledného stavu (${lastOdometer} km)`)
+    } else {
+      setOdometerWarning(null)
+    }
+  }, [odometerStart, lastOdometer])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!vehicleId) {
+      toast.error('Vyberte vozidlo')
+      return
+    }
+
+    const finalPurpose = purpose === 'Iné' ? customPurpose : purpose
+
+    if (!finalPurpose.trim()) {
+      toast.error('Zadajte účel cesty')
+      return
+    }
+
+    setIsSubmitting(true)
+
+    const { error } = await supabase.from('trips').insert({
+      vehicle_id: vehicleId,
+      driver_id: driverId,
+      date,
+      time_start: timeStart,
+      time_end: timeEnd || null,
+      route_from: routeFrom.trim(),
+      route_to: routeTo.trim(),
+      purpose: finalPurpose.trim(),
+      odometer_start: parseInt(odometerStart),
+      odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
+      notes: notes.trim() || null,
+    })
+
+    if (error) {
+      toast.error('Nepodarilo sa uložiť jazdu')
+      console.error(error)
+      setIsSubmitting(false)
+      return
+    }
+
+    toast.success('Jazda bola uložená')
+    router.push('/vodic/jazdy')
+    router.refresh()
+  }
+
+  const distance = odometerStart && odometerEnd
+    ? parseInt(odometerEnd) - parseInt(odometerStart)
+    : null
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Vozidlo */}
+      <div className="space-y-2">
+        <Label htmlFor="vehicle">Vozidlo *</Label>
+        <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting}>
+          <SelectTrigger id="vehicle">
+            <SelectValue placeholder="Vyberte vozidlo" />
+          </SelectTrigger>
+          <SelectContent>
+            {vehicles.map((v) => (
+              <SelectItem key={v.id} value={v.id}>
+                {v.name} ({v.license_plate})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Dátum a čas */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor="date">Dátum *</Label>
+          <Input
+            id="date"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="timeStart">Čas odchodu *</Label>
+          <Input
+            id="timeStart"
+            type="time"
+            value={timeStart}
+            onChange={(e) => setTimeStart(e.target.value)}
+            required
+            disabled={isSubmitting}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="timeEnd">Čas príchodu</Label>
+          <Input
+            id="timeEnd"
+            type="time"
+            value={timeEnd}
+            onChange={(e) => setTimeEnd(e.target.value)}
+            disabled={isSubmitting}
+          />
+        </div>
+      </div>
+
+      {/* Trasa */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="routeFrom">Odkiaľ *</Label>
+          <Input
+            id="routeFrom"
+            value={routeFrom}
+            onChange={(e) => setRouteFrom(e.target.value)}
+            required
+            disabled={isSubmitting}
+            placeholder="Miesto odchodu"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="routeTo">Kam *</Label>
+          <Input
+            id="routeTo"
+            value={routeTo}
+            onChange={(e) => setRouteTo(e.target.value)}
+            required
+            disabled={isSubmitting}
+            placeholder="Cieľové miesto"
+          />
+        </div>
+      </div>
+
+      {/* Účel cesty */}
+      <div className="space-y-2">
+        <Label htmlFor="purpose">Účel cesty *</Label>
+        <Select value={purpose} onValueChange={setPurpose} disabled={isSubmitting}>
+          <SelectTrigger id="purpose">
+            <SelectValue placeholder="Vyberte účel cesty" />
+          </SelectTrigger>
+          <SelectContent>
+            {TRIP_PURPOSES.map((p) => (
+              <SelectItem key={p} value={p}>
+                {p}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {purpose === 'Iné' && (
+          <Input
+            className="mt-2"
+            placeholder="Zadajte vlastný účel cesty"
+            value={customPurpose}
+            onChange={(e) => setCustomPurpose(e.target.value)}
+            disabled={isSubmitting}
+          />
+        )}
+      </div>
+
+      {/* Tachometer */}
+      <div className="space-y-4">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="odometerStart">Tachometer začiatok (km) *</Label>
+            <Input
+              id="odometerStart"
+              type="number"
+              value={odometerStart}
+              onChange={(e) => setOdometerStart(e.target.value)}
+              required
+              disabled={isSubmitting}
+              min={0}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="odometerEnd">Tachometer koniec (km)</Label>
+            <Input
+              id="odometerEnd"
+              type="number"
+              value={odometerEnd}
+              onChange={(e) => setOdometerEnd(e.target.value)}
+              disabled={isSubmitting}
+              min={odometerStart ? parseInt(odometerStart) : 0}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Najazdené km</Label>
+            <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
+              {distance !== null && distance >= 0 ? `${distance} km` : '-'}
+            </div>
+          </div>
+        </div>
+
+        {odometerWarning && (
+          <Alert variant="destructive" className="bg-yellow-50 border-yellow-200 text-yellow-800">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{odometerWarning}</AlertDescription>
+          </Alert>
+        )}
+      </div>
+
+      {/* Poznámky */}
+      <div className="space-y-2">
+        <Label htmlFor="notes">Poznámky</Label>
+        <Textarea
+          id="notes"
+          value={notes}
+          onChange={(e) => setNotes(e.target.value)}
+          disabled={isSubmitting}
+          placeholder="Voliteľné poznámky k jazde"
+          rows={3}
+        />
+      </div>
+
+      {/* Tlačidlá */}
+      <div className="flex gap-3 pt-4">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Ukladám...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Uložiť jazdu
+            </>
+          )}
+        </Button>
+        <Button type="button" variant="outline" asChild disabled={isSubmitting}>
+          <Link href="/vodic/jazdy">Zrušiť</Link>
+        </Button>
+      </div>
+    </form>
+  )
+}

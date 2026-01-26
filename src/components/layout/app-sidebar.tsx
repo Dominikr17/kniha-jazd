@@ -30,32 +30,32 @@ import { Button } from '@/components/ui/button'
 const menuItems = [
   {
     title: 'Dashboard',
-    href: '/',
+    href: '/admin',
     icon: LayoutDashboard,
   },
   {
     title: 'Vozidlá',
-    href: '/vozidla',
+    href: '/admin/vozidla',
     icon: Car,
   },
   {
     title: 'Vodiči',
-    href: '/vodici',
+    href: '/admin/vodici',
     icon: Users,
   },
   {
     title: 'Kniha jázd',
-    href: '/jazdy',
+    href: '/admin/jazdy',
     icon: Route,
   },
   {
     title: 'Tankovanie PHM',
-    href: '/phm',
+    href: '/admin/phm',
     icon: Fuel,
   },
   {
     title: 'Reporty',
-    href: '/reporty',
+    href: '/admin/reporty',
     icon: FileText,
   },
 ]
@@ -74,7 +74,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-6 py-4">
-        <Link href="/" className="flex items-center">
+        <Link href="/admin" className="flex items-center">
           <img
             src="/logo.svg"
             alt="ZVL SLOVAKIA"
@@ -92,8 +92,8 @@ export function AppSidebar() {
                   <SidebarMenuButton
                     asChild
                     isActive={
-                      item.href === '/'
-                        ? pathname === '/'
+                      item.href === '/admin'
+                        ? pathname === '/admin'
                         : pathname.startsWith(item.href)
                     }
                   >
