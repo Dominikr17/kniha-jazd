@@ -74,7 +74,7 @@ export default async function VehiclesPage() {
                   {(vehicles as Vehicle[]).map((vehicle) => (
                     <TableRow key={vehicle.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/vozidla/${vehicle.id}`} className="hover:underline">
+                        <Link href={`/admin/vozidla/${vehicle.id}`} className="hover:underline">
                           {vehicle.name}
                         </Link>
                       </TableCell>
@@ -92,7 +92,7 @@ export default async function VehiclesPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/vozidla/${vehicle.id}`}>
+                            <Link href={`/admin/vozidla/${vehicle.id}`}>
                               <Pencil className="h-4 w-4" />
                             </Link>
                           </Button>
