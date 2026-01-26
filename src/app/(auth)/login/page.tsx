@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Loader2 } from 'lucide-react'
+import { Loader2, ArrowLeft } from 'lucide-react'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -34,7 +35,7 @@ export default function LoginPage() {
       return
     }
 
-    router.push('/')
+    router.push('/admin')
     router.refresh()
   }
 
@@ -93,6 +94,12 @@ export default function LoginPage() {
               ) : (
                 'Prihlásiť sa'
               )}
+            </Button>
+            <Button variant="ghost" className="w-full" asChild>
+              <Link href="/">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Späť na výber
+              </Link>
             </Button>
           </form>
         </CardContent>

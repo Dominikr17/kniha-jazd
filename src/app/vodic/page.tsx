@@ -1,8 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, User } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { DriverSelect } from './driver-select'
 
 export default async function SelectDriverPage() {
   const supabase = await createClient()
@@ -39,33 +40,11 @@ export default async function SelectDriverPage() {
           </div>
 
           {drivers && drivers.length > 0 ? (
-            <div className="space-y-2">
-              {drivers.map((driver) => (
-                <form key={driver.id} action="/api/driver/login" method="POST">
-                  <input type="hidden" name="driverId" value={driver.id} />
-                  <input
-                    type="hidden"
-                    name="driverName"
-                    value={`${driver.first_name} ${driver.last_name}`}
-                  />
-                  <Card className="hover:bg-muted/50 transition-colors cursor-pointer">
-                    <CardContent className="p-0">
-                      <button
-                        type="submit"
-                        className="w-full flex items-center gap-3 p-4 text-left"
-                      >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-                          <User className="h-5 w-5" />
-                        </div>
-                        <span className="font-medium">
-                          {driver.first_name} {driver.last_name}
-                        </span>
-                      </button>
-                    </CardContent>
-                  </Card>
-                </form>
-              ))}
-            </div>
+            <Card>
+              <CardContent className="p-6">
+                <DriverSelect drivers={drivers} />
+              </CardContent>
+            </Card>
           ) : (
             <Card>
               <CardContent className="p-6 text-center text-muted-foreground">
