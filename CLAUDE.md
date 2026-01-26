@@ -1,7 +1,7 @@
 # Kniha jázd - Projektové inštrukcie pre Claude
 
 ## Prehľad projektu
-Elektronická kniha jázd pre správu vozidlového parku firmy ZVL SLOVAKIA. Zákonná kniha jázd platná od 1.1.2026.
+Elektronická kniha jázd pre správu vozového parku firmy ZVL SLOVAKIA. Zákonná kniha jázd platná od 1.1.2026.
 
 ## Tech Stack
 - **Framework:** Next.js 16 (App Router)
@@ -20,7 +20,8 @@ src/
 │   ├── page.tsx               # Vstupná stránka (výber: Admin/Vodič)
 │   ├── (auth)/login/          # Prihlásenie admina
 │   ├── admin/                 # Admin sekcia (vyžaduje prihlásenie)
-│   │   ├── page.tsx           # Admin dashboard
+│   │   ├── page.tsx           # Admin dashboard (s časovým filtrom)
+│   │   ├── period-filter.tsx  # Filter obdobia (týždeň/mesiac/rok)
 │   │   ├── vozidla/           # Správa vozidiel
 │   │   ├── vodici/            # Správa vodičov
 │   │   ├── jazdy/             # Kniha jázd
@@ -28,6 +29,7 @@ src/
 │   │   └── reporty/           # Reporty a grafy
 │   ├── vodic/                 # Vodičovská sekcia (bez prihlásenia)
 │   │   ├── page.tsx           # Výber vodiča
+│   │   ├── driver-select.tsx  # Combobox s vyhľadávaním vodičov
 │   │   └── (dashboard)/       # Vodičov dashboard
 │   │       ├── jazdy/         # Zoznam jázd, nová jazda, úprava
 │   │       └── phm/nova/      # Nové tankovanie
@@ -80,7 +82,10 @@ npm run lint     # ESLint
 
 ## Supabase
 - **Projekt:** kniha-jazd
-- **RLS:** Všetky tabuľky majú RLS, prístup pre authenticated používateľov
+- **RLS politiky:**
+  - `drivers`, `vehicles` - verejné čítanie (SELECT)
+  - `trips`, `fuel_records` - verejné čítanie, vkladanie, úprava, mazanie
+  - Ostatné tabuľky - prístup len pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 
 ## Prístupové role
