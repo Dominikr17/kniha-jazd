@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { logAudit } from '@/lib/audit-logger'
 
 export default function NewDriverPage() {
   const [firstName, setFirstName] = useState('')
@@ -24,18 +25,31 @@ export default function NewDriverPage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const { error } = await supabase.from('drivers').insert({
+    const driverData = {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
       email: email.trim() || null,
       phone: phone.trim() || null,
-    })
+    }
+
+    const { data, error } = await supabase.from('drivers').insert(driverData).select().single()
 
     if (error) {
       toast.error('Nepodarilo sa pridať vodiča')
       setIsSubmitting(false)
       return
     }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAudit({
+      tableName: 'drivers',
+      recordId: data.id,
+      operation: 'INSERT',
+      userType: 'admin',
+      userId: user?.id,
+      userName: user?.email,
+      newData: driverData,
+    })
 
     toast.success('Vodič bol úspešne pridaný')
     router.push('/admin/vodici')

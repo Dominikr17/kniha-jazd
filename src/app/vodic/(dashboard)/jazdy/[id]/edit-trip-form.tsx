@@ -18,13 +18,16 @@ import {
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Trip, TRIP_PURPOSES } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 interface DriverEditTripFormProps {
   trip: Trip
   vehicles: { id: string; name: string; license_plate: string }[]
+  driverId: string
+  driverName: string
 }
 
-export function DriverEditTripForm({ trip, vehicles }: DriverEditTripFormProps) {
+export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: DriverEditTripFormProps) {
   const isPredefinedPurpose = TRIP_PURPOSES.includes(trip.purpose as typeof TRIP_PURPOSES[number])
 
   const [vehicleId, setVehicleId] = useState(trip.vehicle_id)
@@ -54,20 +57,35 @@ export function DriverEditTripForm({ trip, vehicles }: DriverEditTripFormProps) 
 
     setIsSubmitting(true)
 
+    const oldData = {
+      vehicle_id: trip.vehicle_id,
+      date: trip.date,
+      time_start: trip.time_start,
+      time_end: trip.time_end,
+      route_from: trip.route_from,
+      route_to: trip.route_to,
+      purpose: trip.purpose,
+      odometer_start: trip.odometer_start,
+      odometer_end: trip.odometer_end,
+      notes: trip.notes,
+    }
+
+    const newData = {
+      vehicle_id: vehicleId,
+      date,
+      time_start: timeStart,
+      time_end: timeEnd || null,
+      route_from: routeFrom.trim(),
+      route_to: routeTo.trim(),
+      purpose: finalPurpose.trim(),
+      odometer_start: parseInt(odometerStart),
+      odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
+      notes: notes.trim() || null,
+    }
+
     const { error } = await supabase
       .from('trips')
-      .update({
-        vehicle_id: vehicleId,
-        date,
-        time_start: timeStart,
-        time_end: timeEnd || null,
-        route_from: routeFrom.trim(),
-        route_to: routeTo.trim(),
-        purpose: finalPurpose.trim(),
-        odometer_start: parseInt(odometerStart),
-        odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
-        notes: notes.trim() || null,
-      })
+      .update(newData)
       .eq('id', trip.id)
 
     if (error) {
@@ -76,6 +94,17 @@ export function DriverEditTripForm({ trip, vehicles }: DriverEditTripFormProps) 
       setIsSubmitting(false)
       return
     }
+
+    await logAudit({
+      tableName: 'trips',
+      recordId: trip.id,
+      operation: 'UPDATE',
+      userType: 'driver',
+      userId: driverId,
+      userName: driverName,
+      oldData,
+      newData,
+    })
 
     toast.success('Zmeny boli uložené')
     router.push('/vodic/jazdy')

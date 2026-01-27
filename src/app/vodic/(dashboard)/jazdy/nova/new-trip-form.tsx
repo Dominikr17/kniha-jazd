@@ -19,13 +19,15 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Save, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { TRIP_PURPOSES, TRIP_TYPES, TripType } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 interface DriverNewTripFormProps {
   vehicles: { id: string; name: string; license_plate: string }[]
   driverId: string
+  driverName: string
 }
 
-export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps) {
+export function DriverNewTripForm({ vehicles, driverId, driverName }: DriverNewTripFormProps) {
   const [vehicleId, setVehicleId] = useState('')
   const [tripType, setTripType] = useState<TripType>('sluzobna')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
@@ -117,7 +119,7 @@ export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps
 
     setIsSubmitting(true)
 
-    const { error } = await supabase.from('trips').insert({
+    const tripData = {
       vehicle_id: vehicleId,
       driver_id: driverId,
       trip_type: tripType,
@@ -130,7 +132,9 @@ export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps
       odometer_start: parseInt(odometerStart),
       odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
       notes: notes.trim() || null,
-    })
+    }
+
+    const { data, error } = await supabase.from('trips').insert(tripData).select().single()
 
     if (error) {
       toast.error('Nepodarilo sa uložiť jazdu')
@@ -138,6 +142,16 @@ export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps
       setIsSubmitting(false)
       return
     }
+
+    await logAudit({
+      tableName: 'trips',
+      recordId: data.id,
+      operation: 'INSERT',
+      userType: 'driver',
+      userId: driverId,
+      userName: driverName,
+      newData: tripData,
+    })
 
     toast.success('Jazda bola uložená')
     router.push('/vodic/jazdy')

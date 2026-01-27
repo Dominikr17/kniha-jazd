@@ -188,3 +188,33 @@ export const PAYMENT_METHODS = {
 export type TripType = keyof typeof TRIP_TYPES
 export type FuelCountry = keyof typeof FUEL_COUNTRIES
 export type PaymentMethod = keyof typeof PAYMENT_METHODS
+
+// Audit log
+export interface AuditLog {
+  id: string
+  table_name: string
+  record_id: string
+  operation: 'INSERT' | 'UPDATE' | 'DELETE'
+  user_type: 'admin' | 'driver'
+  user_id: string | null
+  user_name: string | null
+  old_data: Record<string, unknown> | null
+  new_data: Record<string, unknown> | null
+  description: string | null
+  created_at: string
+}
+
+export const AUDIT_TABLES = {
+  trips: 'Jazda',
+  fuel_records: 'Tankovanie',
+  drivers: 'Vodič',
+  vehicles: 'Vozidlo',
+  vehicle_inspections: 'STK/EK',
+  vehicle_vignettes: 'Diaľničná známka'
+} as const
+
+export const AUDIT_OPERATIONS = {
+  INSERT: 'Vytvorenie',
+  UPDATE: 'Úprava',
+  DELETE: 'Zmazanie'
+} as const

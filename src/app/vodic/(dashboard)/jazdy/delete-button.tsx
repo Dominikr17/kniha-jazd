@@ -17,15 +17,20 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { logAudit } from '@/lib/audit-logger'
 
 interface DeleteTripButtonProps {
   tripId: string
+  driverId: string
+  driverName: string
   variant?: 'ghost' | 'outline' | 'destructive'
   size?: 'default' | 'sm' | 'icon'
 }
 
 export function DeleteTripButton({
   tripId,
+  driverId,
+  driverName,
   variant = 'ghost',
   size = 'icon',
 }: DeleteTripButtonProps) {
@@ -37,6 +42,7 @@ export function DeleteTripButton({
   const handleDelete = async () => {
     setIsDeleting(true)
 
+    const { data: oldData } = await supabase.from('trips').select('*').eq('id', tripId).single()
     const { error } = await supabase
       .from('trips')
       .delete()
@@ -48,6 +54,16 @@ export function DeleteTripButton({
       setIsDeleting(false)
       return
     }
+
+    await logAudit({
+      tableName: 'trips',
+      recordId: tripId,
+      operation: 'DELETE',
+      userType: 'driver',
+      userId: driverId,
+      userName: driverName,
+      oldData,
+    })
 
     toast.success('Jazda bola zmazaná')
     setOpen(false)

@@ -19,6 +19,7 @@ import {
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, Vehicle, Driver, FuelCountry, PaymentMethod } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 export default function NewFuelPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
@@ -82,7 +83,7 @@ export default function NewFuelPage() {
 
     setIsSubmitting(true)
 
-    const { error } = await supabase.from('fuel_records').insert({
+    const fuelData = {
       vehicle_id: vehicleId,
       driver_id: driverId || null,
       date,
@@ -96,7 +97,9 @@ export default function NewFuelPage() {
       fuel_type: fuelType,
       gas_station: gasStation.trim() || null,
       notes: notes.trim() || null,
-    })
+    }
+
+    const { data, error } = await supabase.from('fuel_records').insert(fuelData).select().single()
 
     if (error) {
       toast.error('Nepodarilo sa uložiť tankovanie')
@@ -104,6 +107,17 @@ export default function NewFuelPage() {
       setIsSubmitting(false)
       return
     }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAudit({
+      tableName: 'fuel_records',
+      recordId: data.id,
+      operation: 'INSERT',
+      userType: 'admin',
+      userId: user?.id,
+      userName: user?.email,
+      newData: fuelData,
+    })
 
     toast.success('Tankovanie bolo uložené')
     router.push('/admin/phm')

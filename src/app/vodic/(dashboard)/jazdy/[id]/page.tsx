@@ -62,6 +62,8 @@ export default async function DriverEditTripPage({ params }: PageProps) {
           <DriverEditTripForm
             trip={trip}
             vehicles={vehicles || []}
+            driverId={driverId!}
+            driverName={driverName || ''}
           />
         </CardContent>
       </Card>

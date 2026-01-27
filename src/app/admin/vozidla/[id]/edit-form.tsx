@@ -17,6 +17,7 @@ import {
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Vehicle, Driver, FUEL_TYPES } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 interface EditVehicleFormProps {
   vehicle: Vehicle
@@ -41,19 +42,33 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
     e.preventDefault()
     setIsSubmitting(true)
 
+    const oldData = {
+      name: vehicle.name,
+      license_plate: vehicle.license_plate,
+      vin: vehicle.vin,
+      brand: vehicle.brand,
+      model: vehicle.model,
+      year: vehicle.year,
+      fuel_type: vehicle.fuel_type,
+      initial_odometer: vehicle.initial_odometer,
+      responsible_driver_id: vehicle.responsible_driver_id,
+    }
+
+    const newData = {
+      name: name.trim(),
+      license_plate: licensePlate.trim().toUpperCase(),
+      vin: vin.trim().toUpperCase(),
+      brand: brand.trim() || null,
+      model: model.trim() || null,
+      year: year ? parseInt(year) : null,
+      fuel_type: fuelType,
+      initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
+      responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
+    }
+
     const { error } = await supabase
       .from('vehicles')
-      .update({
-        name: name.trim(),
-        license_plate: licensePlate.trim().toUpperCase(),
-        vin: vin.trim().toUpperCase(),
-        brand: brand.trim() || null,
-        model: model.trim() || null,
-        year: year ? parseInt(year) : null,
-        fuel_type: fuelType,
-        initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
-        responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
-      })
+      .update(newData)
       .eq('id', vehicle.id)
 
     if (error) {
@@ -65,6 +80,18 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
       setIsSubmitting(false)
       return
     }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAudit({
+      tableName: 'vehicles',
+      recordId: vehicle.id,
+      operation: 'UPDATE',
+      userType: 'admin',
+      userId: user?.id,
+      userName: user?.email,
+      oldData,
+      newData,
+    })
 
     toast.success('Zmeny boli uložené')
     router.refresh()

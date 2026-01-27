@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { logAudit } from '@/lib/audit-logger'
 
 interface DeleteFuelButtonProps {
   id: string
@@ -29,6 +30,7 @@ export function DeleteFuelButton({ id }: DeleteFuelButtonProps) {
   const handleDelete = async () => {
     setIsDeleting(true)
 
+    const { data: oldData } = await supabase.from('fuel_records').select('*').eq('id', id).single()
     const { error } = await supabase.from('fuel_records').delete().eq('id', id)
 
     if (error) {
@@ -36,6 +38,17 @@ export function DeleteFuelButton({ id }: DeleteFuelButtonProps) {
       setIsDeleting(false)
       return
     }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAudit({
+      tableName: 'fuel_records',
+      recordId: id,
+      operation: 'DELETE',
+      userType: 'admin',
+      userId: user?.id,
+      userName: user?.email,
+      oldData,
+    })
 
     toast.success('Záznam bol vymazaný')
     setOpen(false)

@@ -18,6 +18,7 @@ import {
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { FUEL_TYPES, Driver } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 export default function NewVehiclePage() {
   const [drivers, setDrivers] = useState<Driver[]>([])
@@ -49,7 +50,7 @@ export default function NewVehiclePage() {
     e.preventDefault()
     setIsSubmitting(true)
 
-    const { error } = await supabase.from('vehicles').insert({
+    const vehicleData = {
       name: name.trim(),
       license_plate: licensePlate.trim().toUpperCase(),
       vin: vin.trim().toUpperCase(),
@@ -59,7 +60,9 @@ export default function NewVehiclePage() {
       fuel_type: fuelType,
       initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
       responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
-    })
+    }
+
+    const { data, error } = await supabase.from('vehicles').insert(vehicleData).select().single()
 
     if (error) {
       if (error.code === '23505') {
@@ -70,6 +73,17 @@ export default function NewVehiclePage() {
       setIsSubmitting(false)
       return
     }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAudit({
+      tableName: 'vehicles',
+      recordId: data.id,
+      operation: 'INSERT',
+      userType: 'admin',
+      userId: user?.id,
+      userName: user?.email,
+      newData: vehicleData,
+    })
 
     toast.success('Vozidlo bolo úspešne pridané')
     router.push('/admin/vozidla')

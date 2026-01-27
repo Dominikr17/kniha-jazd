@@ -19,10 +19,12 @@ import {
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, Vehicle, FuelCountry, PaymentMethod } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 export default function DriverNewFuelPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [driverId, setDriverId] = useState<string | null>(null)
+  const [driverName, setDriverName] = useState<string | null>(null)
   const [vehicleId, setVehicleId] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [odometer, setOdometer] = useState('')
@@ -46,7 +48,13 @@ export default function DriverNewFuelPage() {
         .find((row) => row.startsWith('driver_id='))
         ?.split('=')[1]
 
+      const driverNameCookie = document.cookie
+        .split('; ')
+        .find((row) => row.startsWith('driver_name='))
+        ?.split('=')[1]
+
       setDriverId(driverIdCookie || null)
+      setDriverName(driverNameCookie ? decodeURIComponent(driverNameCookie) : null)
 
       const { data: vehiclesData } = await supabase
         .from('vehicles')
@@ -88,7 +96,7 @@ export default function DriverNewFuelPage() {
 
     setIsSubmitting(true)
 
-    const { error } = await supabase.from('fuel_records').insert({
+    const fuelData = {
       vehicle_id: vehicleId,
       driver_id: driverId,
       date,
@@ -102,7 +110,9 @@ export default function DriverNewFuelPage() {
       fuel_type: fuelType,
       gas_station: gasStation.trim() || null,
       notes: notes.trim() || null,
-    })
+    }
+
+    const { data, error } = await supabase.from('fuel_records').insert(fuelData).select().single()
 
     if (error) {
       toast.error('Nepodarilo sa uložiť tankovanie')
@@ -110,6 +120,16 @@ export default function DriverNewFuelPage() {
       setIsSubmitting(false)
       return
     }
+
+    await logAudit({
+      tableName: 'fuel_records',
+      recordId: data.id,
+      operation: 'INSERT',
+      userType: 'driver',
+      userId: driverId,
+      userName: driverName,
+      newData: fuelData,
+    })
 
     toast.success('Tankovanie bolo uložené')
     router.push('/vodic/jazdy')

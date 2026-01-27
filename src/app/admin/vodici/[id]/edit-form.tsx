@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Driver } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 interface EditDriverFormProps {
   driver: Driver
@@ -28,14 +29,23 @@ export function EditDriverForm({ driver }: EditDriverFormProps) {
     e.preventDefault()
     setIsSubmitting(true)
 
+    const oldData = {
+      first_name: driver.first_name,
+      last_name: driver.last_name,
+      email: driver.email,
+      phone: driver.phone,
+    }
+
+    const newData = {
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      email: email.trim() || null,
+      phone: phone.trim() || null,
+    }
+
     const { error } = await supabase
       .from('drivers')
-      .update({
-        first_name: firstName.trim(),
-        last_name: lastName.trim(),
-        email: email.trim() || null,
-        phone: phone.trim() || null,
-      })
+      .update(newData)
       .eq('id', driver.id)
 
     if (error) {
@@ -43,6 +53,18 @@ export function EditDriverForm({ driver }: EditDriverFormProps) {
       setIsSubmitting(false)
       return
     }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAudit({
+      tableName: 'drivers',
+      recordId: driver.id,
+      operation: 'UPDATE',
+      userType: 'admin',
+      userId: user?.id,
+      userName: user?.email,
+      oldData,
+      newData,
+    })
 
     toast.success('Zmeny boli uložené')
     router.push('/admin/vodici')

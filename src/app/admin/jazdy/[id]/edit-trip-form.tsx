@@ -18,6 +18,7 @@ import {
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Trip, TRIP_PURPOSES } from '@/types'
+import { logAudit } from '@/lib/audit-logger'
 
 interface EditTripFormProps {
   trip: Trip
@@ -56,21 +57,37 @@ export function EditTripForm({ trip, vehicles, drivers }: EditTripFormProps) {
 
     setIsSubmitting(true)
 
+    const oldData = {
+      vehicle_id: trip.vehicle_id,
+      driver_id: trip.driver_id,
+      date: trip.date,
+      time_start: trip.time_start,
+      time_end: trip.time_end,
+      route_from: trip.route_from,
+      route_to: trip.route_to,
+      purpose: trip.purpose,
+      odometer_start: trip.odometer_start,
+      odometer_end: trip.odometer_end,
+      notes: trip.notes,
+    }
+
+    const newData = {
+      vehicle_id: vehicleId,
+      driver_id: driverId,
+      date,
+      time_start: timeStart,
+      time_end: timeEnd || null,
+      route_from: routeFrom.trim(),
+      route_to: routeTo.trim(),
+      purpose: finalPurpose.trim(),
+      odometer_start: parseInt(odometerStart),
+      odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
+      notes: notes.trim() || null,
+    }
+
     const { error } = await supabase
       .from('trips')
-      .update({
-        vehicle_id: vehicleId,
-        driver_id: driverId,
-        date,
-        time_start: timeStart,
-        time_end: timeEnd || null,
-        route_from: routeFrom.trim(),
-        route_to: routeTo.trim(),
-        purpose: finalPurpose.trim(),
-        odometer_start: parseInt(odometerStart),
-        odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
-        notes: notes.trim() || null,
-      })
+      .update(newData)
       .eq('id', trip.id)
 
     if (error) {
@@ -79,6 +96,18 @@ export function EditTripForm({ trip, vehicles, drivers }: EditTripFormProps) {
       setIsSubmitting(false)
       return
     }
+
+    const { data: { user } } = await supabase.auth.getUser()
+    await logAudit({
+      tableName: 'trips',
+      recordId: trip.id,
+      operation: 'UPDATE',
+      userType: 'admin',
+      userId: user?.id,
+      userName: user?.email,
+      oldData,
+      newData,
+    })
 
     toast.success('Zmeny boli uložené')
     router.push('/admin/jazdy')

@@ -153,7 +153,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
                         <Badge
-                          variant={trip.trip_type === 'sukromna' ? 'secondary' : trip.trip_type === 'sluzobna_n' ? 'outline' : 'default'}
+                          variant={trip.trip_type === 'sukromna' ? 'secondary' : 'default'}
                           className={trip.trip_type === 'sluzobna' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : ''}
                         >
                           {TRIP_TYPES[trip.trip_type] || 'Služobná'}

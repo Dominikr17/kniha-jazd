@@ -40,6 +40,7 @@ export default async function DriverNewTripPage() {
           <DriverNewTripForm
             vehicles={vehicles || []}
             driverId={driverId!}
+            driverName={driverName || ''}
           />
         </CardContent>
       </Card>

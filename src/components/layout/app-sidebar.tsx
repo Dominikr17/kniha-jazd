@@ -21,7 +21,8 @@ import {
   Fuel,
   LayoutDashboard,
   FileText,
-  LogOut
+  LogOut,
+  ClipboardList
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -57,6 +58,11 @@ const menuItems = [
     title: 'Reporty',
     href: '/admin/reporty',
     icon: FileText,
+  },
+  {
+    title: 'Žurnál',
+    href: '/admin/zurnal',
+    icon: ClipboardList,
   },
 ]
 

@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getDriverId } from '@/lib/driver-session'
+import { getDriverId, getDriverName } from '@/lib/driver-session'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +20,7 @@ import { DeleteTripButton } from './delete-button'
 export default async function DriverTripsPage() {
   const supabase = await createClient()
   const driverId = await getDriverId()
+  const driverName = await getDriverName()
 
   const { data: trips } = await supabase
     .from('trips')
@@ -131,7 +132,7 @@ export default async function DriverTripsPage() {
                                 <Pencil className="h-4 w-4" />
                               </Link>
                             </Button>
-                            <DeleteTripButton tripId={trip.id} />
+                            <DeleteTripButton tripId={trip.id} driverId={driverId!} driverName={driverName || ''} />
                           </div>
                         </TableCell>
                       </TableRow>
@@ -171,7 +172,7 @@ export default async function DriverTripsPage() {
                           Upraviť
                         </Link>
                       </Button>
-                      <DeleteTripButton tripId={trip.id} variant="outline" size="sm" />
+                      <DeleteTripButton tripId={trip.id} driverId={driverId!} driverName={driverName || ''} variant="outline" size="sm" />
                     </div>
                   </div>
                 ))}
