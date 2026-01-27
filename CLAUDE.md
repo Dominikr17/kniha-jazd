@@ -85,6 +85,7 @@ src/
 - `VIGNETTE_COUNTRIES` - Krajiny pre diaľničné známky
 - `AUDIT_TABLES` - Názvy tabuliek pre audit log
 - `AUDIT_OPERATIONS` - Typy operácií (INSERT, UPDATE, DELETE)
+- `DRIVER_EDIT_TIME_LIMIT_MINUTES` - Časový limit na úpravu jazdy vodičom (15 minút)
 
 ## Príkazy
 ```bash
@@ -105,7 +106,7 @@ npm run lint     # ESLint
 | Rola | Prístup | Funkcie |
 |------|---------|---------|
 | **Admin** | Email + heslo (`/login`) | Všetko (vodiči, vozidlá, STK, diaľničné známky, reporty, žurnál) |
-| **Vodič** | Výber mena (`/vodic`) | Len evidencia jázd a tankovania |
+| **Vodič** | Výber mena (`/vodic`) | Evidencia jázd (úprava do 15 min, bez mazania) a tankovania (len pridávanie) |
 
 ## Pri úpravách
 1. Typy definuj v `src/types/index.ts`
