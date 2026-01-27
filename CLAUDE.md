@@ -26,7 +26,8 @@ src/
 │   │   ├── vodici/            # Správa vodičov
 │   │   ├── jazdy/             # Kniha jázd
 │   │   ├── phm/               # Tankovanie PHM
-│   │   └── reporty/           # Reporty a grafy
+│   │   ├── reporty/           # Reporty a grafy
+│   │   └── zurnal/            # Žurnál aktivít (audit log)
 │   ├── vodic/                 # Vodičovská sekcia (bez prihlásenia)
 │   │   ├── page.tsx           # Výber vodiča
 │   │   ├── driver-select.tsx  # Combobox s vyhľadávaním vodičov
@@ -53,12 +54,14 @@ src/
 - `vehicle_vignettes` - Diaľničné známky
 - `trips` - Jazdy (auto-číslovanie, + `trip_type`: sluzobna/sukromna)
 - `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`)
+- `audit_logs` - Žurnál aktivít (logovanie INSERT/UPDATE/DELETE)
 
 ## Dôležité súbory
 - `src/lib/supabase/server.ts` - Server-side Supabase klient
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
 - `src/lib/supabase/middleware.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
+- `src/lib/audit-logger.ts` - Helper pre logovanie aktivít (audit log)
 - `src/types/index.ts` - Všetky TypeScript typy a konstanty
 - `supabase/full_migration.sql` - Kompletná DB migrácia
 
@@ -80,6 +83,8 @@ src/
 - `FUEL_TYPES` - Typy paliva (benzin, nafta, lpg, elektro, hybrid)
 - `TRIP_PURPOSES` - Účely cesty
 - `VIGNETTE_COUNTRIES` - Krajiny pre diaľničné známky
+- `AUDIT_TABLES` - Názvy tabuliek pre audit log
+- `AUDIT_OPERATIONS` - Typy operácií (INSERT, UPDATE, DELETE)
 
 ## Príkazy
 ```bash
@@ -99,7 +104,7 @@ npm run lint     # ESLint
 ## Prístupové role
 | Rola | Prístup | Funkcie |
 |------|---------|---------|
-| **Admin** | Email + heslo (`/login`) | Všetko (vodiči, vozidlá, STK, diaľničné známky, reporty) |
+| **Admin** | Email + heslo (`/login`) | Všetko (vodiči, vozidlá, STK, diaľničné známky, reporty, žurnál) |
 | **Vodič** | Výber mena (`/vodic`) | Len evidencia jázd a tankovania |
 
 ## Pri úpravách
