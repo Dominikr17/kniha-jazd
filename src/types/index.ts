@@ -23,8 +23,11 @@ export interface Vehicle {
   year: number | null
   fuel_type: 'benzin' | 'nafta' | 'lpg' | 'elektro' | 'hybrid'
   initial_odometer: number
+  responsible_driver_id: string | null
   created_at: string
   updated_at: string
+  // Joined fields
+  responsible_driver?: Driver
 }
 
 export type VehicleInsert = Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>
@@ -85,6 +88,7 @@ export interface Trip {
   route_from: string
   route_to: string
   purpose: string
+  trip_type: TripType
   odometer_start: number
   odometer_end: number | null
   distance: number | null
@@ -109,6 +113,9 @@ export interface FuelRecord {
   liters: number
   price_per_liter: number
   total_price: number
+  price_without_vat: number | null
+  country: FuelCountry
+  payment_method: PaymentMethod
   fuel_type: string
   gas_station: string | null
   receipt_url: string | null
@@ -152,3 +159,32 @@ export const FUEL_TYPES = {
   elektro: 'Elektro',
   hybrid: 'Hybrid',
 } as const
+
+// Typy jázd
+export const TRIP_TYPES = {
+  sluzobna: 'Služobná',
+  sukromna: 'Súkromná'
+} as const
+
+// Krajiny pre tankovanie s DPH sadzbami
+export const FUEL_COUNTRIES = {
+  SK: { name: 'Slovensko', flag: '🇸🇰', vatRate: 0.20 },
+  CZ: { name: 'Česko', flag: '🇨🇿', vatRate: 0.21 },
+  PL: { name: 'Poľsko', flag: '🇵🇱', vatRate: 0.23 },
+  AT: { name: 'Rakúsko', flag: '🇦🇹', vatRate: 0.20 },
+  HU: { name: 'Maďarsko', flag: '🇭🇺', vatRate: 0.27 },
+  DE: { name: 'Nemecko', flag: '🇩🇪', vatRate: 0.19 },
+  other: { name: 'Iná krajina', flag: '🌍', vatRate: 0.20 }
+} as const
+
+// Spôsoby platby
+export const PAYMENT_METHODS = {
+  company_card: 'Firemná karta',
+  cash: 'Hotovosť',
+  advance: 'Záloha',
+  invoice: 'Faktúra'
+} as const
+
+export type TripType = keyof typeof TRIP_TYPES
+export type FuelCountry = keyof typeof FUEL_COUNTRIES
+export type PaymentMethod = keyof typeof PAYMENT_METHODS

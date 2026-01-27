@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -16,13 +16,14 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
-import { Vehicle, FUEL_TYPES } from '@/types'
+import { Vehicle, Driver, FUEL_TYPES } from '@/types'
 
 interface EditVehicleFormProps {
   vehicle: Vehicle
+  drivers: Driver[]
 }
 
-export function EditVehicleForm({ vehicle }: EditVehicleFormProps) {
+export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
   const [name, setName] = useState(vehicle.name)
   const [licensePlate, setLicensePlate] = useState(vehicle.license_plate)
   const [vin, setVin] = useState(vehicle.vin)
@@ -31,6 +32,7 @@ export function EditVehicleForm({ vehicle }: EditVehicleFormProps) {
   const [year, setYear] = useState(vehicle.year?.toString() || '')
   const [fuelType, setFuelType] = useState<string>(vehicle.fuel_type)
   const [initialOdometer, setInitialOdometer] = useState(vehicle.initial_odometer.toString())
+  const [responsibleDriverId, setResponsibleDriverId] = useState(vehicle.responsible_driver_id || 'none')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -50,6 +52,7 @@ export function EditVehicleForm({ vehicle }: EditVehicleFormProps) {
         year: year ? parseInt(year) : null,
         fuel_type: fuelType,
         initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
+        responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
       })
       .eq('id', vehicle.id)
 
@@ -167,6 +170,23 @@ export function EditVehicleForm({ vehicle }: EditVehicleFormProps) {
             min={0}
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="responsibleDriver">Zodpovedný vodič</Label>
+        <Select value={responsibleDriverId} onValueChange={setResponsibleDriverId} disabled={isSubmitting}>
+          <SelectTrigger id="responsibleDriver">
+            <SelectValue placeholder="-- Nevybraný --" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">-- Nevybraný --</SelectItem>
+            {drivers.map((d) => (
+              <SelectItem key={d.id} value={d.id}>
+                {d.first_name} {d.last_name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="flex gap-3 pt-4">

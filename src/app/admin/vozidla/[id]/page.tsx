@@ -23,10 +23,12 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
     { data: vehicle, error: vehicleError },
     { data: inspections },
     { data: vignettes },
+    { data: drivers },
   ] = await Promise.all([
-    supabase.from('vehicles').select('*').eq('id', id).single(),
+    supabase.from('vehicles').select('*, responsible_driver:drivers(*)').eq('id', id).single(),
     supabase.from('vehicle_inspections').select('*').eq('vehicle_id', id).order('valid_until', { ascending: false }),
     supabase.from('vehicle_vignettes').select('*').eq('vehicle_id', id).order('valid_until', { ascending: false }),
+    supabase.from('drivers').select('*').order('last_name'),
   ])
 
   if (vehicleError || !vehicle) {
@@ -80,7 +82,7 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
               <CardTitle>Základné údaje</CardTitle>
             </CardHeader>
             <CardContent>
-              <EditVehicleForm vehicle={vehicle} />
+              <EditVehicleForm vehicle={vehicle} drivers={drivers || []} />
             </CardContent>
           </Card>
         </TabsContent>

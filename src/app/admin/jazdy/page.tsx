@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Route, FileDown, Pencil } from 'lucide-react'
-import { Trip } from '@/types'
+import { Trip, TRIP_TYPES } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { DeleteTripButton } from './delete-button'
@@ -20,7 +20,7 @@ import { ExportButtons } from './export-buttons'
 import { TripsFilter } from './trips-filter'
 
 interface TripsPageProps {
-  searchParams: Promise<{ vehicle?: string; driver?: string; from?: string; to?: string }>
+  searchParams: Promise<{ vehicle?: string; driver?: string; tripType?: string; from?: string; to?: string }>
 }
 
 export default async function TripsPage({ searchParams }: TripsPageProps) {
@@ -50,6 +50,9 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
   }
   if (params.driver) {
     query = query.eq('driver_id', params.driver)
+  }
+  if (params.tripType) {
+    query = query.eq('trip_type', params.tripType)
   }
   if (params.from) {
     query = query.gte('date', params.from)
@@ -118,6 +121,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                     <TableHead>Dátum</TableHead>
                     <TableHead className="hidden md:table-cell">Vozidlo</TableHead>
                     <TableHead className="hidden lg:table-cell">Vodič</TableHead>
+                    <TableHead className="hidden sm:table-cell">Typ</TableHead>
                     <TableHead>Trasa</TableHead>
                     <TableHead className="text-right">km</TableHead>
                     <TableHead className="w-[80px]">Akcie</TableHead>
@@ -147,6 +151,14 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                       <TableCell className="hidden lg:table-cell">
                         {trip.driver?.first_name} {trip.driver?.last_name}
                       </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        <Badge
+                          variant={trip.trip_type === 'sukromna' ? 'secondary' : trip.trip_type === 'sluzobna_n' ? 'outline' : 'default'}
+                          className={trip.trip_type === 'sluzobna' ? 'bg-blue-100 text-blue-800 hover:bg-blue-100' : ''}
+                        >
+                          {TRIP_TYPES[trip.trip_type] || 'Služobná'}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <div className="max-w-[200px] truncate">
                           {trip.route_from} → {trip.route_to}
@@ -161,7 +173,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <Button variant="ghost" size="icon" asChild>
-                            <Link href={`/jazdy/${trip.id}`}>
+                            <Link href={`/admin/jazdy/${trip.id}`}>
                               <Pencil className="h-4 w-4" />
                             </Link>
                           </Button>

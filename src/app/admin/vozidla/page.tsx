@@ -20,7 +20,7 @@ export default async function VehiclesPage() {
 
   const { data: vehicles, error } = await supabase
     .from('vehicles')
-    .select('*')
+    .select('*, responsible_driver:drivers(*)')
     .order('name', { ascending: true })
 
   if (error) {
@@ -67,6 +67,7 @@ export default async function VehiclesPage() {
                     <TableHead>EČV</TableHead>
                     <TableHead className="hidden md:table-cell">Značka/Model</TableHead>
                     <TableHead className="hidden sm:table-cell">Palivo</TableHead>
+                    <TableHead className="hidden lg:table-cell">Zodpovedný vodič</TableHead>
                     <TableHead className="w-[100px]">Akcie</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -88,6 +89,11 @@ export default async function VehiclesPage() {
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
                         {FUEL_TYPES[vehicle.fuel_type as keyof typeof FUEL_TYPES]}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {vehicle.responsible_driver
+                          ? `${vehicle.responsible_driver.first_name} ${vehicle.responsible_driver.last_name}`
+                          : '-'}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

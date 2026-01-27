@@ -47,12 +47,12 @@ src/
 
 ## Databázové tabuľky
 - `drivers` - Vodiči
-- `vehicles` - Vozidlá
+- `vehicles` - Vozidlá (+ `responsible_driver_id` - zodpovedný vodič)
 - `vehicle_documents` - Dokumenty vozidiel
 - `vehicle_inspections` - STK/EK kontroly
 - `vehicle_vignettes` - Diaľničné známky
-- `trips` - Jazdy (auto-číslovanie cez sekvenciu)
-- `fuel_records` - Tankovanie PHM
+- `trips` - Jazdy (auto-číslovanie, + `trip_type`: sluzobna/sukromna)
+- `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`)
 
 ## Dôležité súbory
 - `src/lib/supabase/server.ts` - Server-side Supabase klient
@@ -72,6 +72,14 @@ src/
 - **Dátumový formát:** d.M.yyyy (slovenský)
 - **Mena:** EUR
 - **Mobile-first:** Responzívny dizajn pre vodičov na mobile
+
+## Konštanty (src/types/index.ts)
+- `TRIP_TYPES` - Typy jázd (sluzobna, sukromna)
+- `FUEL_COUNTRIES` - Krajiny tankovania s DPH sadzbami (SK, CZ, PL, AT, HU, DE, other)
+- `PAYMENT_METHODS` - Spôsoby platby (company_card, cash, advance, invoice)
+- `FUEL_TYPES` - Typy paliva (benzin, nafta, lpg, elektro, hybrid)
+- `TRIP_PURPOSES` - Účely cesty
+- `VIGNETTE_COUNTRIES` - Krajiny pre diaľničné známky
 
 ## Príkazy
 ```bash

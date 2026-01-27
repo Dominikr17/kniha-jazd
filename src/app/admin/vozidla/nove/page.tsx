@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -17,9 +17,10 @@ import {
 } from '@/components/ui/select'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
-import { FUEL_TYPES } from '@/types'
+import { FUEL_TYPES, Driver } from '@/types'
 
 export default function NewVehiclePage() {
+  const [drivers, setDrivers] = useState<Driver[]>([])
   const [name, setName] = useState('')
   const [licensePlate, setLicensePlate] = useState('')
   const [vin, setVin] = useState('')
@@ -28,9 +29,21 @@ export default function NewVehiclePage() {
   const [year, setYear] = useState('')
   const [fuelType, setFuelType] = useState('nafta')
   const [initialOdometer, setInitialOdometer] = useState('')
+  const [responsibleDriverId, setResponsibleDriverId] = useState('none')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    const fetchDrivers = async () => {
+      const { data } = await supabase
+        .from('drivers')
+        .select('*')
+        .order('last_name')
+      setDrivers(data || [])
+    }
+    fetchDrivers()
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,6 +58,7 @@ export default function NewVehiclePage() {
       year: year ? parseInt(year) : null,
       fuel_type: fuelType,
       initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
+      responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
     })
 
     if (error) {
@@ -186,6 +200,23 @@ export default function NewVehiclePage() {
                   placeholder="0"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="responsibleDriver">Zodpovedný vodič</Label>
+              <Select value={responsibleDriverId} onValueChange={setResponsibleDriverId} disabled={isSubmitting}>
+                <SelectTrigger id="responsibleDriver">
+                  <SelectValue placeholder="-- Nevybraný --" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">-- Nevybraný --</SelectItem>
+                  {drivers.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.first_name} {d.last_name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex gap-3 pt-4">

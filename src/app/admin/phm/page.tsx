@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Plus, Fuel, Trash2 } from 'lucide-react'
-import { FuelRecord, FUEL_TYPES } from '@/types'
+import { FuelRecord, FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { DeleteFuelButton } from './delete-button'
@@ -94,11 +94,14 @@ export default async function FuelPage() {
                   <TableRow>
                     <TableHead>Dátum</TableHead>
                     <TableHead className="hidden md:table-cell">Vozidlo</TableHead>
+                    <TableHead className="hidden sm:table-cell">Krajina</TableHead>
                     <TableHead>Palivo</TableHead>
                     <TableHead className="text-right">Litre</TableHead>
                     <TableHead className="text-right hidden sm:table-cell">Cena/l</TableHead>
                     <TableHead className="text-right">Suma</TableHead>
-                    <TableHead className="text-right hidden lg:table-cell">l/100km</TableHead>
+                    <TableHead className="text-right hidden lg:table-cell">Bez DPH</TableHead>
+                    <TableHead className="hidden lg:table-cell">Platba</TableHead>
+                    <TableHead className="text-right hidden xl:table-cell">l/100km</TableHead>
                     <TableHead className="w-[60px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -113,6 +116,15 @@ export default async function FuelPage() {
                         <div className="text-xs text-muted-foreground">
                           {record.vehicle?.license_plate}
                         </div>
+                      </TableCell>
+                      <TableCell className="hidden sm:table-cell">
+                        {record.country && FUEL_COUNTRIES[record.country as keyof typeof FUEL_COUNTRIES] ? (
+                          <span title={FUEL_COUNTRIES[record.country as keyof typeof FUEL_COUNTRIES].name}>
+                            {FUEL_COUNTRIES[record.country as keyof typeof FUEL_COUNTRIES].flag} {record.country}
+                          </span>
+                        ) : (
+                          <span>🇸🇰 SK</span>
+                        )}
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">
@@ -129,6 +141,16 @@ export default async function FuelPage() {
                         {Number(record.total_price).toFixed(2)} EUR
                       </TableCell>
                       <TableCell className="text-right hidden lg:table-cell">
+                        {record.price_without_vat ? `${Number(record.price_without_vat).toFixed(2)} EUR` : '-'}
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        <Badge variant="outline">
+                          {record.payment_method && PAYMENT_METHODS[record.payment_method as keyof typeof PAYMENT_METHODS]
+                            ? PAYMENT_METHODS[record.payment_method as keyof typeof PAYMENT_METHODS]
+                            : 'Firemná karta'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right hidden xl:table-cell">
                         {record.consumption !== null ? (
                           <Badge variant={record.consumption > 10 ? 'destructive' : 'secondary'}>
                             {record.consumption.toFixed(1)}

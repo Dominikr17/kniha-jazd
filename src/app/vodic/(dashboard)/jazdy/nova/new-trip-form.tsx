@@ -18,7 +18,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Save, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import { TRIP_PURPOSES } from '@/types'
+import { TRIP_PURPOSES, TRIP_TYPES, TripType } from '@/types'
 
 interface DriverNewTripFormProps {
   vehicles: { id: string; name: string; license_plate: string }[]
@@ -27,6 +27,7 @@ interface DriverNewTripFormProps {
 
 export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps) {
   const [vehicleId, setVehicleId] = useState('')
+  const [tripType, setTripType] = useState<TripType>('sluzobna')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [timeStart, setTimeStart] = useState('')
   const [timeEnd, setTimeEnd] = useState('')
@@ -119,6 +120,7 @@ export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps
     const { error } = await supabase.from('trips').insert({
       vehicle_id: vehicleId,
       driver_id: driverId,
+      trip_type: tripType,
       date,
       time_start: timeStart,
       time_end: timeEnd || null,
@@ -159,6 +161,23 @@ export function DriverNewTripForm({ vehicles, driverId }: DriverNewTripFormProps
             {vehicles.map((v) => (
               <SelectItem key={v.id} value={v.id}>
                 {v.name} ({v.license_plate})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Typ jazdy */}
+      <div className="space-y-2">
+        <Label htmlFor="tripType">Typ jazdy *</Label>
+        <Select value={tripType} onValueChange={(v) => setTripType(v as TripType)} disabled={isSubmitting}>
+          <SelectTrigger id="tripType">
+            <SelectValue placeholder="Vyberte typ jazdy" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(TRIP_TYPES).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
               </SelectItem>
             ))}
           </SelectContent>

@@ -78,7 +78,7 @@ export default async function DriversPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" asChild>
-                          <Link href={`/vodici/${driver.id}`}>
+                          <Link href={`/admin/vodici/${driver.id}`}>
                             <Pencil className="h-4 w-4" />
                           </Link>
                         </Button>

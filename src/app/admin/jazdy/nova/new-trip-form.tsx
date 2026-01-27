@@ -18,7 +18,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, Save, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import { TRIP_PURPOSES } from '@/types'
+import { TRIP_PURPOSES, TRIP_TYPES, TripType } from '@/types'
 
 interface NewTripFormProps {
   vehicles: { id: string; name: string; license_plate: string }[]
@@ -28,6 +28,7 @@ interface NewTripFormProps {
 export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
   const [vehicleId, setVehicleId] = useState('')
   const [driverId, setDriverId] = useState('')
+  const [tripType, setTripType] = useState<TripType>('sluzobna')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [timeStart, setTimeStart] = useState('')
   const [timeEnd, setTimeEnd] = useState('')
@@ -122,6 +123,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
     const { error } = await supabase.from('trips').insert({
       vehicle_id: vehicleId,
       driver_id: driverId,
+      trip_type: tripType,
       date,
       time_start: timeStart,
       time_end: timeEnd || null,
@@ -183,6 +185,23 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Typ jazdy */}
+      <div className="space-y-2">
+        <Label htmlFor="tripType">Typ jazdy *</Label>
+        <Select value={tripType} onValueChange={(v) => setTripType(v as TripType)} disabled={isSubmitting}>
+          <SelectTrigger id="tripType">
+            <SelectValue placeholder="Vyberte typ jazdy" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(TRIP_TYPES).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Dátum a čas */}

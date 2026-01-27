@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/select'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
+import { TRIP_TYPES } from '@/types'
 
 interface TripsFilterProps {
   vehicles: { id: string; name: string; license_plate: string }[]
@@ -20,6 +21,7 @@ interface TripsFilterProps {
   currentFilters: {
     vehicle?: string
     driver?: string
+    tripType?: string
     from?: string
     to?: string
   }
@@ -36,19 +38,19 @@ export function TripsFilter({ vehicles, drivers, currentFilters }: TripsFilterPr
     } else {
       params.delete(key)
     }
-    router.push(`/jazdy?${params.toString()}`)
+    router.push(`/admin/jazdy?${params.toString()}`)
   }
 
   const clearFilters = () => {
     router.push('/admin/jazdy')
   }
 
-  const hasFilters = currentFilters.vehicle || currentFilters.driver || currentFilters.from || currentFilters.to
+  const hasFilters = currentFilters.vehicle || currentFilters.driver || currentFilters.tripType || currentFilters.from || currentFilters.to
 
   return (
     <Card>
       <CardContent className="pt-4">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
           <div className="space-y-2">
             <Label htmlFor="vehicle">Vozidlo</Label>
             <Select
@@ -83,6 +85,26 @@ export function TripsFilter({ vehicles, drivers, currentFilters }: TripsFilterPr
                 {drivers.map((d) => (
                   <SelectItem key={d.id} value={d.id}>
                     {d.first_name} {d.last_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="tripType">Typ jazdy</Label>
+            <Select
+              value={currentFilters.tripType || 'all'}
+              onValueChange={(v) => updateFilter('tripType', v)}
+            >
+              <SelectTrigger id="tripType">
+                <SelectValue placeholder="Všetky typy" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Všetky typy</SelectItem>
+                {Object.entries(TRIP_TYPES).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>
+                    {label}
                   </SelectItem>
                 ))}
               </SelectContent>

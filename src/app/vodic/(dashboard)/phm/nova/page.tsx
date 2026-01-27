@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/select'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
-import { FUEL_TYPES, Vehicle } from '@/types'
+import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, Vehicle, FuelCountry, PaymentMethod } from '@/types'
 
 export default function DriverNewFuelPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
@@ -30,6 +30,8 @@ export default function DriverNewFuelPage() {
   const [pricePerLiter, setPricePerLiter] = useState('')
   const [fuelType, setFuelType] = useState('')
   const [gasStation, setGasStation] = useState('')
+  const [country, setCountry] = useState<FuelCountry>('SK')
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('company_card')
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -72,6 +74,10 @@ export default function DriverNewFuelPage() {
     ? (parseFloat(liters) * parseFloat(pricePerLiter)).toFixed(2)
     : ''
 
+  const priceWithoutVat = totalPrice
+    ? (parseFloat(totalPrice) / (1 + FUEL_COUNTRIES[country].vatRate)).toFixed(2)
+    : ''
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -90,6 +96,9 @@ export default function DriverNewFuelPage() {
       liters: parseFloat(liters),
       price_per_liter: parseFloat(pricePerLiter),
       total_price: parseFloat(totalPrice),
+      price_without_vat: priceWithoutVat ? parseFloat(priceWithoutVat) : null,
+      country,
+      payment_method: paymentMethod,
       fuel_type: fuelType,
       gas_station: gasStation.trim() || null,
       notes: notes.trim() || null,
@@ -177,7 +186,7 @@ export default function DriverNewFuelPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="liters">Množstvo (litre) *</Label>
                 <Input
@@ -210,9 +219,15 @@ export default function DriverNewFuelPage() {
                   {totalPrice ? `${totalPrice} EUR` : '-'}
                 </div>
               </div>
+              <div className="space-y-2">
+                <Label>Bez DPH (EUR)</Label>
+                <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
+                  {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
+                </div>
+              </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
                 <Label htmlFor="fuelType">Typ paliva *</Label>
                 <Select value={fuelType} onValueChange={setFuelType} disabled={isSubmitting}>
@@ -237,6 +252,36 @@ export default function DriverNewFuelPage() {
                   disabled={isSubmitting}
                   placeholder="napr. Shell, OMV..."
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="country">Krajina *</Label>
+                <Select value={country} onValueChange={(v) => setCountry(v as FuelCountry)} disabled={isSubmitting}>
+                  <SelectTrigger id="country">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
+                      <SelectItem key={code} value={code}>
+                        {data.flag} {data.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="paymentMethod">Spôsob platby *</Label>
+                <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)} disabled={isSubmitting}>
+                  <SelectTrigger id="paymentMethod">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
