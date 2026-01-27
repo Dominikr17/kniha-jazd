@@ -48,7 +48,7 @@ src/
 
 ## Databázové tabuľky
 - `drivers` - Vodiči
-- `vehicles` - Vozidlá (+ `responsible_driver_id` - zodpovedný vodič)
+- `vehicles` - Vozidlá (+ `responsible_driver_id`, `rated_consumption` - normovaná spotreba l/100km)
 - `vehicle_documents` - Dokumenty vozidiel
 - `vehicle_inspections` - STK/EK kontroly
 - `vehicle_vignettes` - Diaľničné známky

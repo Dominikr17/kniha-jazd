@@ -24,6 +24,7 @@ export interface Vehicle {
   fuel_type: 'benzin' | 'nafta' | 'lpg' | 'elektro' | 'hybrid'
   initial_odometer: number
   responsible_driver_id: string | null
+  rated_consumption: number | null  // Normovaná spotreba v l/100km podľa výrobcu
   created_at: string
   updated_at: string
   // Joined fields

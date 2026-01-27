@@ -255,3 +255,11 @@ CREATE POLICY "Prihlásení používatelia môžu upravovať tankovania" ON fuel
 
 CREATE POLICY "Prihlásení používatelia môžu mazať tankovania" ON fuel_records
   FOR DELETE TO authenticated USING (true);
+
+
+-- =====================================================
+-- MIGRÁCIA: Pridanie normovanej spotreby do vozidiel
+-- =====================================================
+ALTER TABLE vehicles ADD COLUMN IF NOT EXISTS rated_consumption DECIMAL(4,1);
+-- Normovaná spotreba v l/100km podľa výrobcu
+COMMENT ON COLUMN vehicles.rated_consumption IS 'Normovaná spotreba v l/100km podľa výrobcu';

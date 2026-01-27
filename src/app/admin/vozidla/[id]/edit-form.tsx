@@ -34,6 +34,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
   const [fuelType, setFuelType] = useState<string>(vehicle.fuel_type)
   const [initialOdometer, setInitialOdometer] = useState(vehicle.initial_odometer.toString())
   const [responsibleDriverId, setResponsibleDriverId] = useState(vehicle.responsible_driver_id || 'none')
+  const [ratedConsumption, setRatedConsumption] = useState(vehicle.rated_consumption?.toString() || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -52,6 +53,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
       fuel_type: vehicle.fuel_type,
       initial_odometer: vehicle.initial_odometer,
       responsible_driver_id: vehicle.responsible_driver_id,
+      rated_consumption: vehicle.rated_consumption,
     }
 
     const newData = {
@@ -64,6 +66,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
       fuel_type: fuelType,
       initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
       responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
+      rated_consumption: ratedConsumption ? parseFloat(ratedConsumption) : null,
     }
 
     const { error } = await supabase
@@ -99,7 +102,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
       <div className="space-y-2">
         <Label htmlFor="name">Názov vozidla *</Label>
         <Input
@@ -158,7 +161,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="year">Rok výroby</Label>
           <Input
@@ -186,6 +189,9 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="initialOdometer">Počiatočný stav km</Label>
           <Input
@@ -195,6 +201,20 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
             onChange={(e) => setInitialOdometer(e.target.value)}
             disabled={isSubmitting}
             min={0}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ratedConsumption">Normovaná spotreba (l/100km)</Label>
+          <Input
+            id="ratedConsumption"
+            type="number"
+            step="0.1"
+            value={ratedConsumption}
+            onChange={(e) => setRatedConsumption(e.target.value)}
+            disabled={isSubmitting}
+            placeholder="napr. 6.5"
+            min={0}
+            max={50}
           />
         </div>
       </div>

@@ -10,11 +10,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  ReferenceLine,
+  Legend,
+  Cell,
 } from 'recharts'
 import { FuelRecord } from '@/types'
 
 interface FuelConsumptionProps {
-  vehicles: { id: string; name: string; license_plate: string }[]
+  vehicles: { id: string; name: string; license_plate: string; rated_consumption: number | null }[]
   fuelRecords: FuelRecord[]
 }
 
@@ -37,12 +40,19 @@ export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps)
     }
 
     const avgConsumption = totalDistance > 0 ? (totalLiters / totalDistance) * 100 : 0
+    const ratedConsumption = vehicle.rated_consumption
+    const difference = ratedConsumption && avgConsumption > 0
+      ? Number((avgConsumption - ratedConsumption).toFixed(1))
+      : null
 
     return {
       name: vehicle.name,
       'Spotreba l/100km': Number(avgConsumption.toFixed(1)),
+      'Norma l/100km': ratedConsumption ? Number(ratedConsumption.toFixed(1)) : null,
       totalLiters: Math.round(totalLiters),
       totalDistance,
+      ratedConsumption,
+      difference,
     }
   }).filter((v) => v['Spotreba l/100km'] > 0)
 
@@ -113,11 +123,35 @@ export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps)
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis type="category" dataKey="name" />
-                <Tooltip />
+                <Tooltip
+                  formatter={(value, name) => {
+                    if (name === 'Norma l/100km') return [value ? `${value} l/100km` : '-', 'Norma']
+                    return [`${value} l/100km`, 'Reálna spotreba']
+                  }}
+                />
+                <Legend />
                 <Bar
                   dataKey="Spotreba l/100km"
-                  fill="#f59e0b"
-                  barSize={30}
+                  name="Reálna spotreba"
+                  barSize={20}
+                >
+                  {consumptionData.map((entry, index) => {
+                    let color = '#f59e0b' // default oranžová
+                    if (entry.ratedConsumption) {
+                      if (entry['Spotreba l/100km'] < entry.ratedConsumption) {
+                        color = '#22c55e' // zelená - úspora
+                      } else if (entry['Spotreba l/100km'] > entry.ratedConsumption) {
+                        color = '#ef4444' // červená - prekročenie
+                      }
+                    }
+                    return <Cell key={`cell-${index}`} fill={color} />
+                  })}
+                </Bar>
+                <Bar
+                  dataKey="Norma l/100km"
+                  name="Norma"
+                  fill="#94a3b8"
+                  barSize={8}
                 />
               </BarChart>
             </ResponsiveContainer>
@@ -135,7 +169,9 @@ export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps)
               <thead>
                 <tr className="border-b">
                   <th className="text-left p-2">Vozidlo</th>
-                  <th className="text-right p-2">Spotreba</th>
+                  <th className="text-right p-2">Reálna spotreba</th>
+                  <th className="text-right p-2">Norma</th>
+                  <th className="text-right p-2">Rozdiel</th>
                   <th className="text-right p-2">Celkom litrov</th>
                   <th className="text-right p-2">Celkom km</th>
                   <th className="text-center p-2">Hodnotenie</th>
@@ -143,18 +179,33 @@ export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps)
               </thead>
               <tbody>
                 {consumptionData.map((row) => {
-                  let rating: 'Výborná' | 'Dobrá' | 'Priemerná' | 'Vysoká' = 'Priemerná'
+                  let rating: 'Výborná' | 'Dobrá' | 'Priemerná' | 'Vysoká' | 'Úspora' | 'Prekročenie' = 'Priemerná'
                   let badgeColor = 'bg-yellow-500'
 
-                  if (row['Spotreba l/100km'] < 6) {
-                    rating = 'Výborná'
-                    badgeColor = 'bg-green-500'
-                  } else if (row['Spotreba l/100km'] < 8) {
-                    rating = 'Dobrá'
-                    badgeColor = 'bg-blue-500'
-                  } else if (row['Spotreba l/100km'] > 10) {
-                    rating = 'Vysoká'
-                    badgeColor = 'bg-red-500'
+                  // Ak máme normovanú spotrebu, hodnotíme podľa nej
+                  if (row.ratedConsumption && row.difference !== null) {
+                    if (row.difference < -0.5) {
+                      rating = 'Úspora'
+                      badgeColor = 'bg-green-500'
+                    } else if (row.difference > 0.5) {
+                      rating = 'Prekročenie'
+                      badgeColor = 'bg-red-500'
+                    } else {
+                      rating = 'Dobrá'
+                      badgeColor = 'bg-blue-500'
+                    }
+                  } else {
+                    // Bez normy hodnotíme absolútne
+                    if (row['Spotreba l/100km'] < 6) {
+                      rating = 'Výborná'
+                      badgeColor = 'bg-green-500'
+                    } else if (row['Spotreba l/100km'] < 8) {
+                      rating = 'Dobrá'
+                      badgeColor = 'bg-blue-500'
+                    } else if (row['Spotreba l/100km'] > 10) {
+                      rating = 'Vysoká'
+                      badgeColor = 'bg-red-500'
+                    }
                   }
 
                   return (
@@ -162,6 +213,16 @@ export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps)
                       <td className="p-2 font-medium">{row.name}</td>
                       <td className="p-2 text-right font-bold">
                         {row['Spotreba l/100km']} l/100km
+                      </td>
+                      <td className="p-2 text-right text-muted-foreground">
+                        {row.ratedConsumption ? `${row.ratedConsumption} l/100km` : '-'}
+                      </td>
+                      <td className="p-2 text-right">
+                        {row.difference !== null ? (
+                          <span className={row.difference < 0 ? 'text-green-600 font-medium' : row.difference > 0 ? 'text-red-600 font-medium' : ''}>
+                            {row.difference > 0 ? '+' : ''}{row.difference} l/100km
+                          </span>
+                        ) : '-'}
                       </td>
                       <td className="p-2 text-right">{row.totalLiters.toLocaleString()} l</td>
                       <td className="p-2 text-right">{row.totalDistance.toLocaleString()} km</td>

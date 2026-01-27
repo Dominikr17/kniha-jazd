@@ -15,7 +15,7 @@ export default async function ReportsPage() {
     { data: trips },
     { data: fuelRecords },
   ] = await Promise.all([
-    supabase.from('vehicles').select('id, name, license_plate').order('name'),
+    supabase.from('vehicles').select('id, name, license_plate, rated_consumption').order('name'),
     supabase.from('trips').select('*'),
     supabase.from('fuel_records').select('*'),
   ])
