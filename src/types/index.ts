@@ -218,3 +218,6 @@ export const AUDIT_OPERATIONS = {
   UPDATE: 'Úprava',
   DELETE: 'Zmazanie'
 } as const
+
+// Časový limit na úpravu jazdy vodičom (v minútach)
+export const DRIVER_EDIT_TIME_LIMIT_MINUTES = 15

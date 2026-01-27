@@ -25,9 +25,10 @@ interface DriverEditTripFormProps {
   vehicles: { id: string; name: string; license_plate: string }[]
   driverId: string
   driverName: string
+  canEdit: boolean
 }
 
-export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: DriverEditTripFormProps) {
+export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEdit }: DriverEditTripFormProps) {
   const isPredefinedPurpose = TRIP_PURPOSES.includes(trip.purpose as typeof TRIP_PURPOSES[number])
 
   const [vehicleId, setVehicleId] = useState(trip.vehicle_id)
@@ -120,7 +121,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
       {/* Vozidlo */}
       <div className="space-y-2">
         <Label htmlFor="vehicle">Vozidlo *</Label>
-        <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting}>
+        <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting || !canEdit}>
           <SelectTrigger id="vehicle">
             <SelectValue />
           </SelectTrigger>
@@ -144,7 +145,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             value={date}
             onChange={(e) => setDate(e.target.value)}
             required
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
           />
         </div>
         <div className="space-y-2">
@@ -155,7 +156,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             value={timeStart}
             onChange={(e) => setTimeStart(e.target.value)}
             required
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
           />
         </div>
         <div className="space-y-2">
@@ -165,7 +166,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             type="time"
             value={timeEnd}
             onChange={(e) => setTimeEnd(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
           />
         </div>
       </div>
@@ -179,7 +180,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             value={routeFrom}
             onChange={(e) => setRouteFrom(e.target.value)}
             required
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
           />
         </div>
         <div className="space-y-2">
@@ -189,7 +190,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             value={routeTo}
             onChange={(e) => setRouteTo(e.target.value)}
             required
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
           />
         </div>
       </div>
@@ -197,7 +198,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
       {/* Účel cesty */}
       <div className="space-y-2">
         <Label htmlFor="purpose">Účel cesty *</Label>
-        <Select value={purpose} onValueChange={setPurpose} disabled={isSubmitting}>
+        <Select value={purpose} onValueChange={setPurpose} disabled={isSubmitting || !canEdit}>
           <SelectTrigger id="purpose">
             <SelectValue />
           </SelectTrigger>
@@ -215,7 +216,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             placeholder="Zadajte vlastný účel cesty"
             value={customPurpose}
             onChange={(e) => setCustomPurpose(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
           />
         )}
       </div>
@@ -230,7 +231,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             value={odometerStart}
             onChange={(e) => setOdometerStart(e.target.value)}
             required
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
             min={0}
           />
         </div>
@@ -241,7 +242,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             type="number"
             value={odometerEnd}
             onChange={(e) => setOdometerEnd(e.target.value)}
-            disabled={isSubmitting}
+            disabled={isSubmitting || !canEdit}
             min={odometerStart ? parseInt(odometerStart) : 0}
           />
         </div>
@@ -260,14 +261,14 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
           id="notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
-          disabled={isSubmitting}
+          disabled={isSubmitting || !canEdit}
           rows={3}
         />
       </div>
 
       {/* Tlačidlá */}
       <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting}>
+        <Button type="submit" disabled={isSubmitting || !canEdit}>
           {isSubmitting ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -280,7 +281,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName }: Dri
             </>
           )}
         </Button>
-        <Button type="button" variant="outline" asChild disabled={isSubmitting}>
+        <Button type="button" variant="outline" asChild disabled={isSubmitting || !canEdit}>
           <Link href="/vodic/jazdy">Zrušiť</Link>
         </Button>
       </div>

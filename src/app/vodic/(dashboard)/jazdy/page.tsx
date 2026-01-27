@@ -15,7 +15,15 @@ import { Plus, Route, Fuel, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
-import { DeleteTripButton } from './delete-button'
+import { DRIVER_EDIT_TIME_LIMIT_MINUTES, TRIP_TYPES, TripType } from '@/types'
+
+// Helper funkcia - kontrola či vodič môže upraviť jazdu (do 15 minút od vytvorenia)
+function canEditTrip(createdAt: string): boolean {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMinutes = (now.getTime() - created.getTime()) / (1000 * 60)
+  return diffMinutes <= DRIVER_EDIT_TIME_LIMIT_MINUTES
+}
 
 export default async function DriverTripsPage() {
   const supabase = await createClient()
@@ -26,8 +34,7 @@ export default async function DriverTripsPage() {
     .from('trips')
     .select('*, vehicle:vehicles(name, license_plate)')
     .eq('driver_id', driverId)
-    .order('date', { ascending: false })
-    .order('time_start', { ascending: false })
+    .order('created_at', { ascending: false })
     .limit(50)
 
   // Štatistiky za aktuálny mesiac
@@ -99,11 +106,13 @@ export default async function DriverTripsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Dátum</TableHead>
+                      <TableHead>Čas</TableHead>
                       <TableHead>Vozidlo</TableHead>
                       <TableHead>Trasa</TableHead>
                       <TableHead>Účel</TableHead>
+                      <TableHead>Typ</TableHead>
                       <TableHead className="text-right">Km</TableHead>
-                      <TableHead className="w-[100px]"></TableHead>
+                      <TableHead className="w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -111,6 +120,10 @@ export default async function DriverTripsPage() {
                       <TableRow key={trip.id}>
                         <TableCell>
                           {format(parseISO(trip.date), 'd.M.yyyy', { locale: sk })}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {trip.time_start?.slice(0, 5)}
+                          {trip.time_end && ` - ${trip.time_end.slice(0, 5)}`}
                         </TableCell>
                         <TableCell>
                           <div className="font-medium">{trip.vehicle?.name}</div>
@@ -122,18 +135,22 @@ export default async function DriverTripsPage() {
                           {trip.route_from} - {trip.route_to}
                         </TableCell>
                         <TableCell>{trip.purpose}</TableCell>
+                        <TableCell>
+                          <Badge variant={trip.trip_type === 'sukromna' ? 'outline' : 'secondary'}>
+                            {TRIP_TYPES[trip.trip_type as TripType]}
+                          </Badge>
+                        </TableCell>
                         <TableCell className="text-right font-medium">
                           {trip.distance ? `${trip.distance} km` : '-'}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-1 justify-end">
+                          {canEditTrip(trip.created_at) && (
                             <Button variant="ghost" size="icon" asChild>
                               <Link href={`/vodic/jazdy/${trip.id}`}>
                                 <Pencil className="h-4 w-4" />
                               </Link>
                             </Button>
-                            <DeleteTripButton tripId={trip.id} driverId={driverId!} driverName={driverName || ''} />
-                          </div>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -155,25 +172,34 @@ export default async function DriverTripsPage() {
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {format(parseISO(trip.date), 'd.M.yyyy', { locale: sk })}
+                          {' '}
+                          {trip.time_start?.slice(0, 5)}
+                          {trip.time_end && ` - ${trip.time_end.slice(0, 5)}`}
                         </div>
                       </div>
-                      {trip.distance && (
-                        <Badge variant="secondary">{trip.distance} km</Badge>
-                      )}
+                      <div className="flex flex-col items-end gap-1">
+                        {trip.distance && (
+                          <Badge variant="secondary">{trip.distance} km</Badge>
+                        )}
+                        <Badge variant={trip.trip_type === 'sukromna' ? 'outline' : 'secondary'}>
+                          {TRIP_TYPES[trip.trip_type as TripType]}
+                        </Badge>
+                      </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {trip.vehicle?.name} ({trip.vehicle?.license_plate})
                     </div>
                     <div className="text-sm">{trip.purpose}</div>
-                    <div className="flex gap-2 pt-2">
-                      <Button variant="outline" size="sm" asChild className="flex-1">
-                        <Link href={`/vodic/jazdy/${trip.id}`}>
-                          <Pencil className="h-4 w-4 mr-1" />
-                          Upraviť
-                        </Link>
-                      </Button>
-                      <DeleteTripButton tripId={trip.id} driverId={driverId!} driverName={driverName || ''} variant="outline" size="sm" />
-                    </div>
+                    {canEditTrip(trip.created_at) && (
+                      <div className="flex gap-2 pt-2">
+                        <Button variant="outline" size="sm" asChild className="flex-1">
+                          <Link href={`/vodic/jazdy/${trip.id}`}>
+                            <Pencil className="h-4 w-4 mr-1" />
+                            Upraviť
+                          </Link>
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
