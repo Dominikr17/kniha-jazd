@@ -57,9 +57,9 @@ export default async function DriverTripsPage() {
             </Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/vodic/phm/nova">
+            <Link href="/vodic/phm">
               <Fuel className="mr-2 h-4 w-4" />
-              Tankovanie
+              PHM
             </Link>
           </Button>
         </div>

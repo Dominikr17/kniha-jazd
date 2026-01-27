@@ -70,11 +70,11 @@ export default async function DriverLayout({
             <span className="text-xs">Nová jazda</span>
           </Link>
           <Link
-            href="/vodic/phm/nova"
+            href="/vodic/phm"
             className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted"
           >
             <Fuel className="h-5 w-5" />
-            <span className="text-xs">Tankovanie</span>
+            <span className="text-xs">PHM</span>
           </Link>
         </div>
       </nav>

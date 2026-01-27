@@ -42,19 +42,11 @@ export default function DriverNewFuelPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Získanie driver ID z cookie cez API
-      const driverIdCookie = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('driver_id='))
-        ?.split('=')[1]
-
-      const driverNameCookie = document.cookie
-        .split('; ')
-        .find((row) => row.startsWith('driver_name='))
-        ?.split('=')[1]
-
-      setDriverId(driverIdCookie || null)
-      setDriverName(driverNameCookie ? decodeURIComponent(driverNameCookie) : null)
+      // Získanie driver ID z API (cookies sú httpOnly)
+      const driverRes = await fetch('/api/driver/me')
+      const driverData = await driverRes.json()
+      setDriverId(driverData.driverId || null)
+      setDriverName(driverData.driverName || null)
 
       const { data: vehiclesData } = await supabase
         .from('vehicles')
@@ -132,7 +124,7 @@ export default function DriverNewFuelPage() {
     })
 
     toast.success('Tankovanie bolo uložené')
-    router.push('/vodic/jazdy')
+    router.push('/vodic/phm')
     router.refresh()
   }
 
@@ -148,7 +140,7 @@ export default function DriverNewFuelPage() {
     <div className="space-y-6 pb-20 sm:pb-6">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/vodic/jazdy">
+          <Link href="/vodic/phm">
             <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
@@ -331,7 +323,7 @@ export default function DriverNewFuelPage() {
                 )}
               </Button>
               <Button type="button" variant="outline" asChild disabled={isSubmitting}>
-                <Link href="/vodic/jazdy">Zrušiť</Link>
+                <Link href="/vodic/phm">Zrušiť</Link>
               </Button>
             </div>
           </form>

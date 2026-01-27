@@ -33,8 +33,8 @@ src/
 │   │   ├── driver-select.tsx  # Combobox s vyhľadávaním vodičov
 │   │   └── (dashboard)/       # Vodičov dashboard
 │   │       ├── jazdy/         # Zoznam jázd, nová jazda, úprava
-│   │       └── phm/nova/      # Nové tankovanie
-│   ├── api/driver/            # API pre vodičov (login/logout cookie)
+│   │       └── phm/           # Zoznam tankovaní, nové tankovanie
+│   ├── api/driver/            # API pre vodičov (login/logout/me)
 │   └── auth/callback/         # Auth callback
 ├── components/
 │   ├── ui/                    # shadcn komponenty
