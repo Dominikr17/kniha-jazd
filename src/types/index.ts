@@ -25,6 +25,7 @@ export interface Vehicle {
   initial_odometer: number
   responsible_driver_id: string | null
   rated_consumption: number | null  // Normovaná spotreba v l/100km podľa výrobcu
+  tank_capacity: number | null  // Objem palivovej nádrže v litroch
   created_at: string
   updated_at: string
   // Joined fields
@@ -110,7 +111,7 @@ export interface FuelRecord {
   vehicle_id: string
   driver_id: string | null
   date: string
-  odometer: number
+  odometer: number | null
   liters: number
   price_per_liter: number
   total_price: number
@@ -121,6 +122,7 @@ export interface FuelRecord {
   gas_station: string | null
   receipt_url: string | null
   notes: string | null
+  full_tank: boolean  // Či sa jedná o dotankovanie do plnej nádrže
   created_at: string
   // Joined fields
   vehicle?: Vehicle
@@ -279,6 +281,9 @@ export interface MonthlyReportData {
   initialFuelStock: number
   finalFuelStock: number
 
+  // Automatický výpočet zásob PHM
+  fuelStockCalculation: FuelStockCalculation | null
+
   // Nákup PHM (automaticky z fuel_records)
   fuelPurchaseDomestic: number  // SK
   fuelPurchaseForeign: number   // ostatné krajiny
@@ -307,4 +312,43 @@ export interface MonthlyReportData {
   approvedBy: string | null
   approvedAt: string | null
   notes: string | null
+}
+
+// Referenčný bod stavu nádrže
+export type FuelInventorySource = 'initial' | 'full_tank' | 'manual_correction'
+
+export interface FuelInventory {
+  id: string
+  vehicle_id: string
+  date: string
+  fuel_amount: number
+  source: FuelInventorySource
+  fuel_record_id: string | null
+  notes: string | null
+  created_at: string
+}
+
+export type FuelInventoryInsert = Omit<FuelInventory, 'id' | 'created_at'>
+
+// Výsledok výpočtu stavu nádrže
+export interface FuelStockCalculation {
+  // Vypočítané hodnoty
+  initialFuelStock: number
+  finalFuelStock: number
+
+  // Informácie o výpočte
+  isEstimate: boolean  // true ak nie je k dispozícii referenčný bod
+  hasReferencePoint: boolean  // či existuje referenčný bod pre výpočet
+  referenceDate: string | null  // dátum posledného referenčného bodu
+  referenceSource: FuelInventorySource | null  // zdroj referenčného bodu
+
+  // Vstupné údaje použité pre výpočet
+  tankCapacity: number | null
+  ratedConsumption: number | null
+  totalKm: number
+  totalRefueled: number
+
+  // Upozornenia
+  warnings: string[]
+  error: string | null
 }

@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
-import { MonthlyReport, MonthlyReportData, ReportStatus } from '@/types'
+import { MonthlyReport, MonthlyReportData, ReportStatus, FuelStockCalculation } from '@/types'
+import { calculateMonthlyFuelStocks } from '@/lib/fuel-stock-calculator'
 
 interface CalculateParams {
   vehicleId: string
@@ -89,9 +90,16 @@ export async function calculateMonthlyReportData(params: CalculateParams): Promi
   const fuelCostForeign = foreignRecords.reduce((sum, r) => sum + Number(r.total_price), 0)
   const fuelCostTotal = fuelCostDomestic + fuelCostForeign
 
-  // Zásoby PHM (z existujúceho výkazu alebo default 0)
-  const initialFuelStock = existingReport?.initial_fuel_stock || 0
-  const finalFuelStock = existingReport?.final_fuel_stock || 0
+  // Automatický výpočet zásob PHM
+  const fuelStockCalculation = await calculateMonthlyFuelStocks({
+    vehicleId,
+    year,
+    month
+  })
+
+  // Zásoby PHM - manuálne hodnoty majú prednosť pred automatickými
+  const initialFuelStock = existingReport?.initial_fuel_stock ?? fuelStockCalculation.initialFuelStock
+  const finalFuelStock = existingReport?.final_fuel_stock ?? fuelStockCalculation.finalFuelStock
 
   // Spotreba = počiatočná zásoba + nákup - konečná zásoba
   const fuelConsumption = initialFuelStock + fuelPurchaseTotal - finalFuelStock
@@ -114,6 +122,7 @@ export async function calculateMonthlyReportData(params: CalculateParams): Promi
       : null,
     initialFuelStock,
     finalFuelStock,
+    fuelStockCalculation,
     fuelPurchaseDomestic,
     fuelPurchaseForeign,
     fuelPurchaseTotal,

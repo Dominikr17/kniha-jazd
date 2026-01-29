@@ -25,17 +25,21 @@ export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps)
   // Výpočet priemernej spotreby pre každé vozidlo
   const consumptionData = vehicles.map((vehicle) => {
     const vehicleFuel = fuelRecords
-      .filter((f) => f.vehicle_id === vehicle.id)
+      .filter((f) => f.vehicle_id === vehicle.id && f.odometer !== null)
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
 
     let totalLiters = 0
     let totalDistance = 0
 
     for (let i = 1; i < vehicleFuel.length; i++) {
-      const distance = vehicleFuel[i].odometer - vehicleFuel[i - 1].odometer
-      if (distance > 0) {
-        totalDistance += distance
-        totalLiters += Number(vehicleFuel[i].liters)
+      const currentOdometer = vehicleFuel[i].odometer
+      const prevOdometer = vehicleFuel[i - 1].odometer
+      if (currentOdometer !== null && prevOdometer !== null) {
+        const distance = currentOdometer - prevOdometer
+        if (distance > 0) {
+          totalDistance += distance
+          totalLiters += Number(vehicleFuel[i].liters)
+        }
       }
     }
 

@@ -49,12 +49,13 @@ src/
 
 ## Databázové tabuľky
 - `drivers` - Vodiči
-- `vehicles` - Vozidlá (+ `responsible_driver_id`, `rated_consumption` - normovaná spotreba l/100km)
+- `vehicles` - Vozidlá (+ `responsible_driver_id`, `rated_consumption`, `tank_capacity`)
 - `vehicle_documents` - Dokumenty vozidiel
 - `vehicle_inspections` - STK/EK kontroly
 - `vehicle_vignettes` - Diaľničné známky
 - `trips` - Jazdy (auto-číslovanie, + `trip_type`: sluzobna/sukromna)
-- `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`)
+- `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`, `full_tank`, `odometer` voliteľný)
+- `fuel_inventory` - Referenčné body stavu nádrže (pre automatický výpočet zásob PHM)
 - `audit_logs` - Žurnál aktivít (logovanie INSERT/UPDATE/DELETE)
 - `monthly_reports` - Mesačné výkazy PHM (zásoby, tachometer, status workflow)
 
@@ -67,6 +68,7 @@ src/
 - `src/lib/monthly-report.ts` - Helper pre mesačné výkazy PHM
 - `src/lib/monthly-report-pdf.ts` - PDF export mesačných výkazov
 - `src/lib/monthly-report-excel.ts` - Excel export mesačných výkazov
+- `src/lib/fuel-stock-calculator.ts` - Automatický výpočet stavu nádrže
 - `src/types/index.ts` - Všetky TypeScript typy a konstanty
 - `supabase/full_migration.sql` - Kompletná DB migrácia
 
@@ -105,7 +107,7 @@ npm run lint     # ESLint
 - **Projekt:** kniha-jazd
 - **RLS politiky:**
   - `drivers`, `vehicles` - verejné čítanie (SELECT)
-  - `trips`, `fuel_records`, `monthly_reports` - verejné čítanie, vkladanie, úprava, mazanie
+  - `trips`, `fuel_records`, `fuel_inventory`, `monthly_reports` - verejné čítanie, vkladanie, úprava, mazanie
   - Ostatné tabuľky - prístup len pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 
@@ -123,6 +125,13 @@ npm run lint     # ESLint
 5. Server komponenty používaj pre načítanie dát
 6. Client komponenty ('use client') pre interaktívne časti
 7. Toast notifikácie cez `sonner` (`toast.success()`, `toast.error()`)
+
+## Automatický výpočet stavu nádrže
+Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
+- **Referenčné body** (`fuel_inventory`): počiatočný stav, tankovanie do plna, manuálna korekcia
+- **Vzorec**: `Stav = Posledný ref. bod + Natankované - (Najazdené km × Normovaná spotreba × 1.2 / 100)`
+- **Potrebné údaje na vozidle**: `tank_capacity` (objem nádrže), `rated_consumption` (normovaná spotreba)
+- **Checkbox "Plná nádrž"** pri tankovaní vytvorí referenčný bod s kapacitou nádrže
 
 ## TODO / Plánované vylepšenia
 - [ ] Upload dokumentov (Supabase Storage)

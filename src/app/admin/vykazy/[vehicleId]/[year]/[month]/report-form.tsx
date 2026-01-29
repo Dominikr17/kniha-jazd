@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Save, Loader2 } from 'lucide-react'
+import { Save, Loader2, Bot, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { MonthlyReportData, REPORT_STATUS, ReportStatus } from '@/types'
 
@@ -26,6 +26,9 @@ export function ReportForm({ reportData }: ReportFormProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  const calc = reportData.fuelStockCalculation
+  const hasAutoCalculation = calc && calc.hasReferencePoint
+
   const [formData, setFormData] = useState({
     initialFuelStock: reportData.initialFuelStock,
     finalFuelStock: reportData.finalFuelStock,
@@ -35,6 +38,16 @@ export function ReportForm({ reportData }: ReportFormProps) {
     approvedBy: reportData.approvedBy || '',
     notes: reportData.notes || ''
   })
+
+  const resetToAutoCalculated = () => {
+    if (calc) {
+      setFormData(prev => ({
+        ...prev,
+        initialFuelStock: calc.initialFuelStock,
+        finalFuelStock: calc.finalFuelStock
+      }))
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -76,7 +89,14 @@ export function ReportForm({ reportData }: ReportFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             <div className="space-y-2">
-              <Label htmlFor="initialFuelStock">Počiatočná zásoba PHM (l)</Label>
+              <Label htmlFor="initialFuelStock" className="flex items-center gap-2">
+                Počiatočná zásoba PHM (l)
+                {hasAutoCalculation && (
+                  <span title="Automaticky vypočítané" className="text-green-600">
+                    <Bot className="h-4 w-4" />
+                  </span>
+                )}
+              </Label>
               <Input
                 id="initialFuelStock"
                 type="number"
@@ -87,10 +107,22 @@ export function ReportForm({ reportData }: ReportFormProps) {
                   initialFuelStock: parseFloat(e.target.value) || 0
                 }))}
               />
+              {hasAutoCalculation && formData.initialFuelStock !== calc.initialFuelStock && (
+                <p className="text-xs text-muted-foreground">
+                  Automaticky: {calc.initialFuelStock.toFixed(2)} l
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="finalFuelStock">Konečná zásoba PHM (l)</Label>
+              <Label htmlFor="finalFuelStock" className="flex items-center gap-2">
+                Konečná zásoba PHM (l)
+                {hasAutoCalculation && (
+                  <span title="Automaticky vypočítané" className="text-green-600">
+                    <Bot className="h-4 w-4" />
+                  </span>
+                )}
+              </Label>
               <Input
                 id="finalFuelStock"
                 type="number"
@@ -101,6 +133,11 @@ export function ReportForm({ reportData }: ReportFormProps) {
                   finalFuelStock: parseFloat(e.target.value) || 0
                 }))}
               />
+              {hasAutoCalculation && formData.finalFuelStock !== calc.finalFuelStock && (
+                <p className="text-xs text-muted-foreground">
+                  Automaticky: {calc.finalFuelStock.toFixed(2)} l
+                </p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -181,7 +218,18 @@ export function ReportForm({ reportData }: ReportFormProps) {
             />
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex justify-end gap-3">
+            {hasAutoCalculation && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={resetToAutoCalculated}
+                disabled={isSubmitting}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Obnoviť automatický výpočet
+              </Button>
+            )}
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

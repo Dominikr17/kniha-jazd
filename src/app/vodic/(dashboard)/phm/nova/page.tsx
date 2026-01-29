@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
+import { Checkbox } from '@/components/ui/checkbox'
 import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, Vehicle, FuelCountry, PaymentMethod } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
 
@@ -35,6 +36,7 @@ export default function DriverNewFuelPage() {
   const [country, setCountry] = useState<FuelCountry>('SK')
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('company_card')
   const [notes, setNotes] = useState('')
+  const [fullTank, setFullTank] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
@@ -92,7 +94,7 @@ export default function DriverNewFuelPage() {
       vehicle_id: vehicleId,
       driver_id: driverId,
       date,
-      odometer: parseInt(odometer),
+      odometer: odometer ? parseInt(odometer) : null,
       liters: parseFloat(liters),
       price_per_liter: parseFloat(pricePerLiter),
       total_price: parseFloat(totalPrice),
@@ -102,6 +104,7 @@ export default function DriverNewFuelPage() {
       fuel_type: fuelType,
       gas_station: gasStation.trim() || null,
       notes: notes.trim() || null,
+      full_tank: fullTank,
     }
 
     const { data, error } = await supabase.from('fuel_records').insert(fuelData).select().single()
@@ -122,6 +125,28 @@ export default function DriverNewFuelPage() {
       userName: driverName,
       newData: fuelData,
     })
+
+    // Ak je full_tank, vytvoríme záznam v fuel_inventory
+    if (fullTank) {
+      const vehicle = vehicles.find(v => v.id === vehicleId)
+      if (vehicle?.tank_capacity) {
+        const { error: invError } = await supabase
+          .from('fuel_inventory')
+          .insert({
+            vehicle_id: vehicleId,
+            date,
+            fuel_amount: vehicle.tank_capacity,
+            source: 'full_tank',
+            fuel_record_id: data.id
+          })
+        if (invError) {
+          toast.warning(`Tankovanie uložené, ale nepodarilo sa vytvoriť referenčný bod`)
+          console.error(invError)
+        }
+      } else {
+        toast.warning('Tankovanie uložené, ale vozidlo nemá nastavenú kapacitu nádrže')
+      }
+    }
 
     toast.success('Tankovanie bolo uložené')
     router.push('/vodic/phm')
@@ -185,15 +210,15 @@ export default function DriverNewFuelPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="odometer">Stav tachometra (km) *</Label>
+                <Label htmlFor="odometer">Stav tachometra (km)</Label>
                 <Input
                   id="odometer"
                   type="number"
                   value={odometer}
                   onChange={(e) => setOdometer(e.target.value)}
-                  required
                   disabled={isSubmitting}
                   min={0}
+                  placeholder="voliteľné"
                 />
               </div>
             </div>
@@ -239,7 +264,19 @@ export default function DriverNewFuelPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="fullTank"
+                checked={fullTank}
+                onCheckedChange={(checked) => setFullTank(checked === true)}
+                disabled={isSubmitting}
+              />
+              <Label htmlFor="fullTank" className="text-sm font-normal cursor-pointer">
+                Plná nádrž (tankovanie do plna)
+              </Label>
+            </div>
+
+            <div className="grid gap-4 grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="fuelType">Typ paliva *</Label>
                 <Select value={fuelType} onValueChange={setFuelType} disabled={isSubmitting}>
@@ -262,7 +299,7 @@ export default function DriverNewFuelPage() {
                   value={gasStation}
                   onChange={(e) => setGasStation(e.target.value)}
                   disabled={isSubmitting}
-                  placeholder="napr. Shell, OMV..."
+                  placeholder="Shell, OMV..."
                 />
               </div>
               <div className="space-y-2">

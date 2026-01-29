@@ -31,6 +31,9 @@ export default function NewVehiclePage() {
   const [fuelType, setFuelType] = useState('nafta')
   const [initialOdometer, setInitialOdometer] = useState('')
   const [responsibleDriverId, setResponsibleDriverId] = useState('none')
+  const [ratedConsumption, setRatedConsumption] = useState('')
+  const [tankCapacity, setTankCapacity] = useState('')
+  const [initialFuelStock, setInitialFuelStock] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -60,6 +63,8 @@ export default function NewVehiclePage() {
       fuel_type: fuelType,
       initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
       responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
+      rated_consumption: ratedConsumption ? parseFloat(ratedConsumption) : null,
+      tank_capacity: tankCapacity ? parseFloat(tankCapacity) : null,
     }
 
     const { data, error } = await supabase.from('vehicles').insert(vehicleData).select().single()
@@ -84,6 +89,24 @@ export default function NewVehiclePage() {
       userName: user?.email,
       newData: vehicleData,
     })
+
+    // Ak je zadaný počiatočný stav nádrže, vytvoríme záznam v fuel_inventory
+    if (initialFuelStock) {
+      const response = await fetch('/api/fuel-inventory/initial', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleId: data.id,
+          date: new Date().toISOString().split('T')[0],
+          fuelAmount: parseFloat(initialFuelStock),
+          notes: 'Počiatočný stav pri zavedení vozidla'
+        })
+      })
+      const result = await response.json()
+      if (!result.success) {
+        toast.warning(`Vozidlo pridané, ale nepodarilo sa uložiť počiatočný stav nádrže: ${result.error}`)
+      }
+    }
 
     toast.success('Vozidlo bolo úspešne pridané')
     router.push('/admin/vozidla')
@@ -212,6 +235,51 @@ export default function NewVehiclePage() {
                   disabled={isSubmitting}
                   min={0}
                   placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="ratedConsumption">Normovaná spotreba (l/100km)</Label>
+                <Input
+                  id="ratedConsumption"
+                  type="number"
+                  step="0.1"
+                  value={ratedConsumption}
+                  onChange={(e) => setRatedConsumption(e.target.value)}
+                  disabled={isSubmitting}
+                  placeholder="napr. 6.5"
+                  min={0}
+                  max={50}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="tankCapacity">Objem nádrže (l)</Label>
+                <Input
+                  id="tankCapacity"
+                  type="number"
+                  step="0.1"
+                  value={tankCapacity}
+                  onChange={(e) => setTankCapacity(e.target.value)}
+                  disabled={isSubmitting}
+                  placeholder="napr. 50"
+                  min={0}
+                  max={500}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="initialFuelStock">Počiatočný stav nádrže (l)</Label>
+                <Input
+                  id="initialFuelStock"
+                  type="number"
+                  step="0.1"
+                  value={initialFuelStock}
+                  onChange={(e) => setInitialFuelStock(e.target.value)}
+                  disabled={isSubmitting}
+                  placeholder="napr. 25"
+                  min={0}
+                  max={tankCapacity ? parseFloat(tankCapacity) : 500}
                 />
               </div>
             </div>

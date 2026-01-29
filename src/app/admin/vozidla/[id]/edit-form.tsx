@@ -35,6 +35,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
   const [initialOdometer, setInitialOdometer] = useState(vehicle.initial_odometer.toString())
   const [responsibleDriverId, setResponsibleDriverId] = useState(vehicle.responsible_driver_id || 'none')
   const [ratedConsumption, setRatedConsumption] = useState(vehicle.rated_consumption?.toString() || '')
+  const [tankCapacity, setTankCapacity] = useState(vehicle.tank_capacity?.toString() || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -54,6 +55,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
       initial_odometer: vehicle.initial_odometer,
       responsible_driver_id: vehicle.responsible_driver_id,
       rated_consumption: vehicle.rated_consumption,
+      tank_capacity: vehicle.tank_capacity,
     }
 
     const newData = {
@@ -67,6 +69,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
       initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
       responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
       rated_consumption: ratedConsumption ? parseFloat(ratedConsumption) : null,
+      tank_capacity: tankCapacity ? parseFloat(tankCapacity) : null,
     }
 
     const { error } = await supabase
@@ -191,7 +194,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="initialOdometer">Počiatočný stav km</Label>
           <Input
@@ -215,6 +218,20 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
             placeholder="napr. 6.5"
             min={0}
             max={50}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="tankCapacity">Objem nádrže (l)</Label>
+          <Input
+            id="tankCapacity"
+            type="number"
+            step="0.1"
+            value={tankCapacity}
+            onChange={(e) => setTankCapacity(e.target.value)}
+            disabled={isSubmitting}
+            placeholder="napr. 50"
+            min={0}
+            max={500}
           />
         </div>
       </div>

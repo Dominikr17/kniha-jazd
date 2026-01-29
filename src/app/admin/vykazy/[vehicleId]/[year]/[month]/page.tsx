@@ -1,7 +1,7 @@
 import { calculateMonthlyReportData } from '@/lib/monthly-report'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, AlertTriangle, Bot, Info } from 'lucide-react'
 import Link from 'next/link'
 import { MONTHS_SK } from '@/types'
 import { ReportForm } from './report-form'
@@ -70,6 +70,43 @@ export default async function ReportDetailPage({ params }: PageProps) {
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
             Vozidlo nemá priradeného zodpovedného vodiča. Predkladateľ výkazu nie je definovaný.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {reportData.fuelStockCalculation && reportData.fuelStockCalculation.warnings.length > 0 && (
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertDescription>
+            <ul className="list-disc list-inside space-y-1">
+              {reportData.fuelStockCalculation.warnings.map((warning, index) => (
+                <li key={index}>{warning}</li>
+              ))}
+            </ul>
+            {(!reportData.fuelStockCalculation.tankCapacity || !reportData.fuelStockCalculation.ratedConsumption) && (
+              <Link
+                href={`/admin/vozidla/${reportData.vehicleId}`}
+                className="text-blue-600 hover:underline mt-2 inline-block"
+              >
+                Upraviť nastavenia vozidla
+              </Link>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {reportData.fuelStockCalculation && reportData.fuelStockCalculation.hasReferencePoint && (
+        <Alert className="border-green-200 bg-green-50">
+          <Bot className="h-4 w-4 text-green-600" />
+          <AlertDescription className="text-green-800">
+            Zásoby PHM sú automaticky vypočítané na základe referenčného bodu
+            {reportData.fuelStockCalculation.referenceDate && (
+              <span className="font-medium"> z {new Date(reportData.fuelStockCalculation.referenceDate).toLocaleDateString('sk-SK')}</span>
+            )}
+            {reportData.fuelStockCalculation.referenceSource === 'full_tank' && ' (tankovanie do plna)'}
+            {reportData.fuelStockCalculation.referenceSource === 'initial' && ' (počiatočný stav)'}
+            {reportData.fuelStockCalculation.referenceSource === 'manual_correction' && ' (manuálna korekcia)'}
+            . Hodnoty môžete prepísať manuálne vo formulári nižšie.
           </AlertDescription>
         </Alert>
       )}
