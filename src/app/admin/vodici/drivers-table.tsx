@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Pencil, Car, Search, Users, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 import { Driver } from '@/types'
-import { DeleteDriverButton } from './delete-button'
+import { DeleteButton } from '@/components/delete-button'
 
 interface DriverWithCount extends Driver {
   vehicle_count: number
@@ -197,7 +197,15 @@ export function DriversTable({ drivers }: DriversTableProps) {
                         <Pencil className="h-4 w-4" />
                       </Link>
                     </Button>
-                    <DeleteDriverButton id={driver.id} name={`${driver.first_name} ${driver.last_name}`} />
+                    <DeleteButton
+                      tableName="drivers"
+                      recordId={driver.id}
+                      itemLabel={`${driver.first_name} ${driver.last_name}`}
+                      dialogTitle="Vymazať vodiča"
+                      dialogDescription={`Naozaj chcete vymazať vodiča ${driver.first_name} ${driver.last_name}? Táto akcia sa nedá vrátiť späť.`}
+                      successMessage="Vodič bol vymazaný"
+                      errorMessage="Nepodarilo sa vymazať vodiča"
+                    />
                   </div>
                 </TableCell>
               </TableRow>

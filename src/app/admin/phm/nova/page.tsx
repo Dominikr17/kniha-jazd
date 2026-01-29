@@ -185,9 +185,9 @@ export default function NewFuelPage() {
                     <SelectValue placeholder="Vyberte vozidlo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {vehicles.map((v) => (
-                      <SelectItem key={v.id} value={v.id}>
-                        {v.name} ({v.license_plate})
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name} ({vehicle.license_plate})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -200,9 +200,9 @@ export default function NewFuelPage() {
                     <SelectValue placeholder="Vyberte vodiča (voliteľné)" />
                   </SelectTrigger>
                   <SelectContent>
-                    {drivers.map((d) => (
-                      <SelectItem key={d.id} value={d.id}>
-                        {d.first_name} {d.last_name}
+                    {drivers.map((driver) => (
+                      <SelectItem key={driver.id} value={driver.id}>
+                        {driver.first_name} {driver.last_name}
                       </SelectItem>
                     ))}
                   </SelectContent>

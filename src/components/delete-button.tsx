@@ -17,11 +17,40 @@ import { Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { logAudit } from '@/lib/audit-logger'
 
-interface DeleteFuelButtonProps {
-  id: string
+type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles'
+type UserType = 'admin' | 'driver'
+
+interface DeleteButtonProps {
+  tableName: TableName
+  recordId: string
+  itemLabel: string
+  dialogTitle: string
+  dialogDescription: string
+  successMessage: string
+  errorMessage: string
+  userType?: UserType
+  userId?: string
+  userName?: string
+  variant?: 'ghost' | 'outline' | 'destructive'
+  size?: 'default' | 'sm' | 'icon'
+  showLabel?: boolean
 }
 
-export function DeleteFuelButton({ id }: DeleteFuelButtonProps) {
+export function DeleteButton({
+  tableName,
+  recordId,
+  itemLabel,
+  dialogTitle,
+  dialogDescription,
+  successMessage,
+  errorMessage,
+  userType = 'admin',
+  userId,
+  userName,
+  variant = 'ghost',
+  size = 'icon',
+  showLabel = false,
+}: DeleteButtonProps) {
   const [open, setOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const router = useRouter()
@@ -30,27 +59,35 @@ export function DeleteFuelButton({ id }: DeleteFuelButtonProps) {
   const handleDelete = async () => {
     setIsDeleting(true)
 
-    const { data: oldData } = await supabase.from('fuel_records').select('*').eq('id', id).single()
-    const { error } = await supabase.from('fuel_records').delete().eq('id', id)
+    const { data: oldData } = await supabase.from(tableName).select('*').eq('id', recordId).single()
+    const { error } = await supabase.from(tableName).delete().eq('id', recordId)
 
     if (error) {
-      toast.error('Nepodarilo sa vymazať záznam')
+      toast.error(errorMessage)
       setIsDeleting(false)
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
+    let auditUserId = userId
+    let auditUserName = userName
+
+    if (userType === 'admin' && !userId) {
+      const { data: { user } } = await supabase.auth.getUser()
+      auditUserId = user?.id
+      auditUserName = user?.email
+    }
+
     await logAudit({
-      tableName: 'fuel_records',
-      recordId: id,
+      tableName,
+      recordId,
       operation: 'DELETE',
-      userType: 'admin',
-      userId: user?.id,
-      userName: user?.email,
+      userType,
+      userId: auditUserId,
+      userName: auditUserName,
       oldData,
     })
 
-    toast.success('Záznam bol vymazaný')
+    toast.success(successMessage)
     setOpen(false)
     router.refresh()
   }
@@ -58,15 +95,16 @@ export function DeleteFuelButton({ id }: DeleteFuelButtonProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+        <Button variant={variant} size={size} className="text-destructive hover:text-destructive">
           <Trash2 className="h-4 w-4" />
+          {showLabel && <span className="ml-1">Zmazať</span>}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Vymazať tankovanie</DialogTitle>
+          <DialogTitle>{dialogTitle}</DialogTitle>
           <DialogDescription>
-            Naozaj chcete vymazať tento záznam o tankovaní? Táto akcia sa nedá vrátiť späť.
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

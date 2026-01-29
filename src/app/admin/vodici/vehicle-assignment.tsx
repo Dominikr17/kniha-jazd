@@ -34,7 +34,7 @@ export function VehicleAssignment({
   }
 
   const handleSelectAll = () => {
-    onChange(vehicles.map((v) => v.id))
+    onChange(vehicles.map((vehicle) => vehicle.id))
   }
 
   const handleSelectNone = () => {

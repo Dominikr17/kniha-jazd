@@ -176,9 +176,9 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
               <SelectValue placeholder="Vyberte vozidlo" />
             </SelectTrigger>
             <SelectContent>
-              {vehicles.map((v) => (
-                <SelectItem key={v.id} value={v.id}>
-                  {v.name} ({v.license_plate})
+              {vehicles.map((vehicle) => (
+                <SelectItem key={vehicle.id} value={vehicle.id}>
+                  {vehicle.name} ({vehicle.license_plate})
                 </SelectItem>
               ))}
             </SelectContent>
@@ -191,9 +191,9 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
               <SelectValue placeholder="Vyberte vodiča" />
             </SelectTrigger>
             <SelectContent>
-              {drivers.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.first_name} {d.last_name}
+              {drivers.map((driver) => (
+                <SelectItem key={driver.id} value={driver.id}>
+                  {driver.first_name} {driver.last_name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -288,9 +288,9 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
             <SelectValue placeholder="Vyberte účel cesty" />
           </SelectTrigger>
           <SelectContent>
-            {TRIP_PURPOSES.map((p) => (
-              <SelectItem key={p} value={p}>
-                {p}
+            {TRIP_PURPOSES.map((purposeOption) => (
+              <SelectItem key={purposeOption} value={purposeOption}>
+                {purposeOption}
               </SelectItem>
             ))}
           </SelectContent>

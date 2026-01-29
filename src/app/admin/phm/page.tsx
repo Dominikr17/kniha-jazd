@@ -15,7 +15,7 @@ import { Plus, Fuel, Trash2 } from 'lucide-react'
 import { FuelRecord, FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
-import { DeleteFuelButton } from './delete-button'
+import { DeleteButton } from '@/components/delete-button'
 
 export default async function FuelPage() {
   const supabase = await createClient()
@@ -160,7 +160,15 @@ export default async function FuelPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <DeleteFuelButton id={record.id} />
+                        <DeleteButton
+                        tableName="fuel_records"
+                        recordId={record.id}
+                        itemLabel="záznam o tankovaní"
+                        dialogTitle="Vymazať tankovanie"
+                        dialogDescription="Naozaj chcete vymazať tento záznam o tankovaní? Táto akcia sa nedá vrátiť späť."
+                        successMessage="Záznam bol vymazaný"
+                        errorMessage="Nepodarilo sa vymazať záznam"
+                      />
                       </TableCell>
                     </TableRow>
                   ))}

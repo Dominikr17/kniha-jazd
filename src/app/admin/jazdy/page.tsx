@@ -15,7 +15,7 @@ import { Plus, Route, FileDown, Pencil } from 'lucide-react'
 import { Trip, TRIP_TYPES } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
-import { DeleteTripButton } from './delete-button'
+import { DeleteButton } from '@/components/delete-button'
 import { ExportButtons } from './export-buttons'
 import { TripsFilter } from './trips-filter'
 
@@ -177,7 +177,15 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                               <Pencil className="h-4 w-4" />
                             </Link>
                           </Button>
-                          <DeleteTripButton id={trip.id} tripNumber={trip.trip_number} />
+                          <DeleteButton
+                          tableName="trips"
+                          recordId={trip.id}
+                          itemLabel={`jazdu č. ${trip.trip_number}`}
+                          dialogTitle="Vymazať jazdu"
+                          dialogDescription={`Naozaj chcete vymazať jazdu č. ${trip.trip_number}? Táto akcia sa nedá vrátiť späť.`}
+                          successMessage="Jazda bola vymazaná"
+                          errorMessage="Nepodarilo sa vymazať jazdu"
+                        />
                         </div>
                       </TableCell>
                     </TableRow>

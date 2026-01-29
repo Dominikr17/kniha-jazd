@@ -62,9 +62,9 @@ export function TripsFilter({ vehicles, drivers, currentFilters }: TripsFilterPr
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Všetky vozidlá</SelectItem>
-                {vehicles.map((v) => (
-                  <SelectItem key={v.id} value={v.id}>
-                    {v.name} ({v.license_plate})
+                {vehicles.map((vehicle) => (
+                  <SelectItem key={vehicle.id} value={vehicle.id}>
+                    {vehicle.name} ({vehicle.license_plate})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -82,9 +82,9 @@ export function TripsFilter({ vehicles, drivers, currentFilters }: TripsFilterPr
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Všetci vodiči</SelectItem>
-                {drivers.map((d) => (
-                  <SelectItem key={d.id} value={d.id}>
-                    {d.first_name} {d.last_name}
+                {drivers.map((driver) => (
+                  <SelectItem key={driver.id} value={driver.id}>
+                    {driver.first_name} {driver.last_name}
                   </SelectItem>
                 ))}
               </SelectContent>

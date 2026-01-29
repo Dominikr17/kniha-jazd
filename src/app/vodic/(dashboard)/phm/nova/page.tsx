@@ -204,9 +204,9 @@ export default function DriverNewFuelPage() {
                     <SelectValue placeholder="Vyberte vozidlo" />
                   </SelectTrigger>
                   <SelectContent>
-                    {vehicles.map((v) => (
-                      <SelectItem key={v.id} value={v.id}>
-                        {v.name} ({v.license_plate})
+                    {vehicles.map((vehicle) => (
+                      <SelectItem key={vehicle.id} value={vehicle.id}>
+                        {vehicle.name} ({vehicle.license_plate})
                       </SelectItem>
                     ))}
                   </SelectContent>

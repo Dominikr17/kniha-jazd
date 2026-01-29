@@ -15,7 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Pencil, Car, Search, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react'
 import { Vehicle, FUEL_TYPES } from '@/types'
-import { DeleteVehicleButton } from './delete-button'
+import { DeleteButton } from '@/components/delete-button'
 
 type VehicleWithDriver = Omit<Vehicle, 'responsible_driver'> & {
   responsible_driver?: {
@@ -216,7 +216,15 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
                           <Pencil className="h-4 w-4" />
                         </Link>
                       </Button>
-                      <DeleteVehicleButton id={vehicle.id} name={vehicle.name} />
+                      <DeleteButton
+                      tableName="vehicles"
+                      recordId={vehicle.id}
+                      itemLabel={vehicle.name}
+                      dialogTitle="Vymazať vozidlo"
+                      dialogDescription={`Naozaj chcete vymazať vozidlo ${vehicle.name}? Vymažú sa aj všetky súvisiace dokumenty, kontroly a diaľničné známky. Táto akcia sa nedá vrátiť späť.`}
+                      successMessage="Vozidlo bolo vymazané"
+                      errorMessage="Nepodarilo sa vymazať vozidlo"
+                    />
                     </div>
                   </TableCell>
                 </TableRow>

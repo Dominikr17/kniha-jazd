@@ -292,9 +292,9 @@ export default function NewVehiclePage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="none">-- Nevybraný --</SelectItem>
-                  {drivers.map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.first_name} {d.last_name}
+                  {drivers.map((driver) => (
+                    <SelectItem key={driver.id} value={driver.id}>
+                      {driver.first_name} {driver.last_name}
                     </SelectItem>
                   ))}
                 </SelectContent>
