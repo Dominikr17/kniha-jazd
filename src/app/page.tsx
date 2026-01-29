@@ -63,7 +63,7 @@ export default function HomePage() {
                 <p className="text-sm text-muted-foreground mb-4">
                   Správa vozidiel, vodičov, STK, reporty. Vyžaduje prihlásenie.
                 </p>
-                <Button asChild variant="outline" className="w-full" size="lg">
+                <Button asChild variant="outline" className="w-full hover:bg-[#FFC72C] hover:text-[#004B87] hover:border-[#FFC72C]" size="lg">
                   <Link href="/login">
                     Prihlásiť sa ako admin
                   </Link>
