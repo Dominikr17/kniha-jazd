@@ -69,12 +69,10 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     supabase
       .from('vehicle_inspections')
       .select('*, vehicle:vehicles(id, name, license_plate)')
-      .gte('valid_until', new Date().toISOString().split('T')[0])
       .order('valid_until', { ascending: true }),
     supabase
       .from('vehicle_vignettes')
       .select('*, vehicle:vehicles(id, name, license_plate)')
-      .gte('valid_until', new Date().toISOString().split('T')[0])
       .order('valid_until', { ascending: true }),
     supabase
       .from('trips')
@@ -153,7 +151,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   // STK a EK kontroly
   inspections?.forEach((inspection: any) => {
     const daysLeft = differenceInDays(parseISO(inspection.valid_until), new Date())
-    if (daysLeft <= 30) {
+    // Zobrazí vypršané (do -30 dní) a blížiace sa (do +30 dní)
+    if (daysLeft <= 30 && daysLeft >= -30) {
       alerts.push({
         type: inspection.inspection_type,
         vehicleId: inspection.vehicle?.id,
@@ -168,7 +167,8 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   // Diaľničné známky
   vignettes?.forEach((vignette: any) => {
     const daysLeft = differenceInDays(parseISO(vignette.valid_until), new Date())
-    if (daysLeft <= 30) {
+    // Zobrazí vypršané (do -30 dní) a blížiace sa (do +30 dní)
+    if (daysLeft <= 30 && daysLeft >= -30) {
       alerts.push({
         type: 'vignette',
         vehicleId: vignette.vehicle?.id,
@@ -185,6 +185,12 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   alerts.sort((a, b) => a.daysLeft - b.daysLeft)
 
   const getAlertBadge = (daysLeft: number) => {
+    if (daysLeft < 0) {
+      return <Badge variant="destructive">Vypršané</Badge>
+    }
+    if (daysLeft === 0) {
+      return <Badge variant="destructive">Dnes</Badge>
+    }
     if (daysLeft <= 7) {
       return <Badge variant="destructive">{daysLeft} dní</Badge>
     }
@@ -271,7 +277,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-yellow-500" />
-            Blížiace sa termíny
+            Termíny a upozornenia
             {alerts.length > 0 && (
               <Badge variant="destructive">{alerts.length}</Badge>
             )}
@@ -280,7 +286,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
         <CardContent>
           {alerts.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              Žiadne blížiace sa termíny STK, EK alebo diaľničných známok v nasledujúcich 30 dňoch.
+              Žiadne vypršané ani blížiace sa termíny STK, EK alebo diaľničných známok.
             </p>
           ) : (
             <div className="space-y-3">
