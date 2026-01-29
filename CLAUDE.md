@@ -145,6 +145,6 @@ Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
 ## TODO / Plánované vylepšenia
 - [ ] Upload dokumentov (Supabase Storage)
 - [ ] Stránkovanie v tabuľkách
-- [ ] Vyhľadávanie
+- [x] Vyhľadávanie a zoraďovanie v zozname vodičov
 - [ ] Email notifikácie pre termíny
 - [ ] PWA pre offline použitie
