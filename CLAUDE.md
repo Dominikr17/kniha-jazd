@@ -26,6 +26,7 @@ src/
 │   │   ├── vodici/            # Správa vodičov
 │   │   ├── jazdy/             # Kniha jázd
 │   │   ├── phm/               # Tankovanie PHM
+│   │   ├── vykazy/            # Mesačné výkazy PHM
 │   │   ├── reporty/           # Reporty a grafy
 │   │   └── zurnal/            # Žurnál aktivít (audit log)
 │   ├── vodic/                 # Vodičovská sekcia (bez prihlásenia)
@@ -55,6 +56,7 @@ src/
 - `trips` - Jazdy (auto-číslovanie, + `trip_type`: sluzobna/sukromna)
 - `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`)
 - `audit_logs` - Žurnál aktivít (logovanie INSERT/UPDATE/DELETE)
+- `monthly_reports` - Mesačné výkazy PHM (zásoby, tachometer, status workflow)
 
 ## Dôležité súbory
 - `src/lib/supabase/server.ts` - Server-side Supabase klient
@@ -62,6 +64,9 @@ src/
 - `src/lib/supabase/middleware.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
 - `src/lib/audit-logger.ts` - Helper pre logovanie aktivít (audit log)
+- `src/lib/monthly-report.ts` - Helper pre mesačné výkazy PHM
+- `src/lib/monthly-report-pdf.ts` - PDF export mesačných výkazov
+- `src/lib/monthly-report-excel.ts` - Excel export mesačných výkazov
 - `src/types/index.ts` - Všetky TypeScript typy a konstanty
 - `supabase/full_migration.sql` - Kompletná DB migrácia
 
@@ -86,6 +91,8 @@ src/
 - `AUDIT_TABLES` - Názvy tabuliek pre audit log
 - `AUDIT_OPERATIONS` - Typy operácií (INSERT, UPDATE, DELETE)
 - `DRIVER_EDIT_TIME_LIMIT_MINUTES` - Časový limit na úpravu jazdy vodičom (15 minút)
+- `MONTHS_SK` - Názvy mesiacov po slovensky
+- `REPORT_STATUS` - Stavy mesačného výkazu (draft, submitted, approved)
 
 ## Príkazy
 ```bash
@@ -98,7 +105,7 @@ npm run lint     # ESLint
 - **Projekt:** kniha-jazd
 - **RLS politiky:**
   - `drivers`, `vehicles` - verejné čítanie (SELECT)
-  - `trips`, `fuel_records` - verejné čítanie, vkladanie, úprava, mazanie
+  - `trips`, `fuel_records`, `monthly_reports` - verejné čítanie, vkladanie, úprava, mazanie
   - Ostatné tabuľky - prístup len pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 

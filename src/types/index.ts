@@ -222,3 +222,89 @@ export const AUDIT_OPERATIONS = {
 
 // Časový limit na úpravu jazdy vodičom (v minútach)
 export const DRIVER_EDIT_TIME_LIMIT_MINUTES = 15
+
+// Názvy mesiacov po slovensky
+export const MONTHS_SK = [
+  'Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún',
+  'Júl', 'August', 'September', 'Október', 'November', 'December'
+] as const
+
+// Status mesačného výkazu
+export const REPORT_STATUS = {
+  draft: 'Rozpracovaný',
+  submitted: 'Predložený',
+  approved: 'Schválený'
+} as const
+
+export type ReportStatus = keyof typeof REPORT_STATUS
+
+// Mesačný výkaz - DB záznam
+export interface MonthlyReport {
+  id: string
+  vehicle_id: string
+  year: number
+  month: number
+  initial_fuel_stock: number
+  final_fuel_stock: number
+  initial_odometer: number
+  final_odometer: number
+  status: ReportStatus
+  submitted_at: string | null
+  approved_by: string | null
+  approved_at: string | null
+  notes: string | null
+  created_at: string
+  updated_at: string
+  // Joined fields
+  vehicle?: Vehicle
+}
+
+export type MonthlyReportInsert = Omit<MonthlyReport, 'id' | 'created_at' | 'updated_at' | 'vehicle'>
+export type MonthlyReportUpdate = Partial<MonthlyReportInsert>
+
+// Mesačný výkaz - kalkulované dáta
+export interface MonthlyReportData {
+  // Identifikácia
+  vehicleId: string
+  vehicleName: string
+  licensePlate: string
+  year: number
+  month: number
+
+  // Zodpovedný vodič (predkladateľ)
+  responsibleDriverId: string | null
+  responsibleDriverName: string | null
+
+  // Zásoby PHM (editovateľné)
+  initialFuelStock: number
+  finalFuelStock: number
+
+  // Nákup PHM (automaticky z fuel_records)
+  fuelPurchaseDomestic: number  // SK
+  fuelPurchaseForeign: number   // ostatné krajiny
+  fuelPurchaseTotal: number
+  fuelCostDomestic: number
+  fuelCostForeign: number
+  fuelCostTotal: number
+
+  // Tachometer (automaticky z trips)
+  initialOdometer: number
+  finalOdometer: number
+
+  // Kilometre podľa typu (automaticky z trips)
+  kmBusiness: number   // služobné
+  kmPrivate: number    // súkromné
+  kmTotal: number
+
+  // Spotreba (kalkulovaná)
+  fuelConsumption: number        // počiatočná + nákup - konečná
+  averageConsumption: number     // (spotreba / km) * 100
+  ratedConsumption: number | null // normovaná spotreba vozidla
+
+  // Status
+  status: ReportStatus
+  submittedAt: string | null
+  approvedBy: string | null
+  approvedAt: string | null
+  notes: string | null
+}

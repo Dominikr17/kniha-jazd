@@ -16,6 +16,41 @@ import { sk } from 'date-fns/locale'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import * as XLSX from 'xlsx'
+import { ROBOTO_REGULAR_BASE64 } from '@/lib/fonts/roboto-regular'
+import { ROBOTO_BOLD_BASE64 } from '@/lib/fonts/roboto-bold'
+
+function registerFonts(doc: jsPDF) {
+  doc.addFileToVFS('Roboto-Regular.ttf', ROBOTO_REGULAR_BASE64)
+  doc.addFileToVFS('Roboto-Bold.ttf', ROBOTO_BOLD_BASE64)
+  doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal')
+  doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold')
+}
+
+async function loadImageAsBase64(url: string, maxWidth = 200): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.crossOrigin = 'anonymous'
+    img.onload = () => {
+      // Zmenšenie obrázka pre menšiu veľkosť PDF
+      const scale = maxWidth / img.width
+      const width = maxWidth
+      const height = img.height * scale
+
+      const canvas = document.createElement('canvas')
+      canvas.width = width
+      canvas.height = height
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height)
+        resolve(canvas.toDataURL('image/png', 0.9))
+      } else {
+        reject(new Error('Could not get canvas context'))
+      }
+    }
+    img.onerror = reject
+    img.src = url
+  })
+}
 
 interface ExportButtonsProps {
   trips: Trip[]
@@ -35,16 +70,42 @@ export function ExportButtons({ trips }: ExportButtonsProps) {
     try {
       const doc = new jsPDF('landscape', 'mm', 'a4')
 
-      // Nadpis
-      doc.setFontSize(16)
-      doc.text('Kniha jazd - ZVL SLOVAKIA', 14, 15)
+      // Registrácia fontov s diakritikou
+      registerFonts(doc)
+      doc.setFont('Roboto', 'normal')
 
-      doc.setFontSize(10)
-      doc.text(`Vygenerované: ${format(new Date(), 'd.M.yyyy HH:mm', { locale: sk })}`, 14, 22)
+      // Logo vľavo hore (pomer strán 2022:546 = 3.7:1)
+      const logoWidth = 35
+      const logoHeight = logoWidth / 3.7
+      try {
+        const logoBase64 = await loadImageAsBase64('/logo.png')
+        doc.addImage(logoBase64, 'PNG', 14, 8, logoWidth, logoHeight)
+      } catch (error) {
+        console.warn('Could not load logo:', error)
+      }
+
+      // Nadpis v strede
+      const pageWidth = doc.internal.pageSize.getWidth()
+
+      // Zistíme či sú všetky jazdy z jedného vozidla
+      const vehicleIds = [...new Set(trips.map(t => t.vehicle_id))]
+      const isSingleVehicle = vehicleIds.length === 1
+      const vehicle = isSingleVehicle ? trips[0].vehicle : null
+
+      const title = vehicle
+        ? `Kniha jázd - ${vehicle.name} (${vehicle.license_plate})`
+        : 'Kniha jázd'
+
+      doc.setFontSize(12)
+      doc.setFont('Roboto', 'bold')
+      doc.text(title, pageWidth / 2, 13, { align: 'center' })
+
+      doc.setFontSize(9)
+      doc.setFont('Roboto', 'normal')
+      doc.text(`Vygenerované: ${format(new Date(), 'd.M.yyyy HH:mm', { locale: sk })}`, pageWidth / 2, 19, { align: 'center' })
 
       // Tabuľka
       const tableData = trips.map((trip) => [
-        trip.trip_number.toString(),
         format(parseISO(trip.date), 'd.M.yyyy', { locale: sk }),
         trip.time_start.slice(0, 5),
         trip.time_end?.slice(0, 5) || '-',
@@ -60,27 +121,26 @@ export function ExportButtons({ trips }: ExportButtonsProps) {
       ])
 
       autoTable(doc, {
-        startY: 28,
+        startY: 26,
         head: [
-          ['Č.', 'Dátum', 'Od', 'Do', 'Vozidlo', 'EČV', 'Vodič', 'Odkiaľ', 'Kam', 'Účel', 'Tach. začiatok', 'Tach. koniec', 'km'],
+          ['Dátum', 'Od', 'Do', 'Vozidlo', 'EČV', 'Vodič', 'Odkiaľ', 'Kam', 'Účel', 'Tach. začiatok', 'Tach. koniec', 'km'],
         ],
         body: tableData,
-        styles: { fontSize: 8, cellPadding: 1.5 },
-        headStyles: { fillColor: [41, 128, 185], fontSize: 8 },
+        styles: { fontSize: 8, cellPadding: 1.5, font: 'Roboto' },
+        headStyles: { fillColor: [0, 75, 135], fontSize: 8, font: 'Roboto', fontStyle: 'bold' },
         columnStyles: {
-          0: { cellWidth: 10 },
-          1: { cellWidth: 18 },
+          0: { cellWidth: 18 },
+          1: { cellWidth: 12 },
           2: { cellWidth: 12 },
-          3: { cellWidth: 12 },
-          4: { cellWidth: 25 },
-          5: { cellWidth: 20 },
-          6: { cellWidth: 30 },
-          7: { cellWidth: 30 },
-          8: { cellWidth: 30 },
-          9: { cellWidth: 35 },
-          10: { cellWidth: 18 },
-          11: { cellWidth: 18 },
-          12: { cellWidth: 12 },
+          3: { cellWidth: 28 },
+          4: { cellWidth: 22 },
+          5: { cellWidth: 32 },
+          6: { cellWidth: 32 },
+          7: { cellWidth: 32 },
+          8: { cellWidth: 38 },
+          9: { cellWidth: 20 },
+          10: { cellWidth: 20 },
+          11: { cellWidth: 14 },
         },
       })
 

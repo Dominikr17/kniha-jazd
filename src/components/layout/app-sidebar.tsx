@@ -22,7 +22,8 @@ import {
   LayoutDashboard,
   FileText,
   LogOut,
-  ClipboardList
+  ClipboardList,
+  FileSpreadsheet
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -53,6 +54,11 @@ const menuItems = [
     title: 'Tankovanie PHM',
     href: '/admin/phm',
     icon: Fuel,
+  },
+  {
+    title: 'Mesačné výkazy',
+    href: '/admin/vykazy',
+    icon: FileSpreadsheet,
   },
   {
     title: 'Reporty',
