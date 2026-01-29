@@ -2,7 +2,7 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 // Verejné cesty, ktoré nevyžadujú prihlásenie
-const publicPaths = ['/', '/vodic', '/login', '/auth']
+const publicPaths = ['/', '/vodic', '/login', '/auth', '/pin', '/api/pin']
 
 function isPublicPath(pathname: string): boolean {
   // Presná zhoda pre root

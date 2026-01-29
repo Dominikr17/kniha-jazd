@@ -1,15 +1,22 @@
 import Link from 'next/link'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Car } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { createClient } from '@/lib/supabase/server'
+import { DriverSelect } from './vodic/driver-select'
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient()
+
+  const { data: drivers } = await supabase
+    .from('drivers')
+    .select('id, first_name, last_name')
+    .order('last_name')
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30 flex flex-col">
       <main className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md -mt-8">
+        <div className="w-full max-w-md -mt-24">
           {/* Logo a názov */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-8">
             <img
               src="/logo.svg"
               alt="ZVL SLOVAKIA"
@@ -21,27 +28,25 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Vodičovská karta - dominantná */}
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
-                  <Car className="h-6 w-6" />
-                </div>
-                <div>
-                  <CardTitle>Evidencia jázd</CardTitle>
-                  <CardDescription>Pre vodičov</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <Button asChild className="w-full bg-[#FFC72C] text-[#004B87] hover:bg-[#e6b327]" size="lg">
-                <Link href="/vodic">
-                  Vstúpiť ako vodič
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
+          {/* Výber vodiča */}
+          {drivers && drivers.length > 0 ? (
+            <Card className="mt-8">
+              <CardContent className="p-6">
+                <p className="text-sm text-muted-foreground mb-4 text-center">
+                  Vyberte svoje meno
+                </p>
+                <DriverSelect drivers={drivers} />
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-center text-muted-foreground">
+                Žiadni vodiči nie sú zaregistrovaní.
+                <br />
+                Kontaktujte administrátora.
+              </CardContent>
+            </Card>
+          )}
 
           {/* Admin link - sekundárny */}
           <p className="text-center text-sm text-muted-foreground mt-6">
