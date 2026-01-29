@@ -51,9 +51,9 @@ function isAllowedIp(ip: string): boolean {
   return ipList.includes(ip)
 }
 
-function hasPinCookie(request: NextRequest): boolean {
-  const pinCookie = request.cookies.get('pin_verified')
-  return pinCookie?.value === 'true'
+function hasPinSession(request: NextRequest): boolean {
+  const sessionCookie = request.cookies.get('pin_session')
+  return sessionCookie?.value === 'true'
 }
 
 export async function middleware(request: NextRequest) {
@@ -87,8 +87,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // PIN cookie - povolený prístup
-  if (hasPinCookie(request)) {
+  // PIN session cookie - povolený prístup (platí do zatvorenia prehliadača)
+  if (hasPinSession(request)) {
     return NextResponse.next()
   }
 

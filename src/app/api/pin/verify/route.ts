@@ -20,14 +20,13 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const maxAge = parseInt(process.env.PIN_COOKIE_MAX_AGE || '2592000', 10)
-
     const response = NextResponse.json({ success: true })
-    response.cookies.set('pin_verified', 'true', {
+
+    // Session cookie - bez maxAge sa vymaže pri zatvorení prehliadača
+    response.cookies.set('pin_session', 'true', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
-      maxAge,
       path: '/',
     })
 

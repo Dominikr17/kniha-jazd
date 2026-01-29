@@ -17,7 +17,8 @@ Elektronická kniha jázd pre správu vozového parku firmy ZVL SLOVAKIA. Zákon
 ```
 src/
 ├── app/
-│   ├── page.tsx               # Vstupná stránka (výber: Admin/Vodič)
+│   ├── page.tsx               # Vstupná stránka (výber vodiča)
+│   ├── pin/                   # PIN stránka pre externý prístup
 │   ├── (auth)/login/          # Prihlásenie admina
 │   ├── admin/                 # Admin sekcia (vyžaduje prihlásenie)
 │   │   ├── page.tsx           # Admin dashboard (s časovým filtrom)
@@ -29,13 +30,14 @@ src/
 │   │   ├── vykazy/            # Mesačné výkazy PHM
 │   │   ├── reporty/           # Reporty a grafy
 │   │   └── zurnal/            # Žurnál aktivít (audit log)
-│   ├── vodic/                 # Vodičovská sekcia (bez prihlásenia)
-│   │   ├── page.tsx           # Výber vodiča
+│   ├── vodic/                 # Vodičovská sekcia (IP whitelist alebo PIN)
+│   │   ├── page.tsx           # Redirect na hlavnú stránku
 │   │   ├── driver-select.tsx  # Combobox s vyhľadávaním vodičov
 │   │   └── (dashboard)/       # Vodičov dashboard
 │   │       ├── jazdy/         # Zoznam jázd, nová jazda, úprava
 │   │       └── phm/           # Zoznam tankovaní, nové tankovanie
 │   ├── api/driver/            # API pre vodičov (login/logout/me/vehicles)
+│   ├── api/pin/               # API pre PIN overenie
 │   └── auth/callback/         # Auth callback
 ├── components/
 │   ├── ui/                    # shadcn komponenty
@@ -117,11 +119,29 @@ npm run lint     # ESLint
   - Ostatné tabuľky - prístup len pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 
+## Bezpečnosť - IP Whitelist + PIN
+Vodičovská sekcia je chránená dvojúrovňovým systémom:
+
+| Situácia | Prístup |
+|----------|---------|
+| Firemná IP (ALLOWED_IPS) | Priamy prístup bez overenia |
+| Externá IP | Vyžaduje PIN (session cookie - platí do zatvorenia prehliadača) |
+| Admin sekcia | Supabase Auth (email + heslo) |
+
+**Environment variables:**
+- `ALLOWED_IPS` - Čiarkou oddelené povolené IP adresy
+- `APP_PIN` - PIN kód pre externý prístup
+
+**Súbory:**
+- `src/middleware.ts` - Hlavná logika IP + PIN kontroly
+- `src/app/pin/page.tsx` - PIN stránka
+- `src/app/api/pin/verify/route.ts` - API pre overenie PINu
+
 ## Prístupové role
 | Rola | Prístup | Funkcie |
 |------|---------|---------|
 | **Admin** | Email + heslo (`/login`) | Všetko (vodiči, vozidlá, STK, diaľničné známky, reporty, žurnál, priradenie vozidiel) |
-| **Vodič** | Výber mena (`/vodic`) | Evidencia jázd a tankovania len pre priradené vozidlá |
+| **Vodič** | Výber mena na hlavnej stránke | Evidencia jázd a tankovania len pre priradené vozidlá |
 
 ## Priradenie vozidiel vodičom
 - Admin priraďuje vozidlá vodičom v sekcii Vodiči (`/admin/vodici`)
