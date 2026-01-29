@@ -39,7 +39,8 @@ src/
 │   └── auth/callback/         # Auth callback
 ├── components/
 │   ├── ui/                    # shadcn komponenty
-│   └── layout/                # Sidebar, header
+│   ├── layout/                # Sidebar, header
+│   └── delete-button.tsx      # Generický DeleteButton pre mazanie záznamov
 ├── lib/
 │   ├── supabase/              # Supabase klienty (client, server, middleware)
 │   └── driver-session.ts      # Helper pre vodičovské cookie
@@ -61,10 +62,12 @@ src/
 - `monthly_reports` - Mesačné výkazy PHM (zásoby, tachometer, status workflow)
 
 ## Dôležité súbory
+- `src/lib/utils.ts` - Utility funkcie (cn, calculateTripDistance, resolvePurpose, calculateFuelPrice)
 - `src/lib/supabase/server.ts` - Server-side Supabase klient
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
 - `src/lib/supabase/middleware.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
+- `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles)
 - `src/lib/driver-vehicles.ts` - Helper pre priradenie vozidiel vodičom
 - `src/lib/audit-logger.ts` - Helper pre logovanie aktivít (audit log)
 - `src/lib/monthly-report.ts` - Helper pre mesačné výkazy PHM
@@ -134,6 +137,9 @@ npm run lint     # ESLint
 5. Server komponenty používaj pre načítanie dát
 6. Client komponenty ('use client') pre interaktívne časti
 7. Toast notifikácie cez `sonner` (`toast.success()`, `toast.error()`)
+8. Pre mazanie záznamov používaj generický `<DeleteButton>` z `@/components/delete-button`
+9. Utility funkcie pridávaj do `src/lib/utils.ts`
+10. V `.map()` callbackoch používaj výstižné názvy premenných (vehicle, driver, trip - nie v, d, t)
 
 ## Automatický výpočet stavu nádrže
 Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
