@@ -7,10 +7,28 @@ export interface Driver {
   phone: string | null
   created_at: string
   updated_at: string
+  // Joined fields pre priradené vozidlá
+  assigned_vehicles?: Vehicle[]
+  driver_vehicles?: DriverVehicle[]
+  vehicle_count?: number
 }
 
-export type DriverInsert = Omit<Driver, 'id' | 'created_at' | 'updated_at'>
+export type DriverInsert = Omit<Driver, 'id' | 'created_at' | 'updated_at' | 'assigned_vehicles' | 'driver_vehicles' | 'vehicle_count'>
 export type DriverUpdate = Partial<DriverInsert>
+
+// Priradenie vozidla vodičovi
+export interface DriverVehicle {
+  id: string
+  driver_id: string
+  vehicle_id: string
+  created_at: string
+  created_by: string | null
+  // Joined fields
+  driver?: Driver
+  vehicle?: Vehicle
+}
+
+export type DriverVehicleInsert = Omit<DriverVehicle, 'id' | 'created_at' | 'driver' | 'vehicle'>
 
 // Vozidlá
 export interface Vehicle {
@@ -30,9 +48,11 @@ export interface Vehicle {
   updated_at: string
   // Joined fields
   responsible_driver?: Driver
+  assigned_drivers?: Driver[]
+  driver_vehicles?: DriverVehicle[]
 }
 
-export type VehicleInsert = Omit<Vehicle, 'id' | 'created_at' | 'updated_at'>
+export type VehicleInsert = Omit<Vehicle, 'id' | 'created_at' | 'updated_at' | 'responsible_driver' | 'assigned_drivers' | 'driver_vehicles'>
 export type VehicleUpdate = Partial<VehicleInsert>
 
 // Dokumenty vozidiel
@@ -213,7 +233,8 @@ export const AUDIT_TABLES = {
   drivers: 'Vodič',
   vehicles: 'Vozidlo',
   vehicle_inspections: 'STK/EK',
-  vehicle_vignettes: 'Diaľničná známka'
+  vehicle_vignettes: 'Diaľničná známka',
+  driver_vehicles: 'Priradenie vozidla'
 } as const
 
 export const AUDIT_OPERATIONS = {

@@ -35,7 +35,7 @@ src/
 │   │   └── (dashboard)/       # Vodičov dashboard
 │   │       ├── jazdy/         # Zoznam jázd, nová jazda, úprava
 │   │       └── phm/           # Zoznam tankovaní, nové tankovanie
-│   ├── api/driver/            # API pre vodičov (login/logout/me)
+│   ├── api/driver/            # API pre vodičov (login/logout/me/vehicles)
 │   └── auth/callback/         # Auth callback
 ├── components/
 │   ├── ui/                    # shadcn komponenty
@@ -50,6 +50,7 @@ src/
 ## Databázové tabuľky
 - `drivers` - Vodiči
 - `vehicles` - Vozidlá (+ `responsible_driver_id`, `rated_consumption`, `tank_capacity`)
+- `driver_vehicles` - Priradenie vozidiel vodičom (M:N väzba)
 - `vehicle_documents` - Dokumenty vozidiel
 - `vehicle_inspections` - STK/EK kontroly
 - `vehicle_vignettes` - Diaľničné známky
@@ -64,6 +65,7 @@ src/
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
 - `src/lib/supabase/middleware.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
+- `src/lib/driver-vehicles.ts` - Helper pre priradenie vozidiel vodičom
 - `src/lib/audit-logger.ts` - Helper pre logovanie aktivít (audit log)
 - `src/lib/monthly-report.ts` - Helper pre mesačné výkazy PHM
 - `src/lib/monthly-report-pdf.ts` - PDF export mesačných výkazov
@@ -108,14 +110,21 @@ npm run lint     # ESLint
 - **RLS politiky:**
   - `drivers`, `vehicles` - verejné čítanie (SELECT)
   - `trips`, `fuel_records`, `fuel_inventory`, `monthly_reports` - verejné čítanie, vkladanie, úprava, mazanie
+  - `driver_vehicles` - verejné čítanie, vkladanie, mazanie
   - Ostatné tabuľky - prístup len pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 
 ## Prístupové role
 | Rola | Prístup | Funkcie |
 |------|---------|---------|
-| **Admin** | Email + heslo (`/login`) | Všetko (vodiči, vozidlá, STK, diaľničné známky, reporty, žurnál) |
-| **Vodič** | Výber mena (`/vodic`) | Evidencia jázd (úprava do 15 min, bez mazania) a tankovania (len pridávanie) |
+| **Admin** | Email + heslo (`/login`) | Všetko (vodiči, vozidlá, STK, diaľničné známky, reporty, žurnál, priradenie vozidiel) |
+| **Vodič** | Výber mena (`/vodic`) | Evidencia jázd a tankovania len pre priradené vozidlá |
+
+## Priradenie vozidiel vodičom
+- Admin priraďuje vozidlá vodičom v sekcii Vodiči (`/admin/vodici`)
+- Vodič vidí a môže zadávať údaje len pre priradené vozidlá
+- Ak má vodič len jedno priradené vozidlo, je automaticky predvyplnené vo formulároch
+- Vodič bez priradených vozidiel vidí upozornenie a nemôže zadávať jazdy/tankovania
 
 ## Pri úpravách
 1. Typy definuj v `src/types/index.ts`

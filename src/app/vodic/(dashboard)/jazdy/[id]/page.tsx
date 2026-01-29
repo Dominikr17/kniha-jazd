@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDriverId, getDriverName } from '@/lib/driver-session'
+import { getVehiclesForDriver } from '@/lib/driver-vehicles'
 import { notFound, redirect } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -27,17 +28,11 @@ export default async function DriverEditTripPage({ params }: PageProps) {
   const driverId = await getDriverId()
   const driverName = await getDriverName()
 
-  const [{ data: trip }, { data: vehicles }] = await Promise.all([
-    supabase
-      .from('trips')
-      .select('*')
-      .eq('id', id)
-      .single(),
-    supabase
-      .from('vehicles')
-      .select('id, name, license_plate')
-      .order('name'),
-  ])
+  const { data: trip } = await supabase
+    .from('trips')
+    .select('*')
+    .eq('id', id)
+    .single()
 
   if (!trip) {
     notFound()
@@ -47,6 +42,9 @@ export default async function DriverEditTripPage({ params }: PageProps) {
   if (trip.driver_id !== driverId) {
     redirect('/vodic/jazdy')
   }
+
+  // Načítať len priradené vozidlá
+  const vehicles = driverId ? await getVehiclesForDriver(supabase, driverId) : []
 
   const canEdit = canEditTrip(trip.created_at)
 
@@ -84,7 +82,7 @@ export default async function DriverEditTripPage({ params }: PageProps) {
         <CardContent>
           <DriverEditTripForm
             trip={trip}
-            vehicles={vehicles || []}
+            vehicles={vehicles}
             driverId={driverId!}
             driverName={driverName || ''}
             canEdit={canEdit}

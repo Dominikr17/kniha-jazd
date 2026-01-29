@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Select,
   SelectContent,
@@ -16,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, Vehicle, FuelCountry, PaymentMethod } from '@/types'
@@ -50,17 +51,23 @@ export default function DriverNewFuelPage() {
       setDriverId(driverData.driverId || null)
       setDriverName(driverData.driverName || null)
 
-      const { data: vehiclesData } = await supabase
-        .from('vehicles')
-        .select('*')
-        .order('name')
+      // Načítať len priradené vozidlá
+      const vehiclesRes = await fetch('/api/driver/vehicles')
+      const vehiclesData = await vehiclesRes.json()
+      const loadedVehicles = vehiclesData.vehicles || []
+      setVehicles(loadedVehicles)
 
-      setVehicles(vehiclesData || [])
+      // Ak má vodič len jedno vozidlo, predvyplníme ho
+      if (loadedVehicles.length === 1) {
+        setVehicleId(loadedVehicles[0].id)
+        setFuelType(loadedVehicles[0].fuel_type)
+      }
+
       setIsLoading(false)
     }
 
     fetchData()
-  }, [supabase])
+  }, [])
 
   // Nastavenie typu paliva podľa vozidla
   useEffect(() => {
@@ -175,197 +182,207 @@ export default function DriverNewFuelPage() {
         </div>
       </div>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Údaje o tankovaní</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="vehicle">Vozidlo *</Label>
-              <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting}>
-                <SelectTrigger id="vehicle">
-                  <SelectValue placeholder="Vyberte vozidlo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehicles.map((v) => (
-                    <SelectItem key={v.id} value={v.id}>
-                      {v.name} ({v.license_plate})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {vehicles.length === 0 ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Nemáte priradené žiadne vozidlá</AlertTitle>
+          <AlertDescription>
+            Pre zadávanie tankovaní musíte mať priradené aspoň jedno vozidlo. Kontaktujte administrátora.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Údaje o tankovaní</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="vehicle">Vozidlo *</Label>
+                <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting}>
+                  <SelectTrigger id="vehicle">
+                    <SelectValue placeholder="Vyberte vozidlo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehicles.map((v) => (
+                      <SelectItem key={v.id} value={v.id}>
+                        {v.name} ({v.license_plate})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="date">Dátum *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="odometer">Stav tachometra (km)</Label>
-                <Input
-                  id="odometer"
-                  type="number"
-                  value={odometer}
-                  onChange={(e) => setOdometer(e.target.value)}
-                  disabled={isSubmitting}
-                  min={0}
-                  placeholder="voliteľné"
-                />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-2">
-                <Label htmlFor="liters">Množstvo (litre) *</Label>
-                <Input
-                  id="liters"
-                  type="number"
-                  step="0.01"
-                  value={liters}
-                  onChange={(e) => setLiters(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                  min={0}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pricePerLiter">Cena za liter (EUR) *</Label>
-                <Input
-                  id="pricePerLiter"
-                  type="number"
-                  step="0.001"
-                  value={pricePerLiter}
-                  onChange={(e) => setPricePerLiter(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                  min={0}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Celková suma (EUR)</Label>
-                <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                  {totalPrice ? `${totalPrice} EUR` : '-'}
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="date">Dátum *</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="odometer">Stav tachometra (km)</Label>
+                  <Input
+                    id="odometer"
+                    type="number"
+                    value={odometer}
+                    onChange={(e) => setOdometer(e.target.value)}
+                    disabled={isSubmitting}
+                    min={0}
+                    placeholder="voliteľné"
+                  />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Bez DPH (EUR)</Label>
-                <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                  {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
+
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="space-y-2">
+                  <Label htmlFor="liters">Množstvo (litre) *</Label>
+                  <Input
+                    id="liters"
+                    type="number"
+                    step="0.01"
+                    value={liters}
+                    onChange={(e) => setLiters(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                    min={0}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="pricePerLiter">Cena za liter (EUR) *</Label>
+                  <Input
+                    id="pricePerLiter"
+                    type="number"
+                    step="0.001"
+                    value={pricePerLiter}
+                    onChange={(e) => setPricePerLiter(e.target.value)}
+                    required
+                    disabled={isSubmitting}
+                    min={0}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Celková suma (EUR)</Label>
+                  <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
+                    {totalPrice ? `${totalPrice} EUR` : '-'}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label>Bez DPH (EUR)</Label>
+                  <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
+                    {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="fullTank"
-                checked={fullTank}
-                onCheckedChange={(checked) => setFullTank(checked === true)}
-                disabled={isSubmitting}
-              />
-              <Label htmlFor="fullTank" className="text-sm font-normal cursor-pointer">
-                Plná nádrž (tankovanie do plna)
-              </Label>
-            </div>
-
-            <div className="grid gap-4 grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="fuelType">Typ paliva *</Label>
-                <Select value={fuelType} onValueChange={setFuelType} disabled={isSubmitting}>
-                  <SelectTrigger id="fuelType">
-                    <SelectValue placeholder="Vyberte typ paliva" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(FUEL_TYPES).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gasStation">Čerpacia stanica</Label>
-                <Input
-                  id="gasStation"
-                  value={gasStation}
-                  onChange={(e) => setGasStation(e.target.value)}
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="fullTank"
+                  checked={fullTank}
+                  onCheckedChange={(checked) => setFullTank(checked === true)}
                   disabled={isSubmitting}
-                  placeholder="Shell, OMV..."
+                />
+                <Label htmlFor="fullTank" className="text-sm font-normal cursor-pointer">
+                  Plná nádrž (tankovanie do plna)
+                </Label>
+              </div>
+
+              <div className="grid gap-4 grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="fuelType">Typ paliva *</Label>
+                  <Select value={fuelType} onValueChange={setFuelType} disabled={isSubmitting}>
+                    <SelectTrigger id="fuelType">
+                      <SelectValue placeholder="Vyberte typ paliva" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(FUEL_TYPES).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="gasStation">Čerpacia stanica</Label>
+                  <Input
+                    id="gasStation"
+                    value={gasStation}
+                    onChange={(e) => setGasStation(e.target.value)}
+                    disabled={isSubmitting}
+                    placeholder="Shell, OMV..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="country">Krajina *</Label>
+                  <Select value={country} onValueChange={(v) => setCountry(v as FuelCountry)} disabled={isSubmitting}>
+                    <SelectTrigger id="country">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
+                        <SelectItem key={code} value={code}>
+                          {data.flag} {data.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="paymentMethod">Spôsob platby *</Label>
+                  <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)} disabled={isSubmitting}>
+                    <SelectTrigger id="paymentMethod">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="notes">Poznámky</Label>
+                <Textarea
+                  id="notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  disabled={isSubmitting}
+                  rows={2}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Krajina *</Label>
-                <Select value={country} onValueChange={(v) => setCountry(v as FuelCountry)} disabled={isSubmitting}>
-                  <SelectTrigger id="country">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
-                      <SelectItem key={code} value={code}>
-                        {data.flag} {data.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="paymentMethod">Spôsob platby *</Label>
-                <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)} disabled={isSubmitting}>
-                  <SelectTrigger id="paymentMethod">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="notes">Poznámky</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                disabled={isSubmitting}
-                rows={2}
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Ukladám...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Uložiť
-                  </>
-                )}
-              </Button>
-              <Button type="button" variant="outline" asChild disabled={isSubmitting}>
-                <Link href="/vodic/phm">Zrušiť</Link>
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+              <div className="flex gap-3 pt-4">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Ukladám...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Uložiť
+                    </>
+                  )}
+                </Button>
+                <Button type="button" variant="outline" asChild disabled={isSubmitting}>
+                  <Link href="/vodic/phm">Zrušiť</Link>
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

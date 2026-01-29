@@ -1,8 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { getDriverId, getDriverName } from '@/lib/driver-session'
+import { getVehiclesForDriver } from '@/lib/driver-vehicles'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft } from 'lucide-react'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { ArrowLeft, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { DriverNewTripForm } from './new-trip-form'
 
@@ -11,10 +13,8 @@ export default async function DriverNewTripPage() {
   const driverId = await getDriverId()
   const driverName = await getDriverName()
 
-  const { data: vehicles } = await supabase
-    .from('vehicles')
-    .select('id, name, license_plate')
-    .order('name')
+  // Načítať len priradené vozidlá
+  const vehicles = driverId ? await getVehiclesForDriver(supabase, driverId) : []
 
   return (
     <div className="space-y-6 pb-20 sm:pb-6">
@@ -32,18 +32,28 @@ export default async function DriverNewTripPage() {
         </div>
       </div>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Údaje o jazde</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DriverNewTripForm
-            vehicles={vehicles || []}
-            driverId={driverId!}
-            driverName={driverName || ''}
-          />
-        </CardContent>
-      </Card>
+      {vehicles.length === 0 ? (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Nemáte priradené žiadne vozidlá</AlertTitle>
+          <AlertDescription>
+            Pre zadávanie jázd musíte mať priradené aspoň jedno vozidlo. Kontaktujte administrátora.
+          </AlertDescription>
+        </Alert>
+      ) : (
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Údaje o jazde</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DriverNewTripForm
+              vehicles={vehicles}
+              driverId={driverId!}
+              driverName={driverName || ''}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

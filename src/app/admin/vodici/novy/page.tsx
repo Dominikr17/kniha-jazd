@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
@@ -8,18 +8,35 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Car } from 'lucide-react'
 import { toast } from 'sonner'
 import { logAudit } from '@/lib/audit-logger'
+import { Vehicle } from '@/types'
+import { VehicleAssignment } from '../vehicle-assignment'
 
 export default function NewDriverPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([])
+  const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    const fetchVehicles = async () => {
+      const { data } = await supabase
+        .from('vehicles')
+        .select('id, name, license_plate')
+        .order('name')
+      setVehicles((data as Vehicle[]) || [])
+      setIsLoading(false)
+    }
+    fetchVehicles()
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,6 +58,25 @@ export default function NewDriverPage() {
     }
 
     const { data: { user } } = await supabase.auth.getUser()
+
+    // Uložiť priradenia vozidiel
+    if (selectedVehicleIds.length > 0) {
+      const vehicleAssignments = selectedVehicleIds.map((vehicleId) => ({
+        driver_id: data.id,
+        vehicle_id: vehicleId,
+        created_by: user?.id || null,
+      }))
+
+      const { error: vehicleError } = await supabase
+        .from('driver_vehicles')
+        .insert(vehicleAssignments)
+
+      if (vehicleError) {
+        toast.warning('Vodič bol pridaný, ale nepodarilo sa priradiť vozidlá')
+        console.error(vehicleError)
+      }
+    }
+
     await logAudit({
       tableName: 'drivers',
       recordId: data.id,
@@ -48,12 +84,20 @@ export default function NewDriverPage() {
       userType: 'admin',
       userId: user?.id,
       userName: user?.email,
-      newData: driverData,
+      newData: { ...driverData, assigned_vehicles: selectedVehicleIds },
     })
 
     toast.success('Vodič bol úspešne pridaný')
     router.push('/admin/vodici')
     router.refresh()
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-48">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   return (
@@ -70,12 +114,12 @@ export default function NewDriverPage() {
         </div>
       </div>
 
-      <Card className="max-w-2xl">
-        <CardHeader>
-          <CardTitle>Údaje vodiča</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle>Údaje vodiča</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="firstName">Meno *</Label>
@@ -122,27 +166,45 @@ export default function NewDriverPage() {
                 placeholder="+421 900 000 000"
               />
             </div>
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Ukladám...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Uložiť
-                  </>
-                )}
-              </Button>
-              <Button type="button" variant="outline" asChild disabled={isSubmitting}>
-                <Link href="/admin/vodici">Zrušiť</Link>
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        <Card className="max-w-2xl">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Car className="h-5 w-5" />
+              Priradené vozidlá
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <VehicleAssignment
+              vehicles={vehicles}
+              selectedVehicleIds={selectedVehicleIds}
+              onChange={setSelectedVehicleIds}
+              disabled={isSubmitting}
+            />
+          </CardContent>
+        </Card>
+
+        <div className="flex gap-3 max-w-2xl">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Ukladám...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Uložiť
+              </>
+            )}
+          </Button>
+          <Button type="button" variant="outline" asChild disabled={isSubmitting}>
+            <Link href="/admin/vodici">Zrušiť</Link>
+          </Button>
+        </div>
+      </form>
     </div>
   )
 }

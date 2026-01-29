@@ -10,17 +10,40 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Plus, Pencil, Users } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+import { Plus, Pencil, Users, Car } from 'lucide-react'
 import { Driver } from '@/types'
 import { DeleteDriverButton } from './delete-button'
+
+interface DriverWithCount extends Driver {
+  vehicle_count: number
+}
 
 export default async function DriversPage() {
   const supabase = await createClient()
 
+  // Načítať vodičov s počtom priradených vozidiel
   const { data: drivers, error } = await supabase
     .from('drivers')
     .select('*')
     .order('last_name', { ascending: true })
+
+  // Načítať počty vozidiel pre každého vodiča
+  const { data: vehicleCounts } = await supabase
+    .from('driver_vehicles')
+    .select('driver_id')
+
+  // Spočítať vozidlá pre každého vodiča
+  const countMap: Record<string, number> = {}
+  vehicleCounts?.forEach((row) => {
+    countMap[row.driver_id] = (countMap[row.driver_id] || 0) + 1
+  })
+
+  // Pridať počty k vodičom
+  const driversWithCount: DriverWithCount[] = (drivers || []).map((driver) => ({
+    ...driver,
+    vehicle_count: countMap[driver.id] || 0,
+  }))
 
   if (error) {
     console.error('Error loading drivers:', error)
@@ -49,7 +72,7 @@ export default async function DriversPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {!drivers || drivers.length === 0 ? (
+          {driversWithCount.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <Users className="mx-auto h-12 w-12 mb-4 opacity-50" />
               <p>Zatiaľ neboli pridaní žiadni vodiči.</p>
@@ -64,17 +87,24 @@ export default async function DriversPage() {
                   <TableHead>Meno</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Telefón</TableHead>
+                  <TableHead>Vozidlá</TableHead>
                   <TableHead className="w-[100px]">Akcie</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {(drivers as Driver[]).map((driver) => (
+                {driversWithCount.map((driver) => (
                   <TableRow key={driver.id}>
                     <TableCell className="font-medium">
                       {driver.first_name} {driver.last_name}
                     </TableCell>
                     <TableCell>{driver.email || '-'}</TableCell>
                     <TableCell>{driver.phone || '-'}</TableCell>
+                    <TableCell>
+                      <Badge variant={driver.vehicle_count > 0 ? 'default' : 'secondary'} className="gap-1">
+                        <Car className="h-3 w-3" />
+                        {driver.vehicle_count}
+                      </Badge>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" asChild>

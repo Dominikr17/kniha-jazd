@@ -28,7 +28,8 @@ interface DriverNewTripFormProps {
 }
 
 export function DriverNewTripForm({ vehicles, driverId, driverName }: DriverNewTripFormProps) {
-  const [vehicleId, setVehicleId] = useState('')
+  // Ak má vodič len jedno vozidlo, predvyplníme ho
+  const [vehicleId, setVehicleId] = useState(vehicles.length === 1 ? vehicles[0].id : '')
   const [tripType, setTripType] = useState<TripType>('sluzobna')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [timeStart, setTimeStart] = useState('')

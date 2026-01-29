@@ -11,16 +11,28 @@ import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Driver } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+import { VehicleAssignment } from '../vehicle-assignment'
+
+// Zjednodušený typ pre výber vozidiel
+interface VehicleBasic {
+  id: string
+  name: string
+  license_plate: string
+}
 
 interface EditDriverFormProps {
   driver: Driver
+  vehicles: VehicleBasic[]
+  initialVehicleIds: string[]
+  vehiclesOnly?: boolean
 }
 
-export function EditDriverForm({ driver }: EditDriverFormProps) {
+export function EditDriverForm({ driver, vehicles, initialVehicleIds, vehiclesOnly = false }: EditDriverFormProps) {
   const [firstName, setFirstName] = useState(driver.first_name)
   const [lastName, setLastName] = useState(driver.last_name)
   const [email, setEmail] = useState(driver.email || '')
   const [phone, setPhone] = useState(driver.phone || '')
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>(initialVehicleIds)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
@@ -29,6 +41,58 @@ export function EditDriverForm({ driver }: EditDriverFormProps) {
     e.preventDefault()
     setIsSubmitting(true)
 
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (vehiclesOnly) {
+      // Iba aktualizácia priradených vozidiel
+      const { error: deleteError } = await supabase
+        .from('driver_vehicles')
+        .delete()
+        .eq('driver_id', driver.id)
+
+      if (deleteError) {
+        toast.error('Nepodarilo sa aktualizovať priradenia')
+        setIsSubmitting(false)
+        return
+      }
+
+      if (selectedVehicleIds.length > 0) {
+        const vehicleAssignments = selectedVehicleIds.map((vehicleId) => ({
+          driver_id: driver.id,
+          vehicle_id: vehicleId,
+          created_by: user?.id || null,
+        }))
+
+        const { error: insertError } = await supabase
+          .from('driver_vehicles')
+          .insert(vehicleAssignments)
+
+        if (insertError) {
+          toast.error('Nepodarilo sa uložiť priradenia vozidiel')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      await logAudit({
+        tableName: 'driver_vehicles',
+        recordId: driver.id,
+        operation: 'UPDATE',
+        userType: 'admin',
+        userId: user?.id,
+        userName: user?.email,
+        oldData: { vehicle_ids: initialVehicleIds },
+        newData: { vehicle_ids: selectedVehicleIds },
+        description: `Aktualizácia priradených vozidiel pre ${driver.first_name} ${driver.last_name}`,
+      })
+
+      toast.success('Priradenia vozidiel boli aktualizované')
+      router.refresh()
+      setIsSubmitting(false)
+      return
+    }
+
+    // Aktualizácia údajov vodiča
     const oldData = {
       first_name: driver.first_name,
       last_name: driver.last_name,
@@ -54,7 +118,6 @@ export function EditDriverForm({ driver }: EditDriverFormProps) {
       return
     }
 
-    const { data: { user } } = await supabase.auth.getUser()
     await logAudit({
       tableName: 'drivers',
       recordId: driver.id,
@@ -69,6 +132,34 @@ export function EditDriverForm({ driver }: EditDriverFormProps) {
     toast.success('Zmeny boli uložené')
     router.push('/admin/vodici')
     router.refresh()
+  }
+
+  if (vehiclesOnly) {
+    return (
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <VehicleAssignment
+          vehicles={vehicles}
+          selectedVehicleIds={selectedVehicleIds}
+          onChange={setSelectedVehicleIds}
+          disabled={isSubmitting}
+        />
+        <div className="flex gap-3 pt-4">
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Ukladám...
+              </>
+            ) : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Uložiť priradenia
+              </>
+            )}
+          </Button>
+        </div>
+      </form>
+    )
   }
 
   return (
