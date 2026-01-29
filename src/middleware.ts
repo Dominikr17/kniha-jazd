@@ -1,14 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/lib/supabase/middleware'
 
-// Cesty, ktoré nevyžadujú IP/PIN kontrolu
-const PIN_PUBLIC_PATHS = ['/pin', '/api/pin', '/api/driver']
-
-// Cesty, ktoré vyžadujú Supabase Auth (admin sekcia)
+// Konfigurácia ciest
+const PUBLIC_PATHS = ['/pin', '/api/pin', '/api/driver']
 const ADMIN_PATHS = ['/admin', '/login', '/auth']
-
-// Verejné cesty pre vodičov (hlavná stránka, výber vodiča)
 const DRIVER_PUBLIC_PATHS = ['/', '/vodic']
+
+// Názov session cookie
+const PIN_SESSION_COOKIE = 'pin_session'
 
 function isStaticFile(pathname: string): boolean {
   return (
@@ -19,17 +18,12 @@ function isStaticFile(pathname: string): boolean {
   )
 }
 
-function isPinPublicPath(pathname: string): boolean {
-  return PIN_PUBLIC_PATHS.some(path => pathname.startsWith(path))
+function matchesPathPrefix(pathname: string, paths: string[]): boolean {
+  return paths.some(path => pathname.startsWith(path))
 }
 
-function isAdminPath(pathname: string): boolean {
-  return ADMIN_PATHS.some(path => pathname.startsWith(path))
-}
-
-function isDriverPublicPath(pathname: string): boolean {
-  // Presná zhoda pre / a /vodic
-  return pathname === '/' || pathname === '/vodic'
+function matchesExactPath(pathname: string, paths: string[]): boolean {
+  return paths.includes(pathname)
 }
 
 function getClientIp(request: NextRequest): string {
@@ -44,16 +38,23 @@ function getClientIp(request: NextRequest): string {
   return '127.0.0.1'
 }
 
-function isAllowedIp(ip: string): boolean {
+function isAllowedIp(clientIp: string): boolean {
   const allowedIps = process.env.ALLOWED_IPS || ''
   if (!allowedIps) return false
-  const ipList = allowedIps.split(',').map(ip => ip.trim())
-  return ipList.includes(ip)
+  const ipList = allowedIps.split(',').map(entry => entry.trim())
+  return ipList.includes(clientIp)
 }
 
 function hasPinSession(request: NextRequest): boolean {
-  const sessionCookie = request.cookies.get('pin_session')
-  return sessionCookie?.value === 'true'
+  const cookie = request.cookies.get(PIN_SESSION_COOKIE)
+  return cookie?.value === 'true'
+}
+
+function redirectToPin(request: NextRequest, pathname: string): NextResponse {
+  const url = request.nextUrl.clone()
+  url.pathname = '/pin'
+  url.searchParams.set('redirect', pathname)
+  return NextResponse.redirect(url)
 }
 
 export async function middleware(request: NextRequest) {
@@ -64,50 +65,33 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // PIN stránka a API - povoliť bez kontroly
-  if (isPinPublicPath(pathname)) {
+  // Verejné cesty (PIN stránka, API) - povoliť
+  if (matchesPathPrefix(pathname, PUBLIC_PATHS)) {
     return NextResponse.next()
   }
 
   // Admin cesty - delegovať na Supabase Auth
-  if (isAdminPath(pathname)) {
+  if (matchesPathPrefix(pathname, ADMIN_PATHS)) {
     return await updateSession(request)
   }
 
   // Verejné vodičovské cesty (hlavná stránka, výber vodiča) - povoliť
-  if (isDriverPublicPath(pathname)) {
+  if (matchesExactPath(pathname, DRIVER_PUBLIC_PATHS)) {
     return NextResponse.next()
   }
 
-  // Vodičovská sekcia (/vodic/jazdy, /vodic/phm, ...) - kontrola IP + PIN
+  // Vodičovská sekcia - kontrola IP alebo PIN session
   const clientIp = getClientIp(request)
 
-  // Povolená IP - priamy prístup
-  if (isAllowedIp(clientIp)) {
+  if (isAllowedIp(clientIp) || hasPinSession(request)) {
     return NextResponse.next()
   }
 
-  // PIN session cookie - povolený prístup (platí do zatvorenia prehliadača)
-  if (hasPinSession(request)) {
-    return NextResponse.next()
-  }
-
-  // Presmerovať na PIN stránku
-  const url = request.nextUrl.clone()
-  url.pathname = '/pin'
-  url.searchParams.set('redirect', pathname)
-  return NextResponse.redirect(url)
+  return redirectToPin(request, pathname)
 }
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
