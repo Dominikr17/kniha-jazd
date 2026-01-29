@@ -48,7 +48,7 @@ src/
 ```
 
 ## Databázové tabuľky
-- `drivers` - Vodiči
+- `drivers` - Vodiči (+ `position` - funkcia/pracovná pozícia)
 - `vehicles` - Vozidlá (+ `responsible_driver_id`, `rated_consumption`, `tank_capacity`)
 - `driver_vehicles` - Priradenie vozidiel vodičom (M:N väzba)
 - `vehicle_documents` - Dokumenty vozidiel
