@@ -12,6 +12,7 @@ Elektronická kniha jázd pre správu vozového parku firmy ZVL SLOVAKIA. Zákon
 - **Autentifikácia:** Supabase Auth
 - **Grafy:** Recharts
 - **Export:** jsPDF, xlsx
+- **PWA:** Service Worker, Web App Manifest
 
 ## Štruktúra projektu
 ```
@@ -42,7 +43,9 @@ src/
 ├── components/
 │   ├── ui/                    # shadcn komponenty
 │   ├── layout/                # Sidebar, header
-│   └── delete-button.tsx      # Generický DeleteButton pre mazanie záznamov
+│   ├── delete-button.tsx      # Generický DeleteButton pre mazanie záznamov
+│   ├── pwa-register.tsx       # Registrácia Service Workera
+│   └── pwa-install-prompt.tsx # Inštalačný prompt pre PWA
 ├── lib/
 │   ├── supabase/              # Supabase klienty (client, server, middleware)
 │   └── driver-session.ts      # Helper pre vodičovské cookie
@@ -78,6 +81,8 @@ src/
 - `src/lib/fuel-stock-calculator.ts` - Automatický výpočet stavu nádrže
 - `src/types/index.ts` - Všetky TypeScript typy a konstanty
 - `supabase/full_migration.sql` - Kompletná DB migrácia
+- `public/manifest.json` - PWA manifest
+- `public/sw.js` - Service Worker pre offline podporu
 
 ## Firemné farby a branding
 - **Modrá:** #004B87 (Pantone 2945C) - primárna farba
@@ -168,9 +173,27 @@ Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
 - **Potrebné údaje na vozidle**: `tank_capacity` (objem nádrže), `rated_consumption` (normovaná spotreba)
 - **Checkbox "Plná nádrž"** pri tankovaní vytvorí referenčný bod s kapacitou nádrže
 
+## PWA (Progressive Web App)
+Aplikácia podporuje inštaláciu na mobil:
+
+**Android:**
+- Automatický inštalačný prompt sa zobrazí pri návšteve
+- Používateľ klikne "Nainštalovať" → ikona na ploche
+
+**iOS:**
+- Safari → Zdieľať → Pridať na plochu
+- Automatický prompt nie je podporovaný (Apple obmedzenie)
+
+**Súbory:**
+- `public/manifest.json` - Popis aplikácie
+- `public/sw.js` - Service Worker (offline cache)
+- `public/icons/` - Ikony 192x192 a 512x512
+- `src/components/pwa-register.tsx` - Registrácia SW
+- `src/components/pwa-install-prompt.tsx` - Inštalačný prompt
+
 ## TODO / Plánované vylepšenia
 - [ ] Upload dokumentov (Supabase Storage)
 - [ ] Stránkovanie v tabuľkách
 - [x] Vyhľadávanie a zoraďovanie v zozname vodičov
 - [ ] Email notifikácie pre termíny
-- [ ] PWA pre offline použitie
+- [x] PWA pre offline použitie
