@@ -17,6 +17,7 @@ import { VehicleAssignment } from '../vehicle-assignment'
 export default function NewDriverPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
+  const [position, setPosition] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>([])
@@ -45,6 +46,7 @@ export default function NewDriverPage() {
     const driverData = {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
+      position: position.trim() || null,
       email: email.trim() || null,
       phone: phone.trim() || null,
     }
@@ -143,6 +145,16 @@ export default function NewDriverPage() {
                   placeholder="Novák"
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="position">Funkcia</Label>
+              <Input
+                id="position"
+                value={position}
+                onChange={(e) => setPosition(e.target.value)}
+                disabled={isSubmitting}
+                placeholder="Obchodný zástupca, Technik, Riaditeľ..."
+              />
             </div>
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>

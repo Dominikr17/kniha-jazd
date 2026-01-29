@@ -5,6 +5,7 @@ export interface Driver {
   last_name: string
   email: string | null
   phone: string | null
+  position: string | null  // Pracovná pozícia/funkcia
   created_at: string
   updated_at: string
   // Joined fields pre priradené vozidlá

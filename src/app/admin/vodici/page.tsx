@@ -85,8 +85,9 @@ export default async function DriversPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Meno</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Telefón</TableHead>
+                  <TableHead>Funkcia</TableHead>
+                  <TableHead className="hidden md:table-cell">Email</TableHead>
+                  <TableHead className="hidden sm:table-cell">Telefón</TableHead>
                   <TableHead>Vozidlá</TableHead>
                   <TableHead className="w-[100px]">Akcie</TableHead>
                 </TableRow>
@@ -97,8 +98,11 @@ export default async function DriversPage() {
                     <TableCell className="font-medium">
                       {driver.first_name} {driver.last_name}
                     </TableCell>
-                    <TableCell>{driver.email || '-'}</TableCell>
-                    <TableCell>{driver.phone || '-'}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {driver.position || '-'}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">{driver.email || '-'}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{driver.phone || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={driver.vehicle_count > 0 ? 'default' : 'secondary'} className="gap-1">
                         <Car className="h-3 w-3" />

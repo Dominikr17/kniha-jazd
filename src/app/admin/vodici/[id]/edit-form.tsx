@@ -30,6 +30,7 @@ interface EditDriverFormProps {
 export function EditDriverForm({ driver, vehicles, initialVehicleIds, vehiclesOnly = false }: EditDriverFormProps) {
   const [firstName, setFirstName] = useState(driver.first_name)
   const [lastName, setLastName] = useState(driver.last_name)
+  const [position, setPosition] = useState(driver.position || '')
   const [email, setEmail] = useState(driver.email || '')
   const [phone, setPhone] = useState(driver.phone || '')
   const [selectedVehicleIds, setSelectedVehicleIds] = useState<string[]>(initialVehicleIds)
@@ -96,6 +97,7 @@ export function EditDriverForm({ driver, vehicles, initialVehicleIds, vehiclesOn
     const oldData = {
       first_name: driver.first_name,
       last_name: driver.last_name,
+      position: driver.position,
       email: driver.email,
       phone: driver.phone,
     }
@@ -103,6 +105,7 @@ export function EditDriverForm({ driver, vehicles, initialVehicleIds, vehiclesOn
     const newData = {
       first_name: firstName.trim(),
       last_name: lastName.trim(),
+      position: position.trim() || null,
       email: email.trim() || null,
       phone: phone.trim() || null,
     }
@@ -185,6 +188,16 @@ export function EditDriverForm({ driver, vehicles, initialVehicleIds, vehiclesOn
             disabled={isSubmitting}
           />
         </div>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="position">Funkcia</Label>
+        <Input
+          id="position"
+          value={position}
+          onChange={(e) => setPosition(e.target.value)}
+          disabled={isSubmitting}
+          placeholder="Obchodný zástupca, Technik, Riaditeľ..."
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="email">Email</Label>
