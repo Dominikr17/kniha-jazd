@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Plus, Fuel, Route, AlertTriangle } from 'lucide-react'
+import { Plus, Fuel, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
@@ -51,20 +51,12 @@ export default async function DriverFuelPage() {
           <h1 className="text-2xl font-bold">Moje tankovania</h1>
           <p className="text-muted-foreground">Prehľad tankovaní PHM</p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <Link href="/vodic/phm/nova">
-              <Plus className="mr-2 h-4 w-4" />
-              Nové tankovanie
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/vodic/jazdy">
-              <Route className="mr-2 h-4 w-4" />
-              Jazdy
-            </Link>
-          </Button>
-        </div>
+        <Button asChild>
+          <Link href="/vodic/phm/nova">
+            <Plus className="mr-2 h-4 w-4" />
+            Nové tankovanie
+          </Link>
+        </Button>
       </div>
 
       {assignedVehicleIds.length === 0 ? (

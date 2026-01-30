@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Plus, Route, Fuel, Pencil } from 'lucide-react'
+import { Plus, Route, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
@@ -49,20 +49,12 @@ export default async function DriverTripsPage() {
           <h1 className="text-2xl font-bold">Moje jazdy</h1>
           <p className="text-muted-foreground">Prehľad a evidencia jázd</p>
         </div>
-        <div className="flex gap-2">
-          <Button asChild>
-            <Link href="/vodic/jazdy/nova">
-              <Plus className="mr-2 h-4 w-4" />
-              Nová jazda
-            </Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/vodic/phm">
-              <Fuel className="mr-2 h-4 w-4" />
-              PHM
-            </Link>
-          </Button>
-        </div>
+        <Button asChild>
+          <Link href="/vodic/jazdy/nova">
+            <Plus className="mr-2 h-4 w-4" />
+            Nová jazda
+          </Link>
+        </Button>
       </div>
 
       {/* Štatistiky */}

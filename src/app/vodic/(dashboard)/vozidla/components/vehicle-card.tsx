@@ -42,10 +42,10 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
             label="EK"
             validUntil={vehicle.ek?.valid_until}
           />
-          {vehicle.vignettes.map((vignette, index) => (
+          {vehicle.vignettes.map((vignette) => (
             <StatusBadge
-              key={index}
-              label={vignette.country}
+              key={vignette.id}
+              label={`Známka ${vignette.country}`}
               validUntil={vignette.valid_until}
             />
           ))}

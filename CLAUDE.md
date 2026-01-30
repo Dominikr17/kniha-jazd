@@ -43,7 +43,9 @@ src/
 │   └── auth/callback/         # Auth callback
 ├── components/
 │   ├── ui/                    # shadcn komponenty
-│   ├── layout/                # Sidebar, header
+│   ├── layout/                # Sidebar komponenty
+│   │   ├── app-sidebar.tsx    # Admin sidebar
+│   │   └── driver-sidebar.tsx # Vodičovský sidebar
 │   ├── delete-button.tsx      # Generický DeleteButton pre mazanie záznamov
 │   ├── pwa-register.tsx       # Registrácia Service Workera
 │   └── pwa-install-prompt.tsx # Inštalačný prompt pre PWA
@@ -74,6 +76,7 @@ src/
 - `src/lib/supabase/middleware.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
 - `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles)
+- `src/components/layout/driver-sidebar.tsx` - Vodičovský bočný panel
 - `src/lib/driver-vehicles.ts` - Helper pre priradenie vozidiel vodičom
 - `src/lib/audit-logger.ts` - Helper pre logovanie aktivít (audit log)
 - `src/lib/monthly-report.ts` - Helper pre mesačné výkazy PHM
@@ -121,7 +124,7 @@ npm run lint     # ESLint
 - **RLS politiky:**
   - `drivers`, `vehicles` - verejné čítanie (SELECT)
   - `trips`, `fuel_records`, `fuel_inventory`, `monthly_reports` - verejné čítanie, vkladanie, úprava, mazanie
-  - `driver_vehicles` - verejné čítanie, vkladanie, mazanie
+  - `driver_vehicles`, `vehicle_inspections`, `vehicle_vignettes` - verejné čítanie
   - Ostatné tabuľky - prístup len pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 

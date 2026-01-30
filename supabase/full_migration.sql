@@ -141,6 +141,9 @@ CREATE POLICY "Prihlásení používatelia môžu upravovať inšpekcie" ON vehi
 CREATE POLICY "Prihlásení používatelia môžu mazať inšpekcie" ON vehicle_inspections
   FOR DELETE TO authenticated USING (true);
 
+CREATE POLICY "vehicle_inspections_public_select" ON vehicle_inspections
+  FOR SELECT USING (true);
+
 -- =====================================================
 -- Tabuľka diaľničných známok
 CREATE TABLE vehicle_vignettes (
@@ -171,6 +174,9 @@ CREATE POLICY "Prihlásení používatelia môžu upravovať známky" ON vehicle
 
 CREATE POLICY "Prihlásení používatelia môžu mazať známky" ON vehicle_vignettes
   FOR DELETE TO authenticated USING (true);
+
+CREATE POLICY "vehicle_vignettes_public_select" ON vehicle_vignettes
+  FOR SELECT USING (true);
 
 -- =====================================================
 -- Tabuľka jázd
