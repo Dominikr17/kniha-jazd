@@ -59,7 +59,29 @@ export function DeleteButton({
   const handleDelete = async () => {
     setIsDeleting(true)
 
-    const { data: oldData } = await supabase.from(tableName).select('*').eq('id', recordId).single()
+    // Načítať záznam pred vymazaním
+    const { data: oldData, error: fetchError } = await supabase
+      .from(tableName)
+      .select('*')
+      .eq('id', recordId)
+      .single()
+
+    if (fetchError || !oldData) {
+      toast.error('Záznam nebol nájdený')
+      setIsDeleting(false)
+      return
+    }
+
+    // Ownership validácia pre vodičov
+    if (userType === 'driver' && userId) {
+      // Pre trips a fuel_records overiť driver_id
+      if ((tableName === 'trips' || tableName === 'fuel_records') && oldData.driver_id !== userId) {
+        toast.error('Nemáte oprávnenie vymazať tento záznam')
+        setIsDeleting(false)
+        return
+      }
+    }
+
     const { error } = await supabase.from(tableName).delete().eq('id', recordId)
 
     if (error) {
