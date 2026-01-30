@@ -16,18 +16,17 @@ import {
   Line,
   ReferenceLine,
 } from 'recharts'
-import { FuelRecord, Trip, Vehicle } from '@/types'
-import { format, parseISO, subMonths } from 'date-fns'
+import { FuelRecord, Vehicle } from '@/types'
+import { format, subMonths } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { getConsumptionStatus, formatNumber } from '@/lib/report-calculations'
 
 interface FuelConsumptionProps {
   vehicles: Vehicle[]
   fuelRecords: FuelRecord[]
-  trips: Trip[]
 }
 
-export function FuelConsumption({ vehicles, fuelRecords, trips }: FuelConsumptionProps) {
+export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps) {
   // Výpočet priemernej spotreby pre každé vozidlo
   const consumptionData = vehicles.map((vehicle) => {
     const vehicleFuel = fuelRecords

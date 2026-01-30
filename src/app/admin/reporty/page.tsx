@@ -122,8 +122,6 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         <TabsContent value="comparison">
           <VehicleComparison
             vehicles={(vehicles || []) as Vehicle[]}
-            trips={filteredTrips}
-            fuelRecords={filteredFuelRecords}
             vehicleStats={vehicleStats}
           />
         </TabsContent>
@@ -140,7 +138,6 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           <FuelConsumption
             vehicles={(vehicles || []) as Vehicle[]}
             fuelRecords={filteredFuelRecords}
-            trips={filteredTrips}
           />
         </TabsContent>
 

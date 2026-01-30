@@ -10,18 +10,16 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts'
-import { Trip, FuelRecord, Vehicle } from '@/types'
+import { Vehicle } from '@/types'
 import { VehicleStats, formatNumber, formatCurrency } from '@/lib/report-calculations'
 import { VehicleComparisonTable } from './components/vehicle-comparison-table'
 
 interface VehicleComparisonProps {
   vehicles: Vehicle[]
-  trips: Trip[]
-  fuelRecords: FuelRecord[]
   vehicleStats: VehicleStats[]
 }
 
-export function VehicleComparison({ vehicles, trips, fuelRecords, vehicleStats }: VehicleComparisonProps) {
+export function VehicleComparison({ vehicles, vehicleStats }: VehicleComparisonProps) {
   // Dáta pre grafy
   const chartData = vehicleStats
     .filter((v) => v.totalDistance > 0 || v.totalFuelCost > 0)

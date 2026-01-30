@@ -12,7 +12,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { Trip, FuelRecord } from '@/types'
-import { format, parseISO, startOfMonth, subMonths, endOfMonth } from 'date-fns'
+import { format, startOfMonth, subMonths, endOfMonth } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { ComparisonCard } from './components/comparison-card'
 import { DateRange, getPreviousMonthRange } from '@/lib/report-utils'
