@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { clearDriverCookie } from '@/lib/driver-session'
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   await clearDriverCookie()
-  return NextResponse.redirect(new URL('/vodic', process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'))
+
+  const url = new URL('/vodic', request.url)
+  return NextResponse.redirect(url)
 }
