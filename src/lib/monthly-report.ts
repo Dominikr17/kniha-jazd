@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { MonthlyReport, MonthlyReportData, ReportStatus, FuelStockCalculation } from '@/types'
+import { MonthlyReport, MonthlyReportData, ReportStatus } from '@/types'
 import { calculateMonthlyFuelStocks } from '@/lib/fuel-stock-calculator'
 
 interface CalculateParams {

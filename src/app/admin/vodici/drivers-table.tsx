@@ -42,7 +42,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
     }
   }
 
-  const SortIcon = ({ field }: { field: SortField }) => {
+  const renderSortIcon = (field: SortField) => {
     if (sortField !== field) {
       return <ArrowUpDown className="ml-1 h-4 w-4 text-muted-foreground/50" />
     }
@@ -131,7 +131,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
               >
                 <span className="flex items-center">
                   Meno
-                  <SortIcon field="name" />
+                  {renderSortIcon('name')}
                 </span>
               </TableHead>
               <TableHead
@@ -140,7 +140,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
               >
                 <span className="flex items-center">
                   Funkcia
-                  <SortIcon field="position" />
+                  {renderSortIcon('position')}
                 </span>
               </TableHead>
               <TableHead
@@ -149,7 +149,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
               >
                 <span className="flex items-center">
                   Email
-                  <SortIcon field="email" />
+                  {renderSortIcon('email')}
                 </span>
               </TableHead>
               <TableHead
@@ -158,7 +158,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
               >
                 <span className="flex items-center">
                   Telefón
-                  <SortIcon field="phone" />
+                  {renderSortIcon('phone')}
                 </span>
               </TableHead>
               <TableHead
@@ -167,7 +167,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
               >
                 <span className="flex items-center">
                   Vozidlá
-                  <SortIcon field="vehicle_count" />
+                  {renderSortIcon('vehicle_count')}
                 </span>
               </TableHead>
               <TableHead className="w-[100px]">Akcie</TableHead>

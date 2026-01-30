@@ -15,14 +15,13 @@ import {
   Cell,
   Legend,
 } from 'recharts'
-import { Trip, FuelRecord, Vehicle, PAYMENT_METHODS } from '@/types'
+import { Trip, FuelRecord, PAYMENT_METHODS } from '@/types'
 import { formatCurrency, formatNumber, VehicleStats } from '@/lib/report-calculations'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { Fuel, TrendingUp, Car, Receipt } from 'lucide-react'
 
 interface CostsTabProps {
-  vehicles: Vehicle[]
   trips: Trip[]
   fuelRecords: FuelRecord[]
   vehicleStats: VehicleStats[]

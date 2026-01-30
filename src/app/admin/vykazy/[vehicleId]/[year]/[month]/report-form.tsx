@@ -73,7 +73,7 @@ export function ReportForm({ reportData }: ReportFormProps) {
       } else {
         toast.error(result.error || 'Chyba pri ukladaní výkazu')
       }
-    } catch (error) {
+    } catch {
       toast.error('Chyba pri ukladaní výkazu')
     } finally {
       setIsSubmitting(false)

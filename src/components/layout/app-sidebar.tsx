@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import {
   Sidebar,
@@ -87,9 +88,11 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarHeader className="border-b px-6 py-4">
         <Link href="/admin" className="flex items-center">
-          <img
+          <Image
             src="/logo.svg"
             alt="ZVL SLOVAKIA"
+            width={120}
+            height={40}
             className="h-10 w-auto"
           />
         </Link>

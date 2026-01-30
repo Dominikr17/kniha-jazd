@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Fuel, Trash2 } from 'lucide-react'
+import { Plus, Fuel } from 'lucide-react'
 import { FuelRecord, FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'

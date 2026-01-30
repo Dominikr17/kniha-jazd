@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, ArrowLeft } from 'lucide-react'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -44,10 +45,13 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
-            <img
+            <Image
               src="/logo.svg"
               alt="ZVL SLOVAKIA"
+              width={160}
+              height={64}
               className="h-16 w-auto"
+              priority
             />
           </div>
           <CardTitle className="text-2xl">Kniha jázd</CardTitle>

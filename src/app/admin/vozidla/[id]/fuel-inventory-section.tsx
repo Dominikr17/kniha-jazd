@@ -226,7 +226,7 @@ export function FuelInventorySection({ vehicleId, fuelInventory, tankCapacity }:
       <CardContent>
         <p className="text-sm text-muted-foreground mb-4">
           Referenčné body umožňujú automatický výpočet stavu nádrže pre mesačné výkazy PHM.
-          Pridajte počiatočný stav nádrže alebo využite tankovanie "do plna".
+          Pridajte počiatočný stav nádrže alebo využite tankovanie &quot;do plna&quot;.
         </p>
         {fuelInventory.length === 0 ? (
           <p className="text-muted-foreground text-center py-4">

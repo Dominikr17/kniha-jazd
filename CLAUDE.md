@@ -290,3 +290,4 @@ Stránka s analýzami a prehľadmi vozového parku.
 - [x] PWA pre offline použitie
 - [x] UI pre správu palivových zásob (počiatočný stav nádrže)
 - [x] Vylepšené reporty s globálnymi filtrami a novými tabmi
+- [x] Oprava ESLint chýb a varovaní (čistý kód)

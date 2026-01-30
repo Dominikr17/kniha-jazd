@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { FileText, FileSpreadsheet, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { MonthlyReportData, MONTHS_SK } from '@/types'
+import { MonthlyReportData } from '@/types'
 import { generateMonthlyReportPDF } from '@/lib/monthly-report-pdf'
 import { generateMonthlyReportExcel } from '@/lib/monthly-report-excel'
 

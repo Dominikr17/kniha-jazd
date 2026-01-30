@@ -11,7 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Route, FileDown, Pencil } from 'lucide-react'
+import { Plus, Route, Pencil } from 'lucide-react'
 import { Trip, TRIP_TYPES } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'

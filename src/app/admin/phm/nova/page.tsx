@@ -58,14 +58,13 @@ export default function NewFuelPage() {
   }, [supabase])
 
   // Nastavenie typu paliva podľa vozidla
-  useEffect(() => {
-    if (vehicleId) {
-      const vehicle = vehicles.find((v) => v.id === vehicleId)
-      if (vehicle) {
-        setFuelType(vehicle.fuel_type)
-      }
+  const handleVehicleChange = (newVehicleId: string) => {
+    setVehicleId(newVehicleId)
+    const vehicle = vehicles.find((v) => v.id === newVehicleId)
+    if (vehicle) {
+      setFuelType(vehicle.fuel_type)
     }
-  }, [vehicleId, vehicles])
+  }
 
   const totalPrice = liters && pricePerLiter
     ? (parseFloat(liters) * parseFloat(pricePerLiter)).toFixed(2)
@@ -180,7 +179,7 @@ export default function NewFuelPage() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="vehicle">Vozidlo *</Label>
-                <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting}>
+                <Select value={vehicleId} onValueChange={handleVehicleChange} disabled={isSubmitting}>
                   <SelectTrigger id="vehicle">
                     <SelectValue placeholder="Vyberte vozidlo" />
                   </SelectTrigger>

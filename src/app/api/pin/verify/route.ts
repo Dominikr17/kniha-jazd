@@ -5,7 +5,6 @@ const rateLimitMap = new Map<string, { attempts: number; blockedUntil: number }>
 
 const MAX_ATTEMPTS = 5
 const BLOCK_DURATION_MS = 15 * 60 * 1000 // 15 minút
-const ATTEMPT_WINDOW_MS = 5 * 60 * 1000 // 5 minút
 
 function getClientIp(request: NextRequest): string {
   const forwarded = request.headers.get('x-forwarded-for')

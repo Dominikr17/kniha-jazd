@@ -67,7 +67,7 @@ export function VykazyFilter({
       } else {
         toast.error(result.error || 'Chyba pri generovaní výkazov')
       }
-    } catch (error) {
+    } catch {
       toast.error('Chyba pri generovaní výkazov')
     } finally {
       setIsGenerating(false)

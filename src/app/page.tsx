@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { createClient } from '@/lib/supabase/server'
 import { DriverSelect } from './vodic/driver-select'
@@ -17,10 +18,13 @@ export default async function HomePage() {
         <div className="w-full max-w-md -mt-24">
           {/* Logo a názov */}
           <div className="text-center mb-8">
-            <img
+            <Image
               src="/logo.svg"
               alt="ZVL SLOVAKIA"
+              width={160}
+              height={64}
               className="h-16 w-auto mx-auto mb-4"
+              priority
             />
             <h1 className="text-3xl font-bold tracking-tight">Kniha jázd</h1>
             <p className="text-muted-foreground mt-2">

@@ -53,7 +53,7 @@ function getStatusBadgeClass(status: ReportStatus): string {
   }
 }
 
-export function VykazyList({ reports, year, month }: VykazyListProps) {
+export function VykazyList({ reports }: VykazyListProps) {
   if (reports.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground">

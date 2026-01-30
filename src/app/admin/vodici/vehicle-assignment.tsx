@@ -1,9 +1,8 @@
 'use client'
 
 import { Checkbox } from '@/components/ui/checkbox'
-import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Car, CheckSquare, Square } from 'lucide-react'
+import { CheckSquare, Square } from 'lucide-react'
 
 // Zjednodušený typ pre výber vozidiel
 interface VehicleBasic {

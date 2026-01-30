@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getDriverId, getDriverName } from '@/lib/driver-session'
+import { getDriverId } from '@/lib/driver-session'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -28,7 +28,6 @@ function canEditTrip(createdAt: string): boolean {
 export default async function DriverTripsPage() {
   const supabase = await createClient()
   const driverId = await getDriverId()
-  const driverName = await getDriverName()
 
   const { data: trips } = await supabase
     .from('trips')

@@ -45,7 +45,7 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
     }
   }
 
-  const SortIcon = ({ field }: { field: SortField }) => {
+  const renderSortIcon = (field: SortField) => {
     if (sortField !== field) {
       return <ArrowUpDown className="ml-1 h-4 w-4 text-muted-foreground/50" />
     }
@@ -143,7 +143,7 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
                 >
                   <span className="flex items-center">
                     Názov
-                    <SortIcon field="name" />
+                    {renderSortIcon('name')}
                   </span>
                 </TableHead>
                 <TableHead
@@ -152,7 +152,7 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
                 >
                   <span className="flex items-center">
                     EČV
-                    <SortIcon field="license_plate" />
+                    {renderSortIcon('license_plate')}
                   </span>
                 </TableHead>
                 <TableHead
@@ -161,7 +161,7 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
                 >
                   <span className="flex items-center">
                     Značka/Model
-                    <SortIcon field="brand_model" />
+                    {renderSortIcon('brand_model')}
                   </span>
                 </TableHead>
                 <TableHead
@@ -170,7 +170,7 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
                 >
                   <span className="flex items-center">
                     Palivo
-                    <SortIcon field="fuel_type" />
+                    {renderSortIcon('fuel_type')}
                   </span>
                 </TableHead>
                 <TableHead
@@ -179,7 +179,7 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
                 >
                   <span className="flex items-center">
                     Zodpovedný vodič
-                    <SortIcon field="driver" />
+                    {renderSortIcon('driver')}
                   </span>
                 </TableHead>
                 <TableHead className="w-[100px]">Akcie</TableHead>

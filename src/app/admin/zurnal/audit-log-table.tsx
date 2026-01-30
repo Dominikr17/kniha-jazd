@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import {
   Table,
   TableBody,
@@ -99,7 +99,6 @@ function DataDiff({ oldData, newData }: { oldData: Record<string, unknown> | nul
 
 export function AuditLogTable({ logs, initialFilters }: AuditLogTableProps) {
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [tableFilter, setTableFilter] = useState(initialFilters.table || '')
   const [operationFilter, setOperationFilter] = useState(initialFilters.operation || '')
   const [fromDate, setFromDate] = useState(initialFilters.from || '')

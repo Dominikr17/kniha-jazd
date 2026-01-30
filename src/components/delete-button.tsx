@@ -39,7 +39,6 @@ interface DeleteButtonProps {
 export function DeleteButton({
   tableName,
   recordId,
-  itemLabel,
   dialogTitle,
   dialogDescription,
   successMessage,

@@ -19,6 +19,22 @@ interface Alert {
   country?: string
 }
 
+interface InspectionRecord {
+  id: string
+  vehicle_id: string
+  inspection_type: 'stk' | 'ek'
+  valid_until: string
+  vehicle: { id: string; name: string; license_plate: string } | null
+}
+
+interface VignetteRecord {
+  id: string
+  vehicle_id: string
+  country: string
+  valid_until: string
+  vehicle: { id: string; name: string; license_plate: string } | null
+}
+
 type Period = 'week' | 'month' | 'year'
 
 function getStartDate(period: Period): string {
@@ -89,12 +105,6 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   // Celkové najazdené km za obdobie
   const totalDistance = tripsData?.reduce((sum, trip) => sum + (trip.distance || 0), 0) ?? 0
 
-  const periodLabel = {
-    week: 'tento týždeň',
-    month: 'tento mesiac',
-    year: 'tento rok',
-  }[period]
-
   const stats = [
     {
       title: 'Vozidlá',
@@ -149,13 +159,13 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   const alerts: Alert[] = []
 
   // STK a EK kontroly
-  inspections?.forEach((inspection: any) => {
+  ;(inspections as InspectionRecord[] | null)?.forEach((inspection) => {
     const daysLeft = differenceInDays(parseISO(inspection.valid_until), new Date())
     // Zobrazí vypršané (do -30 dní) a blížiace sa (do +30 dní)
     if (daysLeft <= 30 && daysLeft >= -30) {
       alerts.push({
         type: inspection.inspection_type,
-        vehicleId: inspection.vehicle?.id,
+        vehicleId: inspection.vehicle?.id || '',
         vehicleName: inspection.vehicle?.name || 'Neznáme',
         licensePlate: inspection.vehicle?.license_plate || '',
         validUntil: inspection.valid_until,
@@ -165,13 +175,13 @@ export default async function DashboardPage({ searchParams }: PageProps) {
   })
 
   // Diaľničné známky
-  vignettes?.forEach((vignette: any) => {
+  ;(vignettes as VignetteRecord[] | null)?.forEach((vignette) => {
     const daysLeft = differenceInDays(parseISO(vignette.valid_until), new Date())
     // Zobrazí vypršané (do -30 dní) a blížiace sa (do +30 dní)
     if (daysLeft <= 30 && daysLeft >= -30) {
       alerts.push({
         type: 'vignette',
-        vehicleId: vignette.vehicle?.id,
+        vehicleId: vignette.vehicle?.id || '',
         vehicleName: vignette.vehicle?.name || 'Neznáme',
         licensePlate: vignette.vehicle?.license_plate || '',
         validUntil: vignette.valid_until,

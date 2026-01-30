@@ -143,7 +143,6 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
 
         <TabsContent value="costs">
           <CostsTab
-            vehicles={(vehicles || []) as Vehicle[]}
             trips={filteredTrips}
             fuelRecords={filteredFuelRecords}
             vehicleStats={vehicleStats}

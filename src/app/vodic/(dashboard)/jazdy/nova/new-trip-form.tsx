@@ -43,15 +43,12 @@ export function DriverNewTripForm({ vehicles, driverId, driverName }: DriverNewT
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastOdometer, setLastOdometer] = useState<number | null>(null)
-  const [odometerWarning, setOdometerWarning] = useState<string | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
   // Načítanie posledného stavu tachometra pre vybrané vozidlo
   useEffect(() => {
     if (!vehicleId) {
-      setLastOdometer(null)
-      setOdometerStart('')
       return
     }
 
@@ -79,6 +76,9 @@ export function DriverNewTripForm({ vehicles, driverId, driverName }: DriverNewT
         if (vehicle) {
           setLastOdometer(vehicle.initial_odometer)
           setOdometerStart(vehicle.initial_odometer.toString())
+        } else {
+          setLastOdometer(null)
+          setOdometerStart('')
         }
       }
     }
@@ -87,21 +87,18 @@ export function DriverNewTripForm({ vehicles, driverId, driverName }: DriverNewT
   }, [vehicleId, supabase])
 
   // Validácia tachometra
-  useEffect(() => {
+  const odometerWarning = (() => {
     if (!odometerStart || lastOdometer === null) {
-      setOdometerWarning(null)
-      return
+      return null
     }
-
     const start = parseInt(odometerStart)
     if (start < lastOdometer) {
-      setOdometerWarning(`Hodnota je nižšia ako posledný stav (${lastOdometer} km)`)
+      return `Hodnota je nižšia ako posledný stav (${lastOdometer} km)`
     } else if (start > lastOdometer + 10) {
-      setOdometerWarning(`Hodnota je vyššia o viac ako 10 km od posledného stavu (${lastOdometer} km)`)
-    } else {
-      setOdometerWarning(null)
+      return `Hodnota je vyššia o viac ako 10 km od posledného stavu (${lastOdometer} km)`
     }
-  }, [odometerStart, lastOdometer])
+    return null
+  })()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
