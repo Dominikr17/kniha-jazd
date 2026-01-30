@@ -53,7 +53,7 @@ src/
 │   ├── supabase/              # Supabase klienty (client, server, middleware)
 │   └── driver-session.ts      # Helper pre vodičovské cookie
 ├── types/                     # TypeScript typy
-└── middleware.ts              # Auth middleware
+└── proxy.ts              # Auth middleware
 ```
 
 ## Databázové tabuľky
@@ -73,7 +73,7 @@ src/
 - `src/lib/utils.ts` - Utility funkcie (cn, calculateTripDistance, resolvePurpose, calculateFuelPrice)
 - `src/lib/supabase/server.ts` - Server-side Supabase klient
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
-- `src/lib/supabase/middleware.ts` - Auth middleware (verejné/chránené cesty)
+- `src/lib/supabase/proxy.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
 - `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles)
 - `src/components/layout/driver-sidebar.tsx` - Vodičovský bočný panel
@@ -156,7 +156,7 @@ npm run lint     # ESLint
 | `DRIVER_SESSION_SECRET` | 64-char hex kľúč pre podpisovanie cookies |
 
 ### Bezpečnostné súbory
-- `src/middleware.ts` - IP + PIN kontrola, bezpečnostné hlavičky
+- `src/proxy.ts` - IP + PIN kontrola, bezpečnostné hlavičky
 - `src/app/pin/page.tsx` - PIN stránka s validáciou redirect
 - `src/app/api/pin/verify/route.ts` - Rate limiting, overenie PINu
 - `src/lib/driver-session.ts` - Podpísané driver cookies (HMAC)
