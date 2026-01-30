@@ -9,6 +9,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner'
 import Image from 'next/image'
 
+// Validácia redirect URL - povolené len interné cesty
+function isValidRedirect(url: string): boolean {
+  // Musí začínať s / a nesmie obsahovať protokol
+  if (!url.startsWith('/')) return false
+  if (url.startsWith('//')) return false
+  if (url.includes('://')) return false
+
+  // Povolené cesty
+  const allowedPrefixes = ['/vodic', '/admin', '/']
+  return allowedPrefixes.some(prefix => url === prefix || url.startsWith(prefix + '/'))
+}
+
 function PinForm() {
   const [pin, setPin] = useState('')
   const [isLoading, setIsLoading] = useState(false)
@@ -29,7 +41,8 @@ function PinForm() {
       const data = await response.json()
 
       if (data.success) {
-        const redirect = searchParams.get('redirect') || '/'
+        const redirectParam = searchParams.get('redirect') || '/'
+        const redirect = isValidRedirect(redirectParam) ? redirectParam : '/'
         router.push(redirect)
         router.refresh()
       } else {
