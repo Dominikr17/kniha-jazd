@@ -35,6 +35,7 @@ src/
 │   │   ├── page.tsx           # Redirect na hlavnú stránku
 │   │   ├── driver-select.tsx  # Combobox s vyhľadávaním vodičov
 │   │   └── (dashboard)/       # Vodičov dashboard
+│   │       ├── vozidla/       # Moje vozidlá - prehľad termínov
 │   │       ├── jazdy/         # Zoznam jázd, nová jazda, úprava
 │   │       └── phm/           # Zoznam tankovaní, nové tankovanie
 │   ├── api/driver/            # API pre vodičov (login/logout/me/vehicles)
@@ -170,6 +171,28 @@ npm run lint     # ESLint
 - Vodič vidí a môže zadávať údaje len pre priradené vozidlá
 - Ak má vodič len jedno priradené vozidlo, je automaticky predvyplnené vo formulároch
 - Vodič bez priradených vozidiel vidí upozornenie a nemôže zadávať jazdy/tankovania
+
+## Vodičovská sekcia - Moje vozidlá
+Stránka `/vodic/vozidla` zobrazuje vodičovi prehľad priradených vozidiel:
+
+**Zobrazené informácie:**
+- Názov a EČV vozidla
+- Aktuálny stav tachometra
+- STK, EK, diaľničné známky s farebným indikátorom
+
+**Farebné indikátory:**
+| Farba | Význam | Podmienka |
+|-------|--------|-----------|
+| 🟢 Zelená | OK | Platnosť > 30 dní |
+| 🟡 Žltá | Blíži sa | Platnosť 7-30 dní |
+| 🔴 Červená | Kritické | Platnosť < 7 dní alebo expirované |
+| ⚪ Šedá | Nezadané | Nemá záznam |
+
+**Súbory:**
+- `src/app/vodic/(dashboard)/vozidla/page.tsx` - Hlavná stránka
+- `src/app/vodic/(dashboard)/vozidla/components/vehicle-card.tsx` - Karta vozidla
+- `src/app/vodic/(dashboard)/vozidla/components/status-badge.tsx` - Badge pre termíny
+- `src/lib/driver-vehicles.ts` - Helper `getVehiclesWithDetails()`
 
 ## Pri úpravách
 1. Typy definuj v `src/types/index.ts`
