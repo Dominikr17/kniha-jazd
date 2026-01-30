@@ -75,7 +75,7 @@ src/
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
 - `src/lib/supabase/proxy.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
-- `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles)
+- `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles, fuel_inventory)
 - `src/components/layout/driver-sidebar.tsx` - Vodičovský bočný panel
 - `src/lib/driver-vehicles.ts` - Helper pre priradenie vozidiel vodičom
 - `src/lib/audit-logger.ts` - Helper pre logovanie aktivít (audit log)
@@ -217,6 +217,17 @@ Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
 - **Potrebné údaje na vozidle**: `tank_capacity` (objem nádrže), `rated_consumption` (normovaná spotreba)
 - **Checkbox "Plná nádrž"** pri tankovaní vytvorí referenčný bod s kapacitou nádrže
 
+### Správa palivových zásob v detaile vozidla
+V admin sekcii → Vozidlá → Detail vozidla → záložka **"Palivové zásoby"**:
+- Pridanie počiatočného stavu nádrže (dátum + litre + poznámka)
+- Zobrazenie histórie referenčných bodov (initial, full_tank, manual_correction)
+- Mazanie záznamov
+
+**Súbory:**
+- `src/app/admin/vozidla/[id]/fuel-inventory-section.tsx` - UI komponent
+- `src/app/api/fuel-inventory/initial/route.ts` - POST API pre pridanie
+- `src/app/api/fuel-inventory/[id]/route.ts` - DELETE API pre mazanie
+
 ## PWA (Progressive Web App)
 Aplikácia podporuje inštaláciu na mobil:
 
@@ -241,3 +252,4 @@ Aplikácia podporuje inštaláciu na mobil:
 - [x] Vyhľadávanie a zoraďovanie v zozname vodičov
 - [ ] Email notifikácie pre termíny
 - [x] PWA pre offline použitie
+- [x] UI pre správu palivových zásob (počiatočný stav nádrže)

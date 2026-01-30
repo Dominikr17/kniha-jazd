@@ -201,7 +201,7 @@ export default async function DashboardPage({ searchParams }: PageProps) {
     if (alert.type === 'stk') return 'STK'
     if (alert.type === 'ek') return 'EK'
     if (alert.type === 'vignette' && alert.country) {
-      return `Známka ${VIGNETTE_COUNTRIES[alert.country as keyof typeof VIGNETTE_COUNTRIES]}`
+      return `Diaľničná známka ${VIGNETTE_COUNTRIES[alert.country as keyof typeof VIGNETTE_COUNTRIES]}`
     }
     return 'Diaľničná známka'
   }

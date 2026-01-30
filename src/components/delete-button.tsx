@@ -17,7 +17,7 @@ import { Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { logAudit } from '@/lib/audit-logger'
 
-type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles'
+type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles' | 'fuel_inventory'
 type UserType = 'admin' | 'driver'
 
 interface DeleteButtonProps {

@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Car, FileText, Shield, CreditCard } from 'lucide-react'
+import { ArrowLeft, Car, FileText, Shield, CreditCard, Fuel } from 'lucide-react'
 import { FUEL_TYPES } from '@/types'
 import { EditVehicleForm } from './edit-form'
 import { InspectionsSection } from './inspections-section'
 import { VignettesSection } from './vignettes-section'
+import { FuelInventorySection } from './fuel-inventory-section'
 
 interface VehicleDetailPageProps {
   params: Promise<{ id: string }>
@@ -24,11 +25,13 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
     { data: inspections },
     { data: vignettes },
     { data: drivers },
+    { data: fuelInventory },
   ] = await Promise.all([
     supabase.from('vehicles').select('*, responsible_driver:drivers(*)').eq('id', id).single(),
     supabase.from('vehicle_inspections').select('*').eq('vehicle_id', id).order('valid_until', { ascending: false }),
     supabase.from('vehicle_vignettes').select('*').eq('vehicle_id', id).order('valid_until', { ascending: false }),
     supabase.from('drivers').select('*').order('last_name'),
+    supabase.from('fuel_inventory').select('*').eq('vehicle_id', id).order('date', { ascending: false }),
   ])
 
   if (vehicleError || !vehicle) {
@@ -57,10 +60,14 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
       </div>
 
       <Tabs defaultValue="info" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
           <TabsTrigger value="info" className="gap-2">
             <Car className="h-4 w-4 hidden sm:inline" />
             Základné údaje
+          </TabsTrigger>
+          <TabsTrigger value="fuel" className="gap-2">
+            <Fuel className="h-4 w-4 hidden sm:inline" />
+            Palivové zásoby
           </TabsTrigger>
           <TabsTrigger value="inspections" className="gap-2">
             <Shield className="h-4 w-4 hidden sm:inline" />
@@ -85,6 +92,14 @@ export default async function VehicleDetailPage({ params }: VehicleDetailPagePro
               <EditVehicleForm vehicle={vehicle} drivers={drivers || []} />
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="fuel">
+          <FuelInventorySection
+            vehicleId={id}
+            fuelInventory={fuelInventory || []}
+            tankCapacity={vehicle.tank_capacity}
+          />
         </TabsContent>
 
         <TabsContent value="inspections">
