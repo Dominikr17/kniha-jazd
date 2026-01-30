@@ -56,6 +56,14 @@ export interface Vehicle {
 export type VehicleInsert = Omit<Vehicle, 'id' | 'created_at' | 'updated_at' | 'responsible_driver' | 'assigned_drivers' | 'driver_vehicles'>
 export type VehicleUpdate = Partial<VehicleInsert>
 
+// Vozidlo s detailmi pre vodičovskú sekciu
+export interface VehicleWithDetails extends Vehicle {
+  currentOdometer: number
+  stk: VehicleInspection | null
+  ek: VehicleInspection | null
+  vignettes: VehicleVignette[]
+}
+
 // Dokumenty vozidiel
 export interface VehicleDocument {
   id: string

@@ -1,5 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js'
-import { Vehicle, Driver, DriverVehicle } from '@/types'
+import { Vehicle, Driver, DriverVehicle, VehicleWithDetails } from '@/types'
 
 /**
  * Načíta vozidlá priradené vodičovi
@@ -172,4 +172,76 @@ export async function saveDriverVehicles(
   }
 
   return { success: true }
+}
+
+/**
+ * Načíta vozidlá priradené vodičovi s detailmi (STK, EK, známky, tachometer)
+ */
+export async function getVehiclesWithDetails(
+  supabase: SupabaseClient,
+  driverId: string
+): Promise<VehicleWithDetails[]> {
+  // Načítaj priradené vozidlá
+  const { data: driverVehicles } = await supabase
+    .from('driver_vehicles')
+    .select('vehicle_id')
+    .eq('driver_id', driverId)
+
+  if (!driverVehicles || driverVehicles.length === 0) {
+    return []
+  }
+
+  const vehicleIds = driverVehicles.map(dv => dv.vehicle_id)
+
+  // Načítaj vozidlá
+  const { data: vehicles } = await supabase
+    .from('vehicles')
+    .select('*')
+    .in('id', vehicleIds)
+    .order('name')
+
+  if (!vehicles) return []
+
+  // Pre každé vozidlo načítaj termíny
+  const vehiclesWithDetails = await Promise.all(
+    vehicles.map(async (vehicle) => {
+      // Načítaj STK a EK
+      const { data: inspections } = await supabase
+        .from('vehicle_inspections')
+        .select('*')
+        .eq('vehicle_id', vehicle.id)
+        .order('valid_until', { ascending: false })
+
+      // Načítaj diaľničné známky
+      const { data: vignettes } = await supabase
+        .from('vehicle_vignettes')
+        .select('*')
+        .eq('vehicle_id', vehicle.id)
+        .order('valid_until', { ascending: true })
+
+      // Načítaj posledný stav tachometra z jázd
+      const { data: lastTrip } = await supabase
+        .from('trips')
+        .select('odometer_end')
+        .eq('vehicle_id', vehicle.id)
+        .not('odometer_end', 'is', null)
+        .order('date', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      const stk = inspections?.find(i => i.inspection_type === 'stk') || null
+      const ek = inspections?.find(i => i.inspection_type === 'ek') || null
+
+      return {
+        ...vehicle,
+        currentOdometer: lastTrip?.odometer_end || vehicle.initial_odometer || 0,
+        stk,
+        ek,
+        vignettes: vignettes || []
+      } as VehicleWithDetails
+    })
+  )
+
+  return vehiclesWithDetails
 }

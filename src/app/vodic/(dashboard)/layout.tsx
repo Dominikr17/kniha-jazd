@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import { getDriverId, getDriverName } from '@/lib/driver-session'
 import { Button } from '@/components/ui/button'
 import { Toaster } from '@/components/ui/sonner'
-import { Route, Fuel, LogOut, Home } from 'lucide-react'
+import { Route, Fuel, LogOut, Car } from 'lucide-react'
 
 export default async function DriverLayout({
   children,
@@ -56,18 +56,18 @@ export default async function DriverLayout({
       <nav className="fixed bottom-0 left-0 right-0 border-t bg-background sm:hidden">
         <div className="grid grid-cols-3 gap-1 p-2">
           <Link
+            href="/vodic/vozidla"
+            className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted"
+          >
+            <Car className="h-5 w-5" />
+            <span className="text-xs">Vozidlá</span>
+          </Link>
+          <Link
             href="/vodic/jazdy"
             className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted"
           >
             <Route className="h-5 w-5" />
             <span className="text-xs">Jazdy</span>
-          </Link>
-          <Link
-            href="/vodic/jazdy/nova"
-            className="flex flex-col items-center gap-1 p-2 rounded-md hover:bg-muted"
-          >
-            <Home className="h-5 w-5" />
-            <span className="text-xs">Nová jazda</span>
           </Link>
           <Link
             href="/vodic/phm"
