@@ -208,6 +208,7 @@ Stránka `/vodic/vozidla` zobrazuje vodičovi prehľad priradených vozidiel:
 8. Pre mazanie záznamov používaj generický `<DeleteButton>` z `@/components/delete-button`
 9. Utility funkcie pridávaj do `src/lib/utils.ts`
 10. V `.map()` callbackoch používaj výstižné názvy premenných (vehicle, driver, trip - nie v, d, t)
+11. Pri redirecte z POST API route používaj **303 status** (`NextResponse.redirect(url, 303)`), aby sa zmenila metóda na GET
 
 ## Automatický výpočet stavu nádrže
 Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
