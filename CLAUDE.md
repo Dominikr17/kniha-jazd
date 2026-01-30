@@ -124,23 +124,40 @@ npm run lint     # ESLint
   - Ostatné tabuľky - prístup len pre authenticated používateľov
 - **Storage:** Zatiaľ nepoužité (pripravené pre dokumenty)
 
-## Bezpečnosť - IP Whitelist + PIN
-Vodičovská sekcia je chránená dvojúrovňovým systémom:
+## Bezpečnosť
 
+### Prístupová kontrola
 | Situácia | Prístup |
 |----------|---------|
 | Firemná IP (ALLOWED_IPS) | Priamy prístup bez overenia |
 | Externá IP | Vyžaduje PIN (session cookie - platí do zatvorenia prehliadača) |
 | Admin sekcia | Supabase Auth (email + heslo) |
 
-**Environment variables:**
-- `ALLOWED_IPS` - Čiarkou oddelené povolené IP adresy
-- `APP_PIN` - PIN kód pre externý prístup
+### Bezpečnostné opatrenia
+| Opatrenie | Popis |
+|-----------|-------|
+| **Rate limiting** | PIN: max 5 pokusov, potom 15 min blok |
+| **Podpísané cookies** | Driver session používa HMAC SHA256 podpis |
+| **Open redirect ochrana** | Validácia redirect URL len na interné cesty |
+| **Admin API autorizácia** | Všetky admin API routes overujú Supabase Auth |
+| **Ownership validácia** | Vodič môže mazať len svoje záznamy |
+| **HTTP hlavičky** | X-Frame-Options, X-Content-Type-Options, Referrer-Policy |
+| **Input validácia** | Kontrola rozsahov a enum hodnôt |
 
-**Súbory:**
-- `src/middleware.ts` - Hlavná logika IP + PIN kontroly
-- `src/app/pin/page.tsx` - PIN stránka
-- `src/app/api/pin/verify/route.ts` - API pre overenie PINu
+### Environment variables
+| Premenná | Popis |
+|----------|-------|
+| `ALLOWED_IPS` | Čiarkou oddelené povolené IP adresy |
+| `APP_PIN` | PIN kód pre externý prístup |
+| `DRIVER_SESSION_SECRET` | 64-char hex kľúč pre podpisovanie cookies |
+
+### Bezpečnostné súbory
+- `src/middleware.ts` - IP + PIN kontrola, bezpečnostné hlavičky
+- `src/app/pin/page.tsx` - PIN stránka s validáciou redirect
+- `src/app/api/pin/verify/route.ts` - Rate limiting, overenie PINu
+- `src/lib/driver-session.ts` - Podpísané driver cookies (HMAC)
+- `src/components/delete-button.tsx` - Ownership validácia
+- `next.config.ts` - HTTP bezpečnostné hlavičky
 
 ## Prístupové role
 | Rola | Prístup | Funkcie |
