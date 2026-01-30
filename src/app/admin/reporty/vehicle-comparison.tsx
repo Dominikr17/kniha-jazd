@@ -8,34 +8,29 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
 } from 'recharts'
-import { Trip, FuelRecord } from '@/types'
+import { Trip, FuelRecord, Vehicle } from '@/types'
+import { VehicleStats, formatNumber, formatCurrency } from '@/lib/report-calculations'
+import { VehicleComparisonTable } from './components/vehicle-comparison-table'
 
 interface VehicleComparisonProps {
-  vehicles: { id: string; name: string; license_plate: string }[]
+  vehicles: Vehicle[]
   trips: Trip[]
   fuelRecords: FuelRecord[]
+  vehicleStats: VehicleStats[]
 }
 
-export function VehicleComparison({ vehicles, trips, fuelRecords }: VehicleComparisonProps) {
-  // Agregácia dát pre každé vozidlo
-  const data = vehicles.map((vehicle) => {
-    const vehicleTrips = trips.filter((t) => t.vehicle_id === vehicle.id)
-    const vehicleFuel = fuelRecords.filter((f) => f.vehicle_id === vehicle.id)
-
-    const totalDistance = vehicleTrips.reduce((sum, t) => sum + (t.distance || 0), 0)
-    const totalFuelCost = vehicleFuel.reduce((sum, f) => sum + Number(f.total_price), 0)
-    const totalLiters = vehicleFuel.reduce((sum, f) => sum + Number(f.liters), 0)
-
-    return {
-      name: vehicle.name,
-      'Najazdené km': totalDistance,
-      'Náklady PHM (EUR)': Math.round(totalFuelCost),
-      'Litre paliva': Math.round(totalLiters),
-    }
-  })
+export function VehicleComparison({ vehicles, trips, fuelRecords, vehicleStats }: VehicleComparisonProps) {
+  // Dáta pre grafy
+  const chartData = vehicleStats
+    .filter((v) => v.totalDistance > 0 || v.totalFuelCost > 0)
+    .map((v) => ({
+      name: v.vehicleName,
+      'Najazdené km': v.totalDistance,
+      'Náklady PHM (EUR)': Math.round(v.totalFuelCost),
+      'Litre paliva': Math.round(v.totalLiters),
+    }))
 
   if (vehicles.length === 0) {
     return (
@@ -54,80 +49,55 @@ export function VehicleComparison({ vehicles, trips, fuelRecords }: VehicleCompa
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Najazdené kilometre podľa vozidla</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="Najazdené km" fill="#3b82f6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Zoraditeľná tabuľka */}
+      <VehicleComparisonTable data={vehicleStats} />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Náklady na PHM podľa vozidla</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="Náklady PHM (EUR)" fill="#22c55e" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Grafy */}
+      {chartData.length > 0 && (
+        <>
+          <Card>
+            <CardHeader>
+              <CardTitle>Najazdené kilometre podľa vozidla</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis tickFormatter={(value) => formatNumber(value)} />
+                    <Tooltip
+                      formatter={(value) => [`${formatNumber(Number(value))} km`, 'Najazdené']}
+                    />
+                    <Bar dataKey="Najazdené km" fill="#004B87" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Prehľad v tabuľke</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Vozidlo</th>
-                  <th className="text-right p-2">Najazdené km</th>
-                  <th className="text-right p-2">Náklady PHM</th>
-                  <th className="text-right p-2">Litre paliva</th>
-                  <th className="text-right p-2">EUR/km</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.map((row) => {
-                  const costPerKm = row['Najazdené km'] > 0
-                    ? (row['Náklady PHM (EUR)'] / row['Najazdené km']).toFixed(3)
-                    : '-'
-                  return (
-                    <tr key={row.name} className="border-b">
-                      <td className="p-2 font-medium">{row.name}</td>
-                      <td className="p-2 text-right">{row['Najazdené km'].toLocaleString()}</td>
-                      <td className="p-2 text-right">{row['Náklady PHM (EUR)'].toLocaleString()} EUR</td>
-                      <td className="p-2 text-right">{row['Litre paliva'].toLocaleString()} l</td>
-                      <td className="p-2 text-right">{costPerKm}</td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Náklady na PHM podľa vozidla</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis tickFormatter={(value) => `${formatNumber(value)} EUR`} />
+                    <Tooltip
+                      formatter={(value) => [formatCurrency(Number(value)), 'Náklady']}
+                    />
+                    <Bar dataKey="Náklady PHM (EUR)" fill="#22c55e" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   )
 }

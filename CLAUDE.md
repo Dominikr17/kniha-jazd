@@ -75,6 +75,8 @@ src/
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
 - `src/lib/supabase/proxy.ts` - Auth middleware (verejné/chránené cesty)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
+- `src/lib/report-utils.ts` - Helper pre dátumové rozsahy a validáciu URL parametrov
+- `src/lib/report-calculations.ts` - Kalkulačné funkcie pre reporty (spotreba, náklady, agregácie)
 - `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles, fuel_inventory)
 - `src/components/layout/driver-sidebar.tsx` - Vodičovský bočný panel
 - `src/lib/driver-vehicles.ts` - Helper pre priradenie vozidiel vodičom
@@ -146,7 +148,7 @@ npm run lint     # ESLint
 | **Admin API autorizácia** | Všetky admin API routes overujú Supabase Auth |
 | **Ownership validácia** | Vodič môže mazať len svoje záznamy |
 | **HTTP hlavičky** | X-Frame-Options, X-Content-Type-Options, Referrer-Policy |
-| **Input validácia** | Kontrola rozsahov a enum hodnôt |
+| **Input validácia** | Kontrola rozsahov, enum hodnôt, UUID formátu, dátumov |
 
 ### Environment variables
 | Premenná | Popis |
@@ -160,6 +162,7 @@ npm run lint     # ESLint
 - `src/app/pin/page.tsx` - PIN stránka s validáciou redirect
 - `src/app/api/pin/verify/route.ts` - Rate limiting, overenie PINu
 - `src/lib/driver-session.ts` - Podpísané driver cookies (HMAC)
+- `src/lib/report-utils.ts` - Validácia URL parametrov (isValidPeriod, isValidUUID, safeParseDate)
 - `src/components/delete-button.tsx` - Ownership validácia
 - `next.config.ts` - HTTP bezpečnostné hlavičky
 
@@ -246,6 +249,39 @@ Aplikácia podporuje inštaláciu na mobil:
 - `src/components/pwa-register.tsx` - Registrácia SW
 - `src/components/pwa-install-prompt.tsx` - Inštalačný prompt
 
+## Reporty (`/admin/reporty`)
+Stránka s analýzami a prehľadmi vozového parku.
+
+### Globálne filtre
+- **Obdobie**: Tento mesiac, minulý mesiac, štvrťrok, rok, vlastné obdobie
+- **Vozidlo**: Filtrovanie podľa konkrétneho vozidla
+- **Vodič**: Filtrovanie podľa konkrétneho vodiča
+- Filtre sa ukladajú do URL parametrov (zdieľateľné linky)
+
+### Taby
+| Tab | Obsah |
+|-----|-------|
+| **Porovnanie vozidiel** | Zoraditeľná tabuľka s farebnými min/max indikátormi, grafy km a nákladov |
+| **Mesačný prehľad** | MoM porovnanie, grafy za 12 mesiacov, priemerná spotreba v čase |
+| **Spotreba paliva** | Porovnanie s normou (+20% tolerancia), trend spotreby, hodnotenie |
+| **Náklady** | KPI karty, pie chart podľa vozidla/platby, náklady v čase |
+| **Vodiči** | Štatistiky vodičov, top 10 podľa km, zoraditeľná tabuľka |
+
+### Súbory
+- `src/app/admin/reporty/page.tsx` - Hlavná stránka s filtrami
+- `src/app/admin/reporty/components/filter-panel.tsx` - Filtračný panel
+- `src/app/admin/reporty/components/sortable-table.tsx` - Zdieľané komponenty pre zoraditeľné tabuľky
+- `src/app/admin/reporty/components/vehicle-comparison-table.tsx` - Tabuľka porovnania vozidiel
+- `src/app/admin/reporty/components/comparison-card.tsx` - Karta pre MoM porovnanie
+- `src/app/admin/reporty/components/costs-tab.tsx` - Tab nákladov
+- `src/app/admin/reporty/components/drivers-tab.tsx` - Tab vodičov
+
+### Bezpečnosť reportov
+- Validácia URL parametrov (period, vehicle, driver, from, to)
+- UUID validácia pre vehicle a driver ID
+- Bezpečné parsovanie dátumov s try/catch
+- Prístup len pre prihlásených adminov (Supabase Auth)
+
 ## TODO / Plánované vylepšenia
 - [ ] Upload dokumentov (Supabase Storage)
 - [ ] Stránkovanie v tabuľkách
@@ -253,3 +289,4 @@ Aplikácia podporuje inštaláciu na mobil:
 - [ ] Email notifikácie pre termíny
 - [x] PWA pre offline použitie
 - [x] UI pre správu palivových zásob (počiatočný stav nádrže)
+- [x] Vylepšené reporty s globálnymi filtrami a novými tabmi
