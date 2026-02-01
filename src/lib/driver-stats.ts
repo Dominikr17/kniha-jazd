@@ -2,7 +2,10 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import { startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths, format, eachMonthOfInterval } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { getVehicleIdsForDriver, getVehiclesForDriver } from './driver-vehicles'
-import { Trip, FuelRecord, Vehicle } from '@/types'
+import { Vehicle } from '@/types'
+
+const DATE_FORMAT = 'yyyy-MM-dd'
+const TOLERANCE_MULTIPLIER = 1.2
 
 export type StatsPeriod = 'this_month' | 'this_year' | 'last_12_months'
 
@@ -44,6 +47,21 @@ export interface RecentTrip {
 }
 
 /**
+ * Vypočíta priemernú spotrebu v l/100km
+ */
+function calculateConsumption(totalLiters: number, totalKm: number): number | null {
+  if (totalKm <= 0 || totalLiters <= 0) return null
+  return (totalLiters / totalKm) * 100
+}
+
+/**
+ * Formátuje dátum pre DB query
+ */
+function formatDateForQuery(date: Date): string {
+  return format(date, DATE_FORMAT)
+}
+
+/**
  * Vráti dátumový rozsah pre dané obdobie
  */
 export function getDateRange(period: StatsPeriod): DateRange {
@@ -68,6 +86,8 @@ export function getDateRange(period: StatsPeriod): DateRange {
   }
 }
 
+const EMPTY_STATS: DriverStats = { totalKm: 0, tripCount: 0, averageConsumption: null, kmPerTrip: 0 }
+
 /**
  * Načíta základné štatistiky vodiča
  */
@@ -80,42 +100,38 @@ export async function getDriverStats(
   const vehicleIds = await getVehicleIdsForDriver(supabase, driverId)
 
   if (vehicleIds.length === 0) {
-    return { totalKm: 0, tripCount: 0, averageConsumption: null, kmPerTrip: 0 }
+    return EMPTY_STATS
   }
 
-  // Načítaj jazdy vodiča za dané obdobie
-  const { data: trips } = await supabase
-    .from('trips')
-    .select('distance')
-    .eq('driver_id', driverId)
-    .in('vehicle_id', vehicleIds)
-    .gte('date', format(from, 'yyyy-MM-dd'))
-    .lte('date', format(to, 'yyyy-MM-dd'))
+  const dateFrom = formatDateForQuery(from)
+  const dateTo = formatDateForQuery(to)
 
-  // Načítaj tankovania vodiča za dané obdobie
-  const { data: fuelRecords } = await supabase
-    .from('fuel_records')
-    .select('liters')
-    .eq('driver_id', driverId)
-    .in('vehicle_id', vehicleIds)
-    .gte('date', format(from, 'yyyy-MM-dd'))
-    .lte('date', format(to, 'yyyy-MM-dd'))
+  const [{ data: trips }, { data: fuelRecords }] = await Promise.all([
+    supabase
+      .from('trips')
+      .select('distance')
+      .eq('driver_id', driverId)
+      .in('vehicle_id', vehicleIds)
+      .gte('date', dateFrom)
+      .lte('date', dateTo),
+    supabase
+      .from('fuel_records')
+      .select('liters')
+      .eq('driver_id', driverId)
+      .in('vehicle_id', vehicleIds)
+      .gte('date', dateFrom)
+      .lte('date', dateTo)
+  ])
 
   const totalKm = (trips || []).reduce((sum, trip) => sum + (trip.distance || 0), 0)
   const tripCount = trips?.length || 0
-  const totalLiters = (fuelRecords || []).reduce((sum, record) => sum + record.liters, 0)
-
-  const averageConsumption = totalKm > 0 && totalLiters > 0
-    ? (totalLiters / totalKm) * 100
-    : null
-
-  const kmPerTrip = tripCount > 0 ? totalKm / tripCount : 0
+  const totalLiters = (fuelRecords || []).reduce((sum, fuelRecord) => sum + fuelRecord.liters, 0)
 
   return {
     totalKm,
     tripCount,
-    averageConsumption,
-    kmPerTrip
+    averageConsumption: calculateConsumption(totalLiters, totalKm),
+    kmPerTrip: tripCount > 0 ? totalKm / tripCount : 0
   }
 }
 
@@ -134,38 +150,46 @@ export async function getMonthlyKm(
     return []
   }
 
-  // Načítaj všetky jazdy za obdobie
   const { data: trips } = await supabase
     .from('trips')
     .select('date, distance')
     .eq('driver_id', driverId)
     .in('vehicle_id', vehicleIds)
-    .gte('date', format(from, 'yyyy-MM-dd'))
-    .lte('date', format(to, 'yyyy-MM-dd'))
+    .gte('date', formatDateForQuery(from))
+    .lte('date', formatDateForQuery(to))
     .order('date')
 
-  // Vytvor zoznam všetkých mesiacov v období
-  const months = eachMonthOfInterval({ start: from, end: to })
+  const monthsInPeriod = eachMonthOfInterval({ start: from, end: to })
 
-  // Agreguj km podľa mesiaca
-  const monthlyData = months.map(monthDate => {
+  return monthsInPeriod.map(monthDate => {
     const monthStart = startOfMonth(monthDate)
     const monthEnd = endOfMonth(monthDate)
 
-    const monthTrips = (trips || []).filter(trip => {
+    const tripsInMonth = (trips || []).filter(trip => {
       const tripDate = new Date(trip.date)
       return tripDate >= monthStart && tripDate <= monthEnd
     })
 
-    const km = monthTrips.reduce((sum, trip) => sum + (trip.distance || 0), 0)
-
     return {
       month: format(monthDate, 'MMM yyyy', { locale: sk }),
-      km
+      km: tripsInMonth.reduce((sum, trip) => sum + (trip.distance || 0), 0)
     }
   })
+}
 
-  return monthlyData
+/**
+ * Určí status spotreby voči norme
+ */
+function getConsumptionStatus(
+  consumption: number | null,
+  ratedConsumption: number | null
+): 'ok' | 'warning' | 'over' {
+  if (consumption === null || ratedConsumption === null) return 'ok'
+
+  const toleranceLimit = ratedConsumption * TOLERANCE_MULTIPLIER
+  if (consumption > toleranceLimit) return 'over'
+  if (consumption > ratedConsumption) return 'warning'
+  return 'ok'
 }
 
 /**
@@ -183,61 +207,48 @@ export async function getConsumptionByVehicle(
     return []
   }
 
-  const vehicleIds = vehicles.map(v => v.id)
+  const vehicleIds = vehicles.map(vehicle => vehicle.id)
+  const dateFrom = formatDateForQuery(from)
+  const dateTo = formatDateForQuery(to)
 
-  // Načítaj jazdy za obdobie
-  const { data: trips } = await supabase
-    .from('trips')
-    .select('vehicle_id, distance')
-    .eq('driver_id', driverId)
-    .in('vehicle_id', vehicleIds)
-    .gte('date', format(from, 'yyyy-MM-dd'))
-    .lte('date', format(to, 'yyyy-MM-dd'))
+  const [{ data: trips }, { data: fuelRecords }] = await Promise.all([
+    supabase
+      .from('trips')
+      .select('vehicle_id, distance')
+      .eq('driver_id', driverId)
+      .in('vehicle_id', vehicleIds)
+      .gte('date', dateFrom)
+      .lte('date', dateTo),
+    supabase
+      .from('fuel_records')
+      .select('vehicle_id, liters')
+      .eq('driver_id', driverId)
+      .in('vehicle_id', vehicleIds)
+      .gte('date', dateFrom)
+      .lte('date', dateTo)
+  ])
 
-  // Načítaj tankovania za obdobie
-  const { data: fuelRecords } = await supabase
-    .from('fuel_records')
-    .select('vehicle_id, liters')
-    .eq('driver_id', driverId)
-    .in('vehicle_id', vehicleIds)
-    .gte('date', format(from, 'yyyy-MM-dd'))
-    .lte('date', format(to, 'yyyy-MM-dd'))
+  return vehicles
+    .map(vehicle => {
+      const vehicleTrips = (trips || []).filter(trip => trip.vehicle_id === vehicle.id)
+      const vehicleFuelRecords = (fuelRecords || []).filter(fuelRecord => fuelRecord.vehicle_id === vehicle.id)
 
-  // Agreguj podľa vozidla
-  return vehicles.map(vehicle => {
-    const vehicleTrips = (trips || []).filter(t => t.vehicle_id === vehicle.id)
-    const vehicleFuel = (fuelRecords || []).filter(f => f.vehicle_id === vehicle.id)
+      const totalKm = vehicleTrips.reduce((sum, trip) => sum + (trip.distance || 0), 0)
+      const totalLiters = vehicleFuelRecords.reduce((sum, fuelRecord) => sum + fuelRecord.liters, 0)
+      const consumption = calculateConsumption(totalLiters, totalKm)
 
-    const totalKm = vehicleTrips.reduce((sum, trip) => sum + (trip.distance || 0), 0)
-    const totalLiters = vehicleFuel.reduce((sum, record) => sum + record.liters, 0)
-
-    const consumption = totalKm > 0 && totalLiters > 0
-      ? (totalLiters / totalKm) * 100
-      : null
-
-    const ratedConsumption = vehicle.rated_consumption
-    const toleranceLimit = ratedConsumption ? ratedConsumption * 1.2 : null
-
-    let status: 'ok' | 'warning' | 'over' = 'ok'
-    if (consumption !== null && ratedConsumption !== null && toleranceLimit !== null) {
-      if (consumption > toleranceLimit) {
-        status = 'over'
-      } else if (consumption > ratedConsumption) {
-        status = 'warning'
+      return {
+        vehicleId: vehicle.id,
+        vehicleName: vehicle.name,
+        licensePlate: vehicle.license_plate,
+        consumption,
+        ratedConsumption: vehicle.rated_consumption,
+        status: getConsumptionStatus(consumption, vehicle.rated_consumption),
+        totalKm,
+        totalLiters
       }
-    }
-
-    return {
-      vehicleId: vehicle.id,
-      vehicleName: vehicle.name,
-      licensePlate: vehicle.license_plate,
-      consumption,
-      ratedConsumption,
-      status,
-      totalKm,
-      totalLiters
-    }
-  }).filter(v => v.totalKm > 0 || v.totalLiters > 0)
+    })
+    .filter(vehicleStats => vehicleStats.totalKm > 0 || vehicleStats.totalLiters > 0)
 }
 
 /**

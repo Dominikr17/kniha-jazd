@@ -26,14 +26,14 @@ export function PeriodFilter({ currentPeriod }: PeriodFilterProps) {
 
   return (
     <div className="flex flex-wrap gap-2">
-      {PERIODS.map((period) => (
+      {PERIODS.map((periodOption) => (
         <Button
-          key={period.value}
-          variant={currentPeriod === period.value ? 'default' : 'outline'}
+          key={periodOption.value}
+          variant={currentPeriod === periodOption.value ? 'default' : 'outline'}
           size="sm"
-          onClick={() => handlePeriodChange(period.value)}
+          onClick={() => handlePeriodChange(periodOption.value)}
         >
-          {period.label}
+          {periodOption.label}
         </Button>
       ))}
     </div>
