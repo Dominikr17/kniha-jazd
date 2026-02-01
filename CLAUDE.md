@@ -100,6 +100,7 @@ src/
 ## Konvencie
 - **Jazyk UI:** Slovenčina
 - **Dátumový formát:** d.M.yyyy (slovenský)
+- **Formát mena:** Priezvisko Meno (napr. Novák Ján)
 - **Mena:** EUR
 - **Mobile-first:** Responzívny dizajn pre vodičov na mobile
 
