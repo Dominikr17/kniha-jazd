@@ -185,6 +185,22 @@ npm run lint     # ESLint
 - Ak má vodič len jedno priradené vozidlo, je automaticky predvyplnené vo formulároch
 - Vodič bez priradených vozidiel vidí upozornenie a nemôže zadávať jazdy/tankovania
 
+## Vodičovská navigácia
+Bočný panel pre vodičov (`driver-sidebar.tsx`) s vylepšeným vizuálnym štýlom.
+
+**Položky menu (podľa frekvencie použitia):**
+1. Moje jazdy (`/vodic/jazdy`)
+2. Moje tankovania (`/vodic/phm`)
+3. Moje vozidlá (`/vodic/vozidla`)
+4. Moje štatistiky (`/vodic/statistiky`)
+
+**Vizuálny štýl:**
+- Zaoblené rohy (`rounded-xl`)
+- Gradient pozadie aktívnej položky (žltá `#FFC72C`)
+- Väčšie ikony a padding pre dotykateľnosť na mobile
+- Smooth animácie pri hover a kliknutí
+- Automatické zatvorenie menu na mobile po výbere položky
+
 ## Vodičovská sekcia - Moje vozidlá
 Stránka `/vodic/vozidla` zobrazuje vodičovi prehľad priradených vozidiel:
 
@@ -326,3 +342,4 @@ Stránka s analýzami a prehľadmi vozového parku.
 - [x] Oprava ESLint chýb a varovaní (čistý kód)
 - [x] Bezpečnostné vylepšenia (backend validácia časového limitu, admin auth pre fuel-inventory API)
 - [x] Stránka "Moje štatistiky" pre vodičov (km, spotreba, grafy)
+- [x] Vylepšená vodičovská navigácia (vizuálny štýl, poradie položiek, auto-zatvorenie na mobile)
