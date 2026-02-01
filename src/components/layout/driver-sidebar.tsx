@@ -15,7 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
-import { Car, Route, Fuel, LogOut, LucideIcon } from 'lucide-react'
+import { Car, Route, Fuel, BarChart3, LogOut, LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface MenuItem {
@@ -39,6 +39,11 @@ const DRIVER_MENU_ITEMS: MenuItem[] = [
     title: 'Tankovanie PHM',
     href: '/vodic/phm',
     icon: Fuel,
+  },
+  {
+    title: 'Moje štatistiky',
+    href: '/vodic/statistiky',
+    icon: BarChart3,
   },
 ]
 
