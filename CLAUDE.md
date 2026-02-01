@@ -37,7 +37,8 @@ src/
 │   │   └── (dashboard)/       # Vodičov dashboard
 │   │       ├── vozidla/       # Moje vozidlá - prehľad termínov
 │   │       ├── jazdy/         # Zoznam jázd, nová jazda, úprava
-│   │       └── phm/           # Zoznam tankovaní, nové tankovanie
+│   │       ├── phm/           # Zoznam tankovaní, nové tankovanie
+│   │       └── statistiky/    # Moje štatistiky - prehľad jázd a spotreby
 │   ├── api/driver/            # API pre vodičov (login/logout/me/vehicles)
 │   ├── api/pin/               # API pre PIN overenie
 │   └── auth/callback/         # Auth callback
@@ -80,6 +81,7 @@ src/
 - `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles, fuel_inventory)
 - `src/components/layout/driver-sidebar.tsx` - Vodičovský bočný panel
 - `src/lib/driver-vehicles.ts` - Helper pre priradenie vozidiel vodičom
+- `src/lib/driver-stats.ts` - Helper pre štatistiky vodiča (km, spotreba, mesačné agregácie)
 - `src/lib/audit-logger.ts` - Helper pre logovanie aktivít (audit log)
 - `src/lib/monthly-report.ts` - Helper pre mesačné výkazy PHM
 - `src/lib/monthly-report-pdf.ts` - PDF export mesačných výkazov
@@ -203,6 +205,32 @@ Stránka `/vodic/vozidla` zobrazuje vodičovi prehľad priradených vozidiel:
 - `src/app/vodic/(dashboard)/vozidla/components/status-badge.tsx` - Badge pre termíny
 - `src/lib/driver-vehicles.ts` - Helper `getVehiclesWithDetails()`
 
+## Vodičovská sekcia - Moje štatistiky
+Stránka `/vodic/statistiky` zobrazuje vodičovi prehľad vlastných jázd a spotreby.
+
+**Funkcie:**
+- Filter obdobia (tento mesiac, tento rok, posledných 12 mesiacov)
+- KPI karty: celkové km, počet jázd, priemerná spotreba, km na jazdu
+- Graf kilometrov v čase (Recharts BarChart)
+- Spotreba podľa vozidla s porovnaním s normou (+20% tolerancia)
+- Posledných 5 jázd s odkazom na všetky
+
+**Status spotreby:**
+| Status | Význam | Podmienka |
+|--------|--------|-----------|
+| V norme | Spotreba OK | <= normovaná spotreba |
+| Mierne vyššia | Varovanie | > norma, <= norma + 20% |
+| Prekročená norma | Prekročenie | > norma + 20% |
+
+**Súbory:**
+- `src/app/vodic/(dashboard)/statistiky/page.tsx` - Hlavná stránka
+- `src/app/vodic/(dashboard)/statistiky/components/period-filter.tsx` - Filter obdobia
+- `src/app/vodic/(dashboard)/statistiky/components/stats-cards.tsx` - KPI karty
+- `src/app/vodic/(dashboard)/statistiky/components/km-chart.tsx` - Graf km v čase
+- `src/app/vodic/(dashboard)/statistiky/components/consumption-by-vehicle.tsx` - Spotreba podľa vozidla
+- `src/app/vodic/(dashboard)/statistiky/components/recent-trips.tsx` - Posledné jazdy
+- `src/lib/driver-stats.ts` - Helper funkcie pre štatistiky
+
 ## Pri úpravách
 1. Typy definuj v `src/types/index.ts`
 2. Admin stránky vytváraj v `src/app/admin/`
@@ -295,3 +323,4 @@ Stránka s analýzami a prehľadmi vozového parku.
 - [x] Vylepšené reporty s globálnymi filtrami a novými tabmi
 - [x] Oprava ESLint chýb a varovaní (čistý kód)
 - [x] Bezpečnostné vylepšenia (backend validácia časového limitu, admin auth pre fuel-inventory API)
+- [x] Stránka "Moje štatistiky" pre vodičov (km, spotreba, grafy)
