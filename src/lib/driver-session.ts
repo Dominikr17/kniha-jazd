@@ -4,9 +4,13 @@ import crypto from 'crypto'
 const DRIVER_COOKIE_NAME = 'driver_session'
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30 // 30 dní
 
-// Secret pre podpisovanie - v produkcii použiť silný náhodný kľúč
+// Secret pre podpisovanie - vyžaduje sa vždy
 function getSecret(): string {
-  return process.env.DRIVER_SESSION_SECRET || 'default-dev-secret-change-in-production'
+  const secret = process.env.DRIVER_SESSION_SECRET
+  if (!secret) {
+    throw new Error('DRIVER_SESSION_SECRET nie je nastavený. Pridajte ho do .env.local')
+  }
+  return secret
 }
 
 // Vytvorenie HMAC podpisu

@@ -5,13 +5,21 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Car, Plus, Fuel } from 'lucide-react'
 import { StatusBadge } from './status-badge'
-import { VehicleWithDetails } from '@/types'
+import { VehicleWithDetails, TIRE_TYPES } from '@/types'
 
 interface VehicleCardProps {
   vehicle: VehicleWithDetails
 }
 
+const TIRE_TYPE_STYLES: Record<string, string> = {
+  winter: 'bg-blue-100 text-blue-700',
+  summer: 'bg-yellow-100 text-yellow-700',
+  all_season: 'bg-gray-100 text-gray-700',
+}
+
 export function VehicleCard({ vehicle }: VehicleCardProps) {
+  const tireTypeStyle = vehicle.tire_type ? TIRE_TYPE_STYLES[vehicle.tire_type] : ''
+
   return (
     <Card>
       <CardContent className="p-4">
@@ -31,6 +39,16 @@ export function VehicleCard({ vehicle }: VehicleCardProps) {
             <p className="font-semibold">{vehicle.currentOdometer.toLocaleString('sk-SK')} km</p>
           </div>
         </div>
+
+        {/* Pneumatiky */}
+        {vehicle.tire_type && (
+          <div className="mb-3 flex items-center gap-2">
+            <span className="text-sm text-gray-500">Pneumatiky:</span>
+            <span className={`text-sm font-medium px-2 py-0.5 rounded ${tireTypeStyle}`}>
+              {TIRE_TYPES[vehicle.tire_type]}
+            </span>
+          </div>
+        )}
 
         {/* Statusy - STK, EK, Známky */}
         <div className="flex flex-wrap gap-2 mb-4">

@@ -145,10 +145,13 @@ npm run lint     # ESLint
 | **Rate limiting** | PIN: max 5 pokusov, potom 15 min blok |
 | **Podpísané cookies** | Driver session používa HMAC SHA256 podpis |
 | **Open redirect ochrana** | Validácia redirect URL len na interné cesty |
-| **Admin API autorizácia** | Všetky admin API routes overujú Supabase Auth |
-| **Ownership validácia** | Vodič môže mazať len svoje záznamy |
+| **Admin API autorizácia** | Všetky admin API routes overujú Supabase Auth (vrátane fuel-inventory) |
+| **Ownership validácia** | Vodič môže mazať/upravovať len svoje záznamy |
+| **Časový limit** | Vodič môže upraviť/vymazať jazdu/tankovanie len do 15 minút od vytvorenia |
+| **Backend validácia** | Časový limit a ownership sa overujú aj na backende (nie len frontend) |
 | **HTTP hlavičky** | X-Frame-Options, X-Content-Type-Options, Referrer-Policy |
 | **Input validácia** | Kontrola rozsahov, enum hodnôt, UUID formátu, dátumov |
+| **Povinné env premenné** | DRIVER_SESSION_SECRET musí byť nastavený (žiadny fallback) |
 
 ### Environment variables
 | Premenná | Popis |
@@ -291,3 +294,4 @@ Stránka s analýzami a prehľadmi vozového parku.
 - [x] UI pre správu palivových zásob (počiatočný stav nádrže)
 - [x] Vylepšené reporty s globálnymi filtrami a novými tabmi
 - [x] Oprava ESLint chýb a varovaní (čistý kód)
+- [x] Bezpečnostné vylepšenia (backend validácia časového limitu, admin auth pre fuel-inventory API)

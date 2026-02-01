@@ -16,9 +16,18 @@ import {
 import { Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { logAudit } from '@/lib/audit-logger'
+import { DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
 
 type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles' | 'fuel_inventory'
 type UserType = 'admin' | 'driver'
+
+// Validácia časového limitu pre vodičov
+function isWithinEditTimeLimit(createdAt: string): boolean {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMinutes = (now.getTime() - created.getTime()) / (1000 * 60)
+  return diffMinutes <= DRIVER_EDIT_TIME_LIMIT_MINUTES
+}
 
 interface DeleteButtonProps {
   tableName: TableName
@@ -71,13 +80,22 @@ export function DeleteButton({
       return
     }
 
-    // Ownership validácia pre vodičov
+    // Ownership a časová validácia pre vodičov
     if (userType === 'driver' && userId) {
       // Pre trips a fuel_records overiť driver_id
       if ((tableName === 'trips' || tableName === 'fuel_records') && oldData.driver_id !== userId) {
         toast.error('Nemáte oprávnenie vymazať tento záznam')
         setIsDeleting(false)
         return
+      }
+
+      // Časový limit pre mazanie (rovnaký ako pre úpravu)
+      if ((tableName === 'trips' || tableName === 'fuel_records') && oldData.created_at) {
+        if (!isWithinEditTimeLimit(oldData.created_at)) {
+          toast.error(`Čas na vymazanie vypršal (limit ${DRIVER_EDIT_TIME_LIMIT_MINUTES} minút)`)
+          setIsDeleting(false)
+          return
+        }
       }
     }
 

@@ -17,8 +17,16 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
-import { Trip, TRIP_PURPOSES } from '@/types'
+import { Trip, TRIP_PURPOSES, DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+
+// Backend validácia časového limitu
+function isWithinEditTimeLimit(createdAt: string): boolean {
+  const created = new Date(createdAt)
+  const now = new Date()
+  const diffMinutes = (now.getTime() - created.getTime()) / (1000 * 60)
+  return diffMinutes <= DRIVER_EDIT_TIME_LIMIT_MINUTES
+}
 
 interface DriverEditTripFormProps {
   trip: Trip
@@ -57,6 +65,33 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
     }
 
     setIsSubmitting(true)
+
+    // Backend validácia - načítať aktuálne dáta a overiť časový limit
+    const { data: currentTrip, error: fetchError } = await supabase
+      .from('trips')
+      .select('created_at, driver_id')
+      .eq('id', trip.id)
+      .single()
+
+    if (fetchError || !currentTrip) {
+      toast.error('Jazda nebola nájdená')
+      setIsSubmitting(false)
+      return
+    }
+
+    // Overenie vlastníctva
+    if (currentTrip.driver_id !== driverId) {
+      toast.error('Nemáte oprávnenie upraviť túto jazdu')
+      setIsSubmitting(false)
+      return
+    }
+
+    // Overenie časového limitu
+    if (!isWithinEditTimeLimit(currentTrip.created_at)) {
+      toast.error(`Čas na úpravu vypršal (limit ${DRIVER_EDIT_TIME_LIMIT_MINUTES} minút)`)
+      setIsSubmitting(false)
+      return
+    }
 
     const oldData = {
       vehicle_id: trip.vehicle_id,
