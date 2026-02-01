@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select'
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
-import { Vehicle, Driver, FUEL_TYPES } from '@/types'
+import { Vehicle, Driver, FUEL_TYPES, TIRE_TYPES, TireType } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
 
 interface EditVehicleFormProps {
@@ -32,6 +32,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
   const [model, setModel] = useState(vehicle.model || '')
   const [year, setYear] = useState(vehicle.year?.toString() || '')
   const [fuelType, setFuelType] = useState<string>(vehicle.fuel_type)
+  const [tireType, setTireType] = useState<TireType | 'none'>(vehicle.tire_type || 'none')
   const [initialOdometer, setInitialOdometer] = useState(vehicle.initial_odometer.toString())
   const [responsibleDriverId, setResponsibleDriverId] = useState(vehicle.responsible_driver_id || 'none')
   const [ratedConsumption, setRatedConsumption] = useState(vehicle.rated_consumption?.toString() || '')
@@ -52,6 +53,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
       model: vehicle.model,
       year: vehicle.year,
       fuel_type: vehicle.fuel_type,
+      tire_type: vehicle.tire_type,
       initial_odometer: vehicle.initial_odometer,
       responsible_driver_id: vehicle.responsible_driver_id,
       rated_consumption: vehicle.rated_consumption,
@@ -66,6 +68,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
       model: model.trim() || null,
       year: year ? parseInt(year) : null,
       fuel_type: fuelType,
+      tire_type: tireType === 'none' ? null : tireType,
       initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
       responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
       rated_consumption: ratedConsumption ? parseFloat(ratedConsumption) : null,
@@ -164,7 +167,7 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="year">Rok výroby</Label>
           <Input
@@ -185,6 +188,22 @@ export function EditVehicleForm({ vehicle, drivers }: EditVehicleFormProps) {
             </SelectTrigger>
             <SelectContent>
               {Object.entries(FUEL_TYPES).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="tireType">Pneumatiky</Label>
+          <Select value={tireType} onValueChange={(value) => setTireType(value as TireType | 'none')} disabled={isSubmitting}>
+            <SelectTrigger id="tireType">
+              <SelectValue placeholder="-- Nevybraný --" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">-- Nevybraný --</SelectItem>
+              {Object.entries(TIRE_TYPES).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>

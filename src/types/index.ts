@@ -41,6 +41,7 @@ export interface Vehicle {
   model: string | null
   year: number | null
   fuel_type: 'benzin' | 'nafta' | 'lpg' | 'elektro' | 'hybrid'
+  tire_type: TireType | null  // Typ pneumatík (letné/zimné/celoročné)
   initial_odometer: number
   responsible_driver_id: string | null
   rated_consumption: number | null  // Normovaná spotreba v l/100km podľa výrobcu
@@ -191,6 +192,15 @@ export const FUEL_TYPES = {
   elektro: 'Elektro',
   hybrid: 'Hybrid',
 } as const
+
+// Typy pneumatík
+export const TIRE_TYPES = {
+  summer: 'Letné',
+  winter: 'Zimné',
+  all_season: 'Celoročné',
+} as const
+
+export type TireType = keyof typeof TIRE_TYPES
 
 // Typy jázd
 export const TRIP_TYPES = {

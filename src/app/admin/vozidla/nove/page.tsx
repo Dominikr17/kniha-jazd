@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
-import { FUEL_TYPES, Driver } from '@/types'
+import { FUEL_TYPES, TIRE_TYPES, TireType, Driver } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
 
 export default function NewVehiclePage() {
@@ -29,6 +29,7 @@ export default function NewVehiclePage() {
   const [model, setModel] = useState('')
   const [year, setYear] = useState('')
   const [fuelType, setFuelType] = useState('nafta')
+  const [tireType, setTireType] = useState<TireType | 'none'>('none')
   const [initialOdometer, setInitialOdometer] = useState('')
   const [responsibleDriverId, setResponsibleDriverId] = useState('none')
   const [ratedConsumption, setRatedConsumption] = useState('')
@@ -61,6 +62,7 @@ export default function NewVehiclePage() {
       model: model.trim() || null,
       year: year ? parseInt(year) : null,
       fuel_type: fuelType,
+      tire_type: tireType === 'none' ? null : tireType,
       initial_odometer: initialOdometer ? parseInt(initialOdometer) : 0,
       responsible_driver_id: responsibleDriverId === 'none' ? null : responsibleDriverId,
       rated_consumption: ratedConsumption ? parseFloat(ratedConsumption) : null,
@@ -196,7 +198,7 @@ export default function NewVehiclePage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="year">Rok výroby</Label>
                 <Input
@@ -210,6 +212,21 @@ export default function NewVehiclePage() {
                   placeholder="2024"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="initialOdometer">Počiatočný stav km</Label>
+                <Input
+                  id="initialOdometer"
+                  type="number"
+                  value={initialOdometer}
+                  onChange={(e) => setInitialOdometer(e.target.value)}
+                  disabled={isSubmitting}
+                  min={0}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="fuelType">Typ paliva *</Label>
                 <Select value={fuelType} onValueChange={setFuelType} disabled={isSubmitting}>
@@ -226,16 +243,20 @@ export default function NewVehiclePage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="initialOdometer">Počiatočný stav km</Label>
-                <Input
-                  id="initialOdometer"
-                  type="number"
-                  value={initialOdometer}
-                  onChange={(e) => setInitialOdometer(e.target.value)}
-                  disabled={isSubmitting}
-                  min={0}
-                  placeholder="0"
-                />
+                <Label htmlFor="tireType">Pneumatiky</Label>
+                <Select value={tireType} onValueChange={(value) => setTireType(value as TireType | 'none')} disabled={isSubmitting}>
+                  <SelectTrigger id="tireType">
+                    <SelectValue placeholder="-- Nevybraný --" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">-- Nevybraný --</SelectItem>
+                    {Object.entries(TIRE_TYPES).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
