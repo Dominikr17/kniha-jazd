@@ -229,7 +229,7 @@ Stránka `/vodic/statistiky` zobrazuje vodičovi prehľad vlastných jázd a spo
 - `src/app/vodic/(dashboard)/statistiky/components/km-chart.tsx` - Graf km v čase
 - `src/app/vodic/(dashboard)/statistiky/components/consumption-by-vehicle.tsx` - Spotreba podľa vozidla
 - `src/app/vodic/(dashboard)/statistiky/components/recent-trips.tsx` - Posledné jazdy
-- `src/lib/driver-stats.ts` - Helper funkcie pre štatistiky
+- `src/lib/driver-stats.ts` - Helper funkcie pre štatistiky (`getDriverStats`, `getMonthlyKm`, `getConsumptionByVehicle`, `getRecentTrips`)
 
 ## Pri úpravách
 1. Typy definuj v `src/types/index.ts`
