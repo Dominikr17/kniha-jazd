@@ -138,13 +138,14 @@ npm run lint     # ESLint
 | Situácia | Prístup |
 |----------|---------|
 | Firemná IP (ALLOWED_IPS) | Priamy prístup bez overenia |
-| Externá IP | Vyžaduje PIN (session cookie - platí do zatvorenia prehliadača) |
+| Externá IP | Vyžaduje PIN (cookie platí 8 hodín) |
 | Admin sekcia | Supabase Auth (email + heslo) |
 
 ### Bezpečnostné opatrenia
 | Opatrenie | Popis |
 |-----------|-------|
 | **Rate limiting** | PIN: max 5 pokusov, potom 15 min blok |
+| **PIN session expirácia** | Cookie vyprší po 8 hodinách |
 | **Podpísané cookies** | Driver session používa HMAC SHA256 podpis |
 | **Open redirect ochrana** | Validácia redirect URL len na interné cesty |
 | **Admin API autorizácia** | Všetky admin API routes overujú Supabase Auth (vrátane fuel-inventory) |
