@@ -14,9 +14,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { Car, Route, Fuel, BarChart3, LogOut, LucideIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 interface MenuItem {
   title: string
@@ -26,19 +28,19 @@ interface MenuItem {
 
 const DRIVER_MENU_ITEMS: MenuItem[] = [
   {
-    title: 'Moje vozidlá',
-    href: '/vodic/vozidla',
-    icon: Car,
-  },
-  {
     title: 'Moje jazdy',
     href: '/vodic/jazdy',
     icon: Route,
   },
   {
-    title: 'Tankovanie PHM',
+    title: 'Moje tankovania',
     href: '/vodic/phm',
     icon: Fuel,
+  },
+  {
+    title: 'Moje vozidlá',
+    href: '/vodic/vozidla',
+    icon: Car,
   },
   {
     title: 'Moje štatistiky',
@@ -47,13 +49,64 @@ const DRIVER_MENU_ITEMS: MenuItem[] = [
   },
 ]
 
+function DriverMenuItems() {
+  const currentPath = usePathname()
+  const { setOpenMobile } = useSidebar()
+
+  return (
+    <SidebarMenu className="gap-2 px-2">
+      {DRIVER_MENU_ITEMS.map((menuItem) => {
+        const isActive = currentPath.startsWith(menuItem.href)
+        return (
+          <SidebarMenuItem key={menuItem.href}>
+            <SidebarMenuButton
+              asChild
+              isActive={isActive}
+              className={cn(
+                'rounded-xl px-4 py-3 transition-all duration-200 ease-out',
+                'hover:scale-[1.02] active:scale-[0.98]',
+                isActive && [
+                  'bg-gradient-to-r from-[#FFC72C]/25 to-[#FFC72C]/10',
+                  'border border-[#FFC72C]/40',
+                  'shadow-sm',
+                  'font-medium',
+                ],
+                !isActive && 'hover:bg-gray-50/80'
+              )}
+            >
+              <Link
+                href={menuItem.href}
+                className="flex items-center gap-3"
+                onClick={() => setOpenMobile(false)}
+              >
+                <menuItem.icon
+                  className={cn(
+                    'h-5 w-5 transition-colors duration-200',
+                    isActive ? 'text-[#004B87]' : 'text-gray-500'
+                  )}
+                />
+                <span
+                  className={cn(
+                    'transition-colors duration-200',
+                    isActive ? 'text-[#004B87]' : 'text-gray-700'
+                  )}
+                >
+                  {menuItem.title}
+                </span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )
+      })}
+    </SidebarMenu>
+  )
+}
+
 interface DriverSidebarProps {
   driverName: string | null
 }
 
 export function DriverSidebar({ driverName }: DriverSidebarProps) {
-  const currentPath = usePathname()
-
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-6 py-4">
@@ -74,21 +127,7 @@ export function DriverSidebar({ driverName }: DriverSidebarProps) {
         <SidebarGroup>
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
-            <SidebarMenu>
-              {DRIVER_MENU_ITEMS.map((menuItem) => (
-                <SidebarMenuItem key={menuItem.href}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={currentPath.startsWith(menuItem.href)}
-                  >
-                    <Link href={menuItem.href}>
-                      <menuItem.icon className="h-4 w-4" />
-                      <span>{menuItem.title}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
+            <DriverMenuItems />
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
