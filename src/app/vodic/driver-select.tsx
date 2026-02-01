@@ -76,7 +76,7 @@ export function DriverSelect({ drivers }: DriverSelectProps) {
             {selectedDriver ? (
               <span className="flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                {selectedDriver.first_name} {selectedDriver.last_name}
+                {selectedDriver.last_name} {selectedDriver.first_name}
               </span>
             ) : (
               <span className="text-muted-foreground">Vyberte vodiča...</span>
@@ -98,7 +98,7 @@ export function DriverSelect({ drivers }: DriverSelectProps) {
                 {drivers.map((driver) => (
                   <CommandItem
                     key={driver.id}
-                    value={`${driver.first_name} ${driver.last_name}`}
+                    value={`${driver.last_name} ${driver.first_name}`}
                     onSelect={() => handleSelect(driver)}
                     className="cursor-pointer"
                   >
@@ -109,7 +109,7 @@ export function DriverSelect({ drivers }: DriverSelectProps) {
                       )}
                     />
                     <User className="mr-2 h-4 w-4 text-muted-foreground" />
-                    {driver.first_name} {driver.last_name}
+                    {driver.last_name} {driver.first_name}
                   </CommandItem>
                 ))}
               </CommandGroup>

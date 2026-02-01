@@ -100,7 +100,7 @@ export function DriverSidebar({ driverName }: DriverSidebarProps) {
             type="submit"
           >
             <LogOut className="h-4 w-4 mr-2" />
-            Zmeniť vodiča
+            Odhlásiť sa
           </Button>
         </form>
       </SidebarFooter>
