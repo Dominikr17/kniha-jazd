@@ -18,7 +18,7 @@ import { toast } from 'sonner'
 import { logAudit } from '@/lib/audit-logger'
 import { DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
 
-type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles' | 'fuel_inventory'
+type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles' | 'fuel_inventory' | 'monthly_reports'
 type UserType = 'admin' | 'driver'
 
 // Validácia časového limitu pre vodičov

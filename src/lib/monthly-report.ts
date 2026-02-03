@@ -111,6 +111,7 @@ export async function calculateMonthlyReportData(params: CalculateParams): Promi
   const responsibleDriver = vehicle.responsible_driver as { id: string; first_name: string; last_name: string } | null
 
   return {
+    reportId: existingReport?.id || null,
     vehicleId: vehicle.id,
     vehicleName: vehicle.name,
     licensePlate: vehicle.license_plate,

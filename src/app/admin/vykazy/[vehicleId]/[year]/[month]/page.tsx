@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { MONTHS_SK } from '@/types'
 import { ReportForm } from './report-form'
 import { ExportButtons } from './export-buttons'
+import { DeleteReportButton } from './delete-report-button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 
 interface PageProps {
@@ -62,7 +63,17 @@ export default async function ReportDetailPage({ params }: PageProps) {
             </p>
           </div>
         </div>
-        <ExportButtons reportData={reportData} />
+        <div className="flex items-center gap-2">
+          <ExportButtons reportData={reportData} />
+          {reportData.reportId && (
+            <DeleteReportButton
+              reportId={reportData.reportId}
+              vehicleName={reportData.vehicleName}
+              month={MONTHS_SK[reportData.month - 1]}
+              year={reportData.year}
+            />
+          )}
+        </div>
       </div>
 
       {!reportData.responsibleDriverName && (

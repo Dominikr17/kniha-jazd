@@ -307,6 +307,7 @@ export type MonthlyReportUpdate = Partial<MonthlyReportInsert>
 // Mesačný výkaz - kalkulované dáta
 export interface MonthlyReportData {
   // Identifikácia
+  reportId: string | null  // ID existujúceho výkazu v DB (null ak ešte nebol uložený)
   vehicleId: string
   vehicleName: string
   licensePlate: string
