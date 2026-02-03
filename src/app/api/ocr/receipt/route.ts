@@ -142,8 +142,10 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('OCR error:', error)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('OCR error details:', errorMessage)
     return NextResponse.json(
-      { success: false, error: 'Chyba pri spracovaní obrázka' },
+      { success: false, error: `Chyba pri spracovaní obrázka: ${errorMessage}` },
       { status: 500 }
     )
   }
