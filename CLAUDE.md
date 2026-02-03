@@ -1,4 +1,8 @@
-# Kniha jázd - Projektové inštrukcie pre Claude
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+# Kniha jázd - Projektové inštrukcie
 
 ## Prehľad projektu
 Elektronická kniha jázd pre správu vozového parku firmy ZVL SLOVAKIA. Zákonná kniha jázd platná od 1.1.2026.
@@ -65,7 +69,7 @@ src/
 - `vehicle_inspections` - STK/EK kontroly
 - `vehicle_vignettes` - Diaľničné známky
 - `trips` - Jazdy (auto-číslovanie, + `trip_type`: sluzobna/sukromna)
-- `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`, `full_tank`, `odometer` voliteľný)
+- `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`, `full_tank`, `odometer` voliteľný, cudzia mena: `original_currency`, `original_total_price`, `eur_confirmed`)
 - `fuel_inventory` - Referenčné body stavu nádrže (pre automatický výpočet zásob PHM)
 - `audit_logs` - Žurnál aktivít (logovanie INSERT/UPDATE/DELETE)
 - `monthly_reports` - Mesačné výkazy PHM (zásoby, tachometer, status workflow)
@@ -74,7 +78,7 @@ src/
 - `src/lib/utils.ts` - Utility funkcie (cn, calculateTripDistance, resolvePurpose, calculateFuelPrice)
 - `src/lib/supabase/server.ts` - Server-side Supabase klient
 - `src/lib/supabase/client.ts` - Client-side Supabase klient
-- `src/lib/supabase/proxy.ts` - Auth middleware (verejné/chránené cesty)
+- `src/proxy.ts` - Auth middleware (IP whitelist, PIN, bezpečnostné hlavičky)
 - `src/lib/driver-session.ts` - Helper pre vodičovské cookie
 - `src/lib/report-utils.ts` - Helper pre dátumové rozsahy a validáciu URL parametrov
 - `src/lib/report-calculations.ts` - Kalkulačné funkcie pre reporty (spotreba, náklady, agregácie)
@@ -87,6 +91,7 @@ src/
 - `src/lib/monthly-report-pdf.ts` - PDF export mesačných výkazov
 - `src/lib/monthly-report-excel.ts` - Excel export mesačných výkazov
 - `src/lib/fuel-stock-calculator.ts` - Automatický výpočet stavu nádrže
+- `src/lib/email.ts` - Email notifikácie cez Resend (cudzia mena)
 - `src/types/index.ts` - Všetky TypeScript typy a konstanty
 - `supabase/full_migration.sql` - Kompletná DB migrácia
 - `public/manifest.json` - PWA manifest
@@ -116,6 +121,8 @@ src/
 - `DRIVER_EDIT_TIME_LIMIT_MINUTES` - Časový limit na úpravu jazdy vodičom (15 minút)
 - `MONTHS_SK` - Názvy mesiacov po slovensky
 - `REPORT_STATUS` - Stavy mesačného výkazu (draft, submitted, approved)
+- `FUEL_CURRENCIES` - Podporované meny pre tankovanie (EUR, CZK, PLN, HUF)
+- `COUNTRY_CURRENCY_MAP` - Mapovanie krajín na meny
 
 ## Príkazy
 ```bash
@@ -163,6 +170,9 @@ npm run lint     # ESLint
 | `ALLOWED_IPS` | Čiarkou oddelené povolené IP adresy |
 | `APP_PIN` | PIN kód pre externý prístup |
 | `DRIVER_SESSION_SECRET` | 64-char hex kľúč pre podpisovanie cookies |
+| `RESEND_API_KEY` | API kľúč pre Resend (email notifikácie) |
+| `NOTIFICATION_EMAIL` | Email príjemca pre notifikácie o cudzej mene |
+| `NEXT_PUBLIC_APP_URL` | URL aplikácie pre linky v emailoch |
 
 ### Bezpečnostné súbory
 - `src/proxy.ts` - IP + PIN kontrola, bezpečnostné hlavičky
@@ -280,6 +290,39 @@ V admin sekcii → Vozidlá → Detail vozidla → záložka **"Palivové zásob
 - `src/app/api/fuel-inventory/initial/route.ts` - POST API pre pridanie
 - `src/app/api/fuel-inventory/[id]/route.ts` - DELETE API pre mazanie
 
+## Tankovanie v cudzej mene
+Podpora pre tankovanie v CZ, PL, HU s následným doplnením EUR sumy ekonomickým oddelením.
+
+### Workflow
+1. Vodič tankuje v zahraničí → zadá sumu v lokálnej mene (CZK, PLN, HUF)
+2. Systém automaticky odošle email notifikáciu ekonomickému oddeleniu
+3. Po príchode bankového výpisu (do 3 dní) kolegyňa doplní EUR sumu
+4. Záznam sa označí ako potvrdený (`eur_confirmed = true`)
+
+### Mapovanie krajín na meny
+| Krajina | Mena |
+|---------|------|
+| SK, AT, DE | EUR |
+| CZ | CZK |
+| PL | PLN |
+| HU | HUF |
+| other | výber meny |
+
+### Súbory
+- `src/app/vodic/(dashboard)/phm/nova/page.tsx` - Vodičovský formulár s podporou cudzej meny
+- `src/app/admin/phm/nova/page.tsx` - Admin formulár (možnosť zadať EUR sumu priamo)
+- `src/app/admin/phm/potvrdenie/page.tsx` - Zoznam čakajúcich tankovaní
+- `src/app/admin/phm/potvrdenie/confirm-eur-form.tsx` - Formulár pre doplnenie EUR
+- `src/app/api/fuel-records/confirm-eur/route.ts` - API pre potvrdenie EUR sumy
+- `src/app/api/fuel-records/pending-count/route.ts` - API pre počet čakajúcich
+- `src/app/api/notifications/foreign-currency/route.ts` - API pre odoslanie email notifikácie
+- `src/lib/email.ts` - Helper pre Resend integráciu
+
+### Admin UI
+- Badge v sidebar pri položke "Tankovanie PHM" zobrazuje počet čakajúcich
+- Tlačidlo "Čaká na EUR" v zozname tankovaní odkaz na stránku potvrdenia
+- V tabuľke tankovaní badge "Čaká" pre nepotvrdené záznamy
+
 ## PWA (Progressive Web App)
 Aplikácia podporuje inštaláciu na mobil:
 
@@ -331,15 +374,3 @@ Stránka s analýzami a prehľadmi vozového parku.
 - Bezpečné parsovanie dátumov s try/catch
 - Prístup len pre prihlásených adminov (Supabase Auth)
 
-## TODO / Plánované vylepšenia
-- [ ] Upload dokumentov (Supabase Storage)
-- [ ] Stránkovanie v tabuľkách
-- [x] Vyhľadávanie a zoraďovanie v zozname vodičov
-- [ ] Email notifikácie pre termíny
-- [x] PWA pre offline použitie
-- [x] UI pre správu palivových zásob (počiatočný stav nádrže)
-- [x] Vylepšené reporty s globálnymi filtrami a novými tabmi
-- [x] Oprava ESLint chýb a varovaní (čistý kód)
-- [x] Bezpečnostné vylepšenia (backend validácia časového limitu, admin auth pre fuel-inventory API)
-- [x] Stránka "Moje štatistiky" pre vodičov (km, spotreba, grafy)
-- [x] Vylepšená vodičovská navigácia (vizuálny štýl, poradie položiek, auto-zatvorenie na mobile)

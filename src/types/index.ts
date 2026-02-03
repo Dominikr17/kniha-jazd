@@ -153,19 +153,25 @@ export interface FuelRecord {
   receipt_url: string | null
   notes: string | null
   full_tank: boolean  // Či sa jedná o dotankovanie do plnej nádrže
+  // Podpora pre cudziu menu
+  original_currency: FuelCurrency
+  original_total_price: number | null  // Suma v pôvodnej mene
+  original_price_per_liter: number | null  // Cena za liter v pôvodnej mene
+  eur_confirmed: boolean  // Či bola EUR suma potvrdená
+  eur_confirmed_at: string | null
+  eur_confirmed_by: string | null
+  exchange_rate: number | null  // Použitý kurz
   created_at: string
   // Joined fields
   vehicle?: Vehicle
   driver?: Driver
 }
 
-export type FuelRecordInsert = Omit<FuelRecord, 'id' | 'created_at' | 'vehicle' | 'driver'>
+export type FuelRecordInsert = Omit<FuelRecord, 'id' | 'created_at' | 'vehicle' | 'driver' | 'eur_confirmed_at' | 'eur_confirmed_by'>
 
 // Preddefinované účely cesty
 export const TRIP_PURPOSES = [
   'Služobná cesta',
-  'Preprava tovaru',
-  'Preprava osôb',
   'Návšteva zákazníka',
   'Školenie',
   'Servis vozidla',
@@ -227,9 +233,29 @@ export const PAYMENT_METHODS = {
   invoice: 'Faktúra'
 } as const
 
+// Meny pre tankovanie
+export const FUEL_CURRENCIES = {
+  EUR: { name: 'Euro', symbol: '€' },
+  CZK: { name: 'Česká koruna', symbol: 'Kč' },
+  PLN: { name: 'Poľský zlotý', symbol: 'zł' },
+  HUF: { name: 'Maďarský forint', symbol: 'Ft' },
+} as const
+
+// Mapovanie krajín na meny
+export const COUNTRY_CURRENCY_MAP: Record<FuelCountry, FuelCurrency> = {
+  SK: 'EUR',
+  AT: 'EUR',
+  DE: 'EUR',
+  CZ: 'CZK',
+  PL: 'PLN',
+  HU: 'HUF',
+  other: 'EUR', // pre "inú krajinu" default EUR, ale vodič môže zmeniť
+} as const
+
 export type TripType = keyof typeof TRIP_TYPES
 export type FuelCountry = keyof typeof FUEL_COUNTRIES
 export type PaymentMethod = keyof typeof PAYMENT_METHODS
+export type FuelCurrency = keyof typeof FUEL_CURRENCIES
 
 // Audit log
 export interface AuditLog {
