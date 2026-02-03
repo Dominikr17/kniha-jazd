@@ -22,6 +22,8 @@ import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
 import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, FUEL_CURRENCIES, COUNTRY_CURRENCY_MAP, Vehicle, FuelCountry, PaymentMethod, FuelCurrency } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+import { ReceiptScanner } from '@/components/receipt-scanner'
+import { ReceiptScanResult } from '@/types'
 
 export default function DriverNewFuelPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
@@ -81,6 +83,25 @@ export default function DriverNewFuelPage() {
     const vehicle = vehicles.find((v) => v.id === newVehicleId)
     if (vehicle) {
       setFuelType(vehicle.fuel_type)
+    }
+  }
+
+  // Spracovanie výsledkov OCR z pokladničného bloku
+  const handleReceiptScan = (result: ReceiptScanResult) => {
+    if (result.liters) {
+      setLiters(result.liters.toString())
+    }
+    if (result.pricePerLiter) {
+      setPricePerLiter(result.pricePerLiter.toString())
+    }
+    if (result.gasStation) {
+      setGasStation(result.gasStation)
+    }
+    if (result.date) {
+      setDate(result.date)
+    }
+    if (result.country) {
+      handleCountryChange(result.country)
     }
   }
 
@@ -218,7 +239,9 @@ export default function DriverNewFuelPage() {
             <CardTitle>Údaje o tankovaní</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <ReceiptScanner onScan={handleReceiptScan} disabled={isSubmitting} />
+
+            <form onSubmit={handleSubmit} className="space-y-4 mt-6">
               <div className="space-y-2">
                 <Label htmlFor="vehicle">Vozidlo *</Label>
                 <Select value={vehicleId} onValueChange={handleVehicleChange} disabled={isSubmitting}>

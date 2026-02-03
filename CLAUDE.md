@@ -52,6 +52,7 @@ src/
 │   │   ├── app-sidebar.tsx    # Admin sidebar
 │   │   └── driver-sidebar.tsx # Vodičovský sidebar
 │   ├── delete-button.tsx      # Generický DeleteButton pre mazanie záznamov
+│   ├── receipt-scanner.tsx    # OCR skenovanie pokladničných blokov
 │   ├── pwa-register.tsx       # Registrácia Service Workera
 │   └── pwa-install-prompt.tsx # Inštalačný prompt pre PWA
 ├── lib/
@@ -173,6 +174,7 @@ npm run lint     # ESLint
 | `RESEND_API_KEY` | API kľúč pre Resend (email notifikácie) |
 | `NOTIFICATION_EMAIL` | Email príjemca pre notifikácie o cudzej mene |
 | `NEXT_PUBLIC_APP_URL` | URL aplikácie pre linky v emailoch |
+| `ANTHROPIC_API_KEY` | API kľúč pre Claude Vision OCR |
 
 ### Bezpečnostné súbory
 - `src/proxy.ts` - IP + PIN kontrola, bezpečnostné hlavičky
@@ -315,10 +317,33 @@ Podpora pre tankovanie v CZ, PL, HU s následným doplnením EUR sumy ekonomick�
 - `src/app/admin/phm/potvrdenie/confirm-eur-form.tsx` - Formulár pre doplnenie EUR
 - `src/app/api/fuel-records/confirm-eur/route.ts` - API pre potvrdenie EUR sumy
 - `src/app/api/fuel-records/pending-count/route.ts` - API pre počet čakajúcich
-- `src/app/api/notifications/foreign-currency/route.ts` - API pre odoslanie email notifikácie
-- `src/lib/email.ts` - Helper pre Resend integráciu
 
-### Admin UI
+## OCR skenovanie pokladničných blokov
+Vodič môže odfotiť pokladničný blok pri tankovaní a automaticky predvyplniť údaje pomocou Claude Vision API.
+
+### Workflow
+1. Vodič klikne "Odfotiť blok" vo formulári tankovania
+2. Odfotí pokladničný blok (kamera mobilného zariadenia alebo výber súboru)
+3. Systém pošle obrázok na Claude Vision API (claude-sonnet-4)
+4. Rozpoznané údaje sa zobrazia s náhľadom fotky
+5. Vodič klikne "Použiť" pre predvyplnenie formulára
+
+### Rozpoznávané údaje
+| Údaj | Popis |
+|------|-------|
+| `liters` | Množstvo paliva v litroch |
+| `pricePerLiter` | Cena za liter |
+| `totalPrice` | Celková suma (len pre kontrolu) |
+| `gasStation` | Názov čerpacej stanice |
+| `date` | Dátum tankovania (formát YYYY-MM-DD) |
+| `country` | Krajina tankovania (SK, CZ, PL, AT, HU, DE, other) |
+
+### Súbory
+- `src/app/api/ocr/receipt/route.ts` - API endpoint pre OCR (Claude Vision)
+- `src/components/receipt-scanner.tsx` - UI komponent pre fotenie a náhľad
+- `src/types/index.ts` - Typ `ReceiptScanResult`
+
+### Admin UI (tankovanie v cudzej mene)
 - Badge v sidebar pri položke "Tankovanie PHM" zobrazuje počet čakajúcich
 - Tlačidlo "Čaká na EUR" v zozname tankovaní odkaz na stránku potvrdenia
 - V tabuľke tankovaní badge "Čaká" pre nepotvrdené záznamy

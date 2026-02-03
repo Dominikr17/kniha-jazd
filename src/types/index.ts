@@ -257,6 +257,16 @@ export type FuelCountry = keyof typeof FUEL_COUNTRIES
 export type PaymentMethod = keyof typeof PAYMENT_METHODS
 export type FuelCurrency = keyof typeof FUEL_CURRENCIES
 
+// OCR výsledok z pokladničného bloku
+export interface ReceiptScanResult {
+  liters?: number
+  pricePerLiter?: number
+  totalPrice?: number
+  gasStation?: string
+  date?: string  // formát YYYY-MM-DD
+  country?: FuelCountry
+}
+
 // Audit log
 export interface AuditLog {
   id: string
