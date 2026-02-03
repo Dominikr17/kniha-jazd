@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
@@ -14,6 +15,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar'
 import {
   Car,
@@ -77,6 +79,24 @@ export function AppSidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const [pendingFuelCount, setPendingFuelCount] = useState(0)
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        const res = await fetch('/api/fuel-records/pending-count')
+        const data = await res.json()
+        setPendingFuelCount(data.count || 0)
+      } catch {
+        setPendingFuelCount(0)
+      }
+    }
+
+    fetchPendingCount()
+    // Refresh každých 60 sekúnd
+    const interval = setInterval(fetchPendingCount, 60000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -117,6 +137,11 @@ export function AppSidebar() {
                       <span>{item.title}</span>
                     </Link>
                   </SidebarMenuButton>
+                  {item.href === '/admin/phm' && pendingFuelCount > 0 && (
+                    <SidebarMenuBadge className="bg-yellow-500 text-yellow-950">
+                      {pendingFuelCount}
+                    </SidebarMenuBadge>
+                  )}
                 </SidebarMenuItem>
               ))}
             </SidebarMenu>

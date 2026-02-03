@@ -16,10 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Loader2, Save } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
-import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, Vehicle, Driver, FuelCountry, PaymentMethod } from '@/types'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, FUEL_CURRENCIES, COUNTRY_CURRENCY_MAP, Vehicle, Driver, FuelCountry, PaymentMethod, FuelCurrency } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
 
 export default function NewFuelPage() {
@@ -39,8 +40,17 @@ export default function NewFuelPage() {
   const [fullTank, setFullTank] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  // Podpora cudzej meny
+  const [currency, setCurrency] = useState<FuelCurrency>('EUR')
+  const [confirmEurNow, setConfirmEurNow] = useState(false) // Admin môže potvrdiť EUR hneď
+  const [eurTotalPrice, setEurTotalPrice] = useState('') // EUR suma ak admin potvrdzuje hneď
+  const [exchangeRate, setExchangeRate] = useState('') // Kurz ak admin potvrdzuje hneď
   const router = useRouter()
   const supabase = createClient()
+
+  // Detekcia cudzej meny podľa krajiny
+  const isForeignCurrency = currency !== 'EUR'
+  const currencySymbol = FUEL_CURRENCIES[currency].symbol
 
   useEffect(() => {
     const fetchData = async () => {
@@ -66,12 +76,35 @@ export default function NewFuelPage() {
     }
   }
 
+  // Nastavenie meny podľa krajiny
+  const handleCountryChange = (newCountry: FuelCountry) => {
+    setCountry(newCountry)
+    const newCurrency = COUNTRY_CURRENCY_MAP[newCountry]
+    setCurrency(newCurrency)
+    // Reset EUR potvrdenia pri zmene krajiny
+    setConfirmEurNow(false)
+    setEurTotalPrice('')
+    setExchangeRate('')
+  }
+
+  // Pre cudziu menu: toto je suma v pôvodnej mene
   const totalPrice = liters && pricePerLiter
     ? (parseFloat(liters) * parseFloat(pricePerLiter)).toFixed(2)
     : ''
 
-  const priceWithoutVat = totalPrice
-    ? (parseFloat(totalPrice) / (1 + FUEL_COUNTRIES[country].vatRate)).toFixed(2)
+  // Ak admin zadáva EUR sumu priamo, použijeme ju, inak počítame z totalPrice
+  const effectiveEurTotal = isForeignCurrency && confirmEurNow && eurTotalPrice
+    ? eurTotalPrice
+    : (isForeignCurrency ? '' : totalPrice)
+
+  // Cena bez DPH sa počíta len ak máme EUR sumu
+  const priceWithoutVat = effectiveEurTotal
+    ? (parseFloat(effectiveEurTotal) / (1 + FUEL_COUNTRIES[country].vatRate)).toFixed(2)
+    : ''
+
+  // EUR cena za liter (ak admin potvrdzuje hneď)
+  const eurPricePerLiter = effectiveEurTotal && liters
+    ? (parseFloat(effectiveEurTotal) / parseFloat(liters)).toFixed(3)
     : ''
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,14 +117,18 @@ export default function NewFuelPage() {
 
     setIsSubmitting(true)
 
+    // Určíme či je EUR potvrdené
+    const isEurConfirmed = !isForeignCurrency || confirmEurNow
+
     const fuelData = {
       vehicle_id: vehicleId,
       driver_id: driverId || null,
       date,
       odometer: odometer ? parseInt(odometer) : null,
       liters: parseFloat(liters),
-      price_per_liter: parseFloat(pricePerLiter),
-      total_price: parseFloat(totalPrice),
+      // EUR hodnoty: buď priamo zadané alebo z potvrdenia
+      price_per_liter: isEurConfirmed ? parseFloat(eurPricePerLiter || pricePerLiter) : 0,
+      total_price: isEurConfirmed ? parseFloat(effectiveEurTotal || totalPrice) : 0,
       price_without_vat: priceWithoutVat ? parseFloat(priceWithoutVat) : null,
       country,
       payment_method: paymentMethod,
@@ -99,6 +136,12 @@ export default function NewFuelPage() {
       gas_station: gasStation.trim() || null,
       notes: notes.trim() || null,
       full_tank: fullTank,
+      // Nové stĺpce pre cudziu menu
+      original_currency: currency,
+      original_total_price: isForeignCurrency ? parseFloat(totalPrice) : null,
+      original_price_per_liter: isForeignCurrency ? parseFloat(pricePerLiter) : null,
+      eur_confirmed: isEurConfirmed,
+      exchange_rate: isForeignCurrency && confirmEurNow && exchangeRate ? parseFloat(exchangeRate) : null,
     }
 
     const { data, error } = await supabase.from('fuel_records').insert(fuelData).select().single()
@@ -209,7 +252,7 @@ export default function NewFuelPage() {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4 sm:grid-cols-3">
               <div className="space-y-2">
                 <Label htmlFor="date">Dátum *</Label>
                 <Input
@@ -222,6 +265,54 @@ export default function NewFuelPage() {
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="country">Krajina tankovania *</Label>
+                <Select value={country} onValueChange={(v) => handleCountryChange(v as FuelCountry)} disabled={isSubmitting}>
+                  <SelectTrigger id="country">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
+                      <SelectItem key={code} value={code}>
+                        {data.flag} {data.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {country === 'other' ? (
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Mena *</Label>
+                  <Select value={currency} onValueChange={(v) => setCurrency(v as FuelCurrency)} disabled={isSubmitting}>
+                    <SelectTrigger id="currency">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(FUEL_CURRENCIES).map(([code, data]) => (
+                        <SelectItem key={code} value={code}>
+                          {data.symbol} {data.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Label htmlFor="odometer">Stav tachometra (km)</Label>
+                  <Input
+                    id="odometer"
+                    type="number"
+                    value={odometer}
+                    onChange={(e) => setOdometer(e.target.value)}
+                    disabled={isSubmitting}
+                    min={0}
+                    placeholder="voliteľné"
+                  />
+                </div>
+              )}
+            </div>
+
+            {country === 'other' && (
+              <div className="space-y-2 max-w-[200px]">
                 <Label htmlFor="odometer">Stav tachometra (km)</Label>
                 <Input
                   id="odometer"
@@ -233,7 +324,7 @@ export default function NewFuelPage() {
                   placeholder="voliteľné"
                 />
               </div>
-            </div>
+            )}
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               <div className="space-y-2">
@@ -250,7 +341,7 @@ export default function NewFuelPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="pricePerLiter">Cena za liter (EUR) *</Label>
+                <Label htmlFor="pricePerLiter">Cena za liter ({currencySymbol}) *</Label>
                 <Input
                   id="pricePerLiter"
                   type="number"
@@ -263,18 +354,84 @@ export default function NewFuelPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Celková suma (EUR)</Label>
+                <Label>Celková suma ({currencySymbol})</Label>
                 <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                  {totalPrice ? `${totalPrice} EUR` : '-'}
+                  {totalPrice ? `${totalPrice} ${currencySymbol}` : '-'}
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label>Bez DPH (EUR)</Label>
-                <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                  {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
+              {(!isForeignCurrency || confirmEurNow) && (
+                <div className="space-y-2">
+                  <Label>Bez DPH (EUR)</Label>
+                  <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
+                    {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
+
+            {isForeignCurrency && (
+              <Alert>
+                <Info className="h-4 w-4" />
+                <AlertTitle>Tankovanie v cudzej mene ({currency})</AlertTitle>
+                <AlertDescription>
+                  Môžete zadať EUR sumu hneď (ak máte bankový výpis), alebo nechať na doplnenie neskôr.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {isForeignCurrency && (
+              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="confirmEurNow"
+                    checked={confirmEurNow}
+                    onCheckedChange={(checked) => setConfirmEurNow(checked === true)}
+                    disabled={isSubmitting}
+                  />
+                  <Label htmlFor="confirmEurNow" className="text-sm font-medium cursor-pointer">
+                    Zadať EUR sumu teraz
+                  </Label>
+                </div>
+
+                {confirmEurNow && (
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <div className="space-y-2">
+                      <Label htmlFor="eurTotalPrice">Celková suma v EUR *</Label>
+                      <Input
+                        id="eurTotalPrice"
+                        type="number"
+                        step="0.01"
+                        value={eurTotalPrice}
+                        onChange={(e) => setEurTotalPrice(e.target.value)}
+                        required={confirmEurNow}
+                        disabled={isSubmitting}
+                        min={0}
+                        placeholder="napr. 85.50"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="exchangeRate">Kurz ({currency}/EUR)</Label>
+                      <Input
+                        id="exchangeRate"
+                        type="number"
+                        step="0.0001"
+                        value={exchangeRate}
+                        onChange={(e) => setExchangeRate(e.target.value)}
+                        disabled={isSubmitting}
+                        min={0}
+                        placeholder="napr. 25.45"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Cena za liter (EUR)</Label>
+                      <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
+                        {eurPricePerLiter ? `${eurPricePerLiter} EUR` : '-'}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="flex items-center space-x-2">
               <Checkbox
@@ -313,21 +470,6 @@ export default function NewFuelPage() {
                   disabled={isSubmitting}
                   placeholder="Shell, OMV..."
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Krajina *</Label>
-                <Select value={country} onValueChange={(v) => setCountry(v as FuelCountry)} disabled={isSubmitting}>
-                  <SelectTrigger id="country">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
-                      <SelectItem key={code} value={code}>
-                        {data.flag} {data.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="paymentMethod">Spôsob platby *</Label>

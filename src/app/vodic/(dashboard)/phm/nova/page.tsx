@@ -17,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Loader2, Save, AlertTriangle } from 'lucide-react'
+import { ArrowLeft, Loader2, Save, AlertTriangle, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { Checkbox } from '@/components/ui/checkbox'
-import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, Vehicle, FuelCountry, PaymentMethod } from '@/types'
+import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, FUEL_CURRENCIES, COUNTRY_CURRENCY_MAP, Vehicle, FuelCountry, PaymentMethod, FuelCurrency } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
 
 export default function DriverNewFuelPage() {
@@ -40,8 +40,14 @@ export default function DriverNewFuelPage() {
   const [fullTank, setFullTank] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  // Podpora cudzej meny
+  const [currency, setCurrency] = useState<FuelCurrency>('EUR')
   const router = useRouter()
   const supabase = createClient()
+
+  // Detekcia cudzej meny podľa krajiny
+  const isForeignCurrency = currency !== 'EUR'
+  const currencySymbol = FUEL_CURRENCIES[currency].symbol
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,11 +84,20 @@ export default function DriverNewFuelPage() {
     }
   }
 
+  // Nastavenie meny podľa krajiny
+  const handleCountryChange = (newCountry: FuelCountry) => {
+    setCountry(newCountry)
+    const newCurrency = COUNTRY_CURRENCY_MAP[newCountry]
+    setCurrency(newCurrency)
+  }
+
+  // Pre cudziu menu: toto je suma v pôvodnej mene
   const totalPrice = liters && pricePerLiter
     ? (parseFloat(liters) * parseFloat(pricePerLiter)).toFixed(2)
     : ''
 
-  const priceWithoutVat = totalPrice
+  // Cena bez DPH sa počíta len pre EUR (pre cudziu menu sa dopočíta po potvrdení)
+  const priceWithoutVat = totalPrice && !isForeignCurrency
     ? (parseFloat(totalPrice) / (1 + FUEL_COUNTRIES[country].vatRate)).toFixed(2)
     : ''
 
@@ -96,14 +111,16 @@ export default function DriverNewFuelPage() {
 
     setIsSubmitting(true)
 
+    // Pre cudziu menu: uložíme pôvodnú sumu, EUR hodnoty sa doplnia neskôr
     const fuelData = {
       vehicle_id: vehicleId,
       driver_id: driverId,
       date,
       odometer: odometer ? parseInt(odometer) : null,
       liters: parseFloat(liters),
-      price_per_liter: parseFloat(pricePerLiter),
-      total_price: parseFloat(totalPrice),
+      // Pre cudziu menu: dočasne null, doplní admin po príchode bankového výpisu
+      price_per_liter: isForeignCurrency ? 0 : parseFloat(pricePerLiter),
+      total_price: isForeignCurrency ? 0 : parseFloat(totalPrice),
       price_without_vat: priceWithoutVat ? parseFloat(priceWithoutVat) : null,
       country,
       payment_method: paymentMethod,
@@ -111,6 +128,12 @@ export default function DriverNewFuelPage() {
       gas_station: gasStation.trim() || null,
       notes: notes.trim() || null,
       full_tank: fullTank,
+      // Nové stĺpce pre cudziu menu
+      original_currency: currency,
+      original_total_price: isForeignCurrency ? parseFloat(totalPrice) : null,
+      original_price_per_liter: isForeignCurrency ? parseFloat(pricePerLiter) : null,
+      eur_confirmed: !isForeignCurrency, // EUR = potvrdené, cudzia mena = čaká na potvrdenie
+      exchange_rate: null,
     }
 
     const { data, error } = await supabase.from('fuel_records').insert(fuelData).select().single()
@@ -212,7 +235,7 @@ export default function DriverNewFuelPage() {
                 </Select>
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
                   <Label htmlFor="date">Dátum *</Label>
                   <Input
@@ -225,6 +248,54 @@ export default function DriverNewFuelPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="country">Krajina tankovania *</Label>
+                  <Select value={country} onValueChange={(v) => handleCountryChange(v as FuelCountry)} disabled={isSubmitting}>
+                    <SelectTrigger id="country">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
+                        <SelectItem key={code} value={code}>
+                          {data.flag} {data.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {country === 'other' ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="currency">Mena *</Label>
+                    <Select value={currency} onValueChange={(v) => setCurrency(v as FuelCurrency)} disabled={isSubmitting}>
+                      <SelectTrigger id="currency">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(FUEL_CURRENCIES).map(([code, data]) => (
+                          <SelectItem key={code} value={code}>
+                            {data.symbol} {data.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Label htmlFor="odometer">Stav tachometra (km)</Label>
+                    <Input
+                      id="odometer"
+                      type="number"
+                      value={odometer}
+                      onChange={(e) => setOdometer(e.target.value)}
+                      disabled={isSubmitting}
+                      min={0}
+                      placeholder="voliteľné"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {country === 'other' && (
+                <div className="space-y-2 max-w-[200px]">
                   <Label htmlFor="odometer">Stav tachometra (km)</Label>
                   <Input
                     id="odometer"
@@ -236,7 +307,7 @@ export default function DriverNewFuelPage() {
                     placeholder="voliteľné"
                   />
                 </div>
-              </div>
+              )}
 
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div className="space-y-2">
@@ -253,7 +324,7 @@ export default function DriverNewFuelPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="pricePerLiter">Cena za liter (EUR) *</Label>
+                  <Label htmlFor="pricePerLiter">Cena za liter ({currencySymbol}) *</Label>
                   <Input
                     id="pricePerLiter"
                     type="number"
@@ -266,18 +337,30 @@ export default function DriverNewFuelPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Celková suma (EUR)</Label>
+                  <Label>Celková suma ({currencySymbol})</Label>
                   <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                    {totalPrice ? `${totalPrice} EUR` : '-'}
+                    {totalPrice ? `${totalPrice} ${currencySymbol}` : '-'}
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label>Bez DPH (EUR)</Label>
-                  <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                    {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
+                {!isForeignCurrency && (
+                  <div className="space-y-2">
+                    <Label>Bez DPH (EUR)</Label>
+                    <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
+                      {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
+
+              {isForeignCurrency && (
+                <Alert>
+                  <Info className="h-4 w-4" />
+                  <AlertTitle>Tankovanie v cudzej mene</AlertTitle>
+                  <AlertDescription>
+                    Suma v EUR bude doplnená ekonomickým oddelením po príchode bankového výpisu (zvyčajne do 3 pracovných dní).
+                  </AlertDescription>
+                </Alert>
+              )}
 
               <div className="flex items-center space-x-2">
                 <Checkbox
@@ -316,21 +399,6 @@ export default function DriverNewFuelPage() {
                     disabled={isSubmitting}
                     placeholder="Shell, OMV..."
                   />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="country">Krajina *</Label>
-                  <Select value={country} onValueChange={(v) => setCountry(v as FuelCountry)} disabled={isSubmitting}>
-                    <SelectTrigger id="country">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
-                        <SelectItem key={code} value={code}>
-                          {data.flag} {data.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paymentMethod">Spôsob platby *</Label>

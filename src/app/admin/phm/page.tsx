@@ -11,8 +11,8 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Fuel } from 'lucide-react'
-import { FuelRecord, FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS } from '@/types'
+import { Plus, Fuel, Clock } from 'lucide-react'
+import { FuelRecord, FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, FUEL_CURRENCIES, FuelCurrency } from '@/types'
 import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { DeleteButton } from '@/components/delete-button'
@@ -20,14 +20,21 @@ import { DeleteButton } from '@/components/delete-button'
 export default async function FuelPage() {
   const supabase = await createClient()
 
-  const { data: fuelRecords, error } = await supabase
-    .from('fuel_records')
-    .select(`
-      *,
-      vehicle:vehicles(id, name, license_plate),
-      driver:drivers(id, first_name, last_name)
-    `)
-    .order('date', { ascending: false })
+  // Načítanie tankovaní a počtu čakajúcich
+  const [{ data: fuelRecords, error }, { count: pendingCount }] = await Promise.all([
+    supabase
+      .from('fuel_records')
+      .select(`
+        *,
+        vehicle:vehicles(id, name, license_plate),
+        driver:drivers(id, first_name, last_name)
+      `)
+      .order('date', { ascending: false }),
+    supabase
+      .from('fuel_records')
+      .select('*', { count: 'exact', head: true })
+      .eq('eur_confirmed', false),
+  ])
 
   if (error) {
     console.error('Error loading fuel records:', error)
@@ -63,12 +70,22 @@ export default async function FuelPage() {
           <h1 className="text-2xl font-bold">Tankovanie PHM</h1>
           <p className="text-muted-foreground">Evidencia tankovania pohonných hmôt</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/phm/nova">
-            <Plus className="mr-2 h-4 w-4" />
-            Nové tankovanie
-          </Link>
-        </Button>
+        <div className="flex gap-2">
+          {(pendingCount ?? 0) > 0 && (
+            <Button variant="outline" asChild>
+              <Link href="/admin/phm/potvrdenie">
+                <Clock className="mr-2 h-4 w-4" />
+                Čaká na EUR ({pendingCount})
+              </Link>
+            </Button>
+          )}
+          <Button asChild>
+            <Link href="/admin/phm/nova">
+              <Plus className="mr-2 h-4 w-4" />
+              Nové tankovanie
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <Card>
@@ -102,6 +119,7 @@ export default async function FuelPage() {
                     <TableHead className="text-right hidden lg:table-cell">Bez DPH</TableHead>
                     <TableHead className="hidden lg:table-cell">Platba</TableHead>
                     <TableHead className="text-right hidden xl:table-cell">l/100km</TableHead>
+                    <TableHead className="hidden md:table-cell">Status</TableHead>
                     <TableHead className="w-[60px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -158,6 +176,18 @@ export default async function FuelPage() {
                         ) : (
                           '-'
                         )}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        {record.eur_confirmed === false ? (
+                          <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+                            <Clock className="mr-1 h-3 w-3" />
+                            {record.original_total_price?.toFixed(2)} {FUEL_CURRENCIES[record.original_currency as FuelCurrency]?.symbol || record.original_currency}
+                          </Badge>
+                        ) : record.original_currency && record.original_currency !== 'EUR' ? (
+                          <Badge variant="secondary" className="text-xs">
+                            {FUEL_CURRENCIES[record.original_currency as FuelCurrency]?.symbol} &rarr; EUR
+                          </Badge>
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         <DeleteButton

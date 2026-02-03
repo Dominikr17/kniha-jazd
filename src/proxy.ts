@@ -3,7 +3,7 @@ import { updateSession } from '@/lib/supabase/middleware'
 
 // Konfigurácia ciest
 const PUBLIC_PATHS = ['/pin', '/api/pin', '/api/driver']
-const ADMIN_PATHS = ['/admin', '/api/admin', '/login', '/auth']
+const ADMIN_PATHS = ['/admin', '/api/admin', '/api/fuel-records', '/api/notifications', '/login', '/auth']
 const DRIVER_PUBLIC_PATHS = ['/', '/vodic']
 
 // Názov session cookie
