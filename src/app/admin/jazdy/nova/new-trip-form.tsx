@@ -33,7 +33,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [timeStart, setTimeStart] = useState('')
   const [timeEnd, setTimeEnd] = useState('')
-  const [routeFrom, setRouteFrom] = useState('')
+  const [routeFrom, setRouteFrom] = useState('ZVL')
   const [routeTo, setRouteTo] = useState('')
   const [purpose, setPurpose] = useState('')
   const [customPurpose, setCustomPurpose] = useState('')
