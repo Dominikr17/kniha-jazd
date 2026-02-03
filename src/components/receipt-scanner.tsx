@@ -14,6 +14,48 @@ interface ReceiptScannerProps {
   disabled?: boolean
 }
 
+const MAX_IMAGE_WIDTH = 1600
+const JPEG_QUALITY = 0.8
+
+function compressImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement('img')
+    const reader = new FileReader()
+
+    reader.onload = (e) => {
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let { width, height } = img
+
+        // Zmenšenie ak je obrázok príliš veľký
+        if (width > MAX_IMAGE_WIDTH) {
+          height = (height * MAX_IMAGE_WIDTH) / width
+          width = MAX_IMAGE_WIDTH
+        }
+
+        canvas.width = width
+        canvas.height = height
+
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          reject(new Error('Canvas context not available'))
+          return
+        }
+
+        ctx.drawImage(img, 0, 0, width, height)
+        const compressedBase64 = canvas.toDataURL('image/jpeg', JPEG_QUALITY)
+        resolve(compressedBase64)
+      }
+
+      img.onerror = () => reject(new Error('Failed to load image'))
+      img.src = e.target?.result as string
+    }
+
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+}
+
 export function ReceiptScanner({ onScan, disabled }: ReceiptScannerProps) {
   const [isScanning, setIsScanning] = useState(false)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
@@ -33,51 +75,47 @@ export function ReceiptScanner({ onScan, disabled }: ReceiptScannerProps) {
       return
     }
 
-    const reader = new FileReader()
-    reader.onload = async () => {
-      const imageBase64 = reader.result as string
-      setImagePreview(imageBase64)
-      setIsScanning(true)
-      setScanResult(null)
+    setIsScanning(true)
+    setScanResult(null)
 
-      try {
-        const response = await fetch('/api/ocr/receipt', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ image: imageBase64 }),
-        })
+    try {
+      const compressedImage = await compressImage(selectedFile)
+      setImagePreview(compressedImage)
 
-        const responseData = await response.json()
+      const response = await fetch('/api/ocr/receipt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: compressedImage }),
+      })
 
-        if (!responseData.success) {
-          toast.error(responseData.error || 'Nepodarilo sa načítať údaje z bloku')
-          setIsScanning(false)
-          return
-        }
+      const responseData = await response.json()
 
-        const extractedData = responseData.data as ReceiptScanResult
-        setScanResult(extractedData)
-
-        const recognizedFieldsCount = [
-          extractedData.liters,
-          extractedData.pricePerLiter,
-          extractedData.gasStation,
-        ].filter(Boolean).length
-
-        if (recognizedFieldsCount === 0) {
-          toast.warning('Nepodarilo sa rozpoznať žiadne údaje z bloku')
-        } else {
-          const suffix = recognizedFieldsCount === 1 ? 'údaj' : recognizedFieldsCount < 5 ? 'údaje' : 'údajov'
-          toast.success(`Rozpoznané ${recognizedFieldsCount} ${suffix}`)
-        }
-      } catch (error) {
-        console.error('Scan error:', error)
-        toast.error('Chyba pri skenovaní bloku')
-      } finally {
-        setIsScanning(false)
+      if (!responseData.success) {
+        toast.error(responseData.error || 'Nepodarilo sa načítať údaje z bloku')
+        return
       }
+
+      const extractedData = responseData.data as ReceiptScanResult
+      setScanResult(extractedData)
+
+      const recognizedFieldsCount = [
+        extractedData.liters,
+        extractedData.pricePerLiter,
+        extractedData.gasStation,
+      ].filter(Boolean).length
+
+      if (recognizedFieldsCount === 0) {
+        toast.warning('Nepodarilo sa rozpoznať žiadne údaje z bloku')
+      } else {
+        const suffix = recognizedFieldsCount === 1 ? 'údaj' : recognizedFieldsCount < 5 ? 'údaje' : 'údajov'
+        toast.success(`Rozpoznané ${recognizedFieldsCount} ${suffix}`)
+      }
+    } catch (error) {
+      console.error('Scan error:', error)
+      toast.error('Chyba pri skenovaní bloku')
+    } finally {
+      setIsScanning(false)
     }
-    reader.readAsDataURL(selectedFile)
 
     event.target.value = ''
   }
