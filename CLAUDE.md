@@ -17,6 +17,7 @@ Elektronická kniha jázd pre správu vozového parku firmy ZVL SLOVAKIA. Zákon
 - **Grafy:** Recharts
 - **Export:** jsPDF, xlsx
 - **PWA:** Service Worker, Web App Manifest
+- **OCR:** Anthropic Claude Vision API (claude-sonnet-4)
 
 ## Štruktúra projektu
 ```
