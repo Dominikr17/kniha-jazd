@@ -397,7 +397,7 @@ export default function DriverNewFuelPage() {
                 </Label>
               </div>
 
-              <div className="grid gap-4 grid-cols-2">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="fuelType">Typ paliva *</Label>
                   <Select value={fuelType} onValueChange={setFuelType} disabled={isSubmitting}>
