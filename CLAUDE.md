@@ -75,6 +75,11 @@ src/
 - `fuel_inventory` - Referenčné body stavu nádrže (pre automatický výpočet zásob PHM)
 - `audit_logs` - Žurnál aktivít (logovanie INSERT/UPDATE/DELETE)
 - `monthly_reports` - Mesačné výkazy PHM (zásoby, tachometer, status workflow)
+- `business_trips` - Služobné cesty (cestovné príkazy, status workflow)
+- `border_crossings` - Prechody hraníc (FK na business_trips)
+- `trip_allowances` - Denné stravné
+- `trip_expenses` - Výdavky služobných ciest
+- `business_trip_trips` - Väzba služobná cesta ↔ jazda (M:N)
 
 ## Dôležité súbory
 - `src/lib/utils.ts` - Utility funkcie (cn, calculateTripDistance, resolvePurpose, calculateFuelPrice)
@@ -399,4 +404,71 @@ Stránka s analýzami a prehľadmi vozového parku.
 - UUID validácia pre vehicle a driver ID
 - Bezpečné parsovanie dátumov s try/catch
 - Prístup len pre prihlásených adminov (Supabase Auth)
+
+## Služobné cesty (cestovné príkazy)
+Modul pre evidenciu služobných ciest s vyúčtovaním stravného a výdavkov.
+
+### Databázové tabuľky
+- `business_trips` - Hlavička SC (trip_number, driver_id, status workflow, sumy)
+- `border_crossings` - Prechody hraníc (FK na business_trips, ON DELETE CASCADE)
+- `trip_allowances` - Denné stravné po dňoch
+- `trip_expenses` - Výdavky (ubytovanie, parkovné, mýto...)
+- `business_trip_trips` - M:N väzba na existujúce jazdy (trips)
+
+### Status workflow
+`draft` → `submitted` → `approved` → `paid`
+`submitted` → `rejected` → `draft` (vodič opraví a odošle znova)
+
+### Konštanty a sadzby (src/types/index.ts)
+- `BUSINESS_TRIP_STATUS` — stavy SC
+- `TRANSPORT_TYPES` — dopravné prostriedky (AUS, AUV, AUS_sluzobne, MOS, MOV, vlak, autobus, lietadlo)
+- `EXPENSE_TYPES` — typy výdavkov
+- `DOMESTIC_ALLOWANCE_RATES` — tuzemské sadzby (5-12h: 9.30€, 12-18h: 13.80€, nad 18h: 20.60€)
+- `ALLOWANCE_DEDUCTION_RATES` — krátenie (raňajky 25%, obed 40%, večera 35%)
+- `VEHICLE_AMORTIZATION` — AUV: 0.313 €/km, MOV: 0.090 €/km
+- `FOREIGN_ALLOWANCE_RATES` — zahraničné sadzby podľa krajín
+- `BORDER_CROSSINGS_SK` — hraničné prechody SR
+
+### Výpočet stravného
+- Tuzemská: pod 5h = 0, 5-12h = 9.30€, 12-18h = 13.80€, nad 18h = 20.60€
+- Zahraničná: do 6h = 25%, 6-12h = 50%, nad 12h = 100% základnej sadzby
+- Krátenie vždy zo základnej 100% sadzby
+- Zaokrúhlenie: `Math.ceil(suma * 100) / 100`
+
+### Súbory
+
+**Helper funkcie:**
+- `src/lib/business-trip-calculator.ts` - Výpočet stravného, amortizácie, celkovej sumy
+- `src/lib/business-trip-pdf.ts` - PDF generovanie (2 strany: vyúčtovanie + cestovný príkaz)
+
+**Vodičovská sekcia:**
+- `src/app/vodic/(dashboard)/sluzobne-cesty/page.tsx` - Zoznam SC
+- `src/app/vodic/(dashboard)/sluzobne-cesty/nova/page.tsx` - Multi-step formulár (4 kroky)
+- `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-trips-and-type.tsx` - Krok 1: Výber jázd + typ cesty (auto-fill údajov)
+- `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-details.tsx` - Krok 2: Review auto-fill údajov + dopravný prostriedok + hranice
+- `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-meals-expenses.tsx` - Krok 3: Stravné a výdavky
+- `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-summary.tsx` - Krok 4: Súhrn
+- `src/app/vodic/(dashboard)/sluzobne-cesty/[id]/page.tsx` - Detail SC
+- `src/app/vodic/(dashboard)/sluzobne-cesty/[id]/actions.tsx` - Akcie vodiča (odoslať, PDF)
+
+**Admin sekcia:**
+- `src/app/admin/sluzobne-cesty/page.tsx` - Zoznam SC s filtrami
+- `src/app/admin/sluzobne-cesty/[id]/page.tsx` - Detail SC
+- `src/app/admin/sluzobne-cesty/[id]/admin-actions.tsx` - Admin akcie (schváliť, vrátiť, preplatiť, PDF)
+
+**API routes:**
+- `POST /api/business-trips` - Vytvorenie SC
+- `GET/PUT/DELETE /api/business-trips/[id]` - CRUD
+- `POST /api/business-trips/[id]/submit` - draft → submitted
+- `POST /api/business-trips/[id]/calculate` - Prepočet stravného
+- `GET /api/business-trips/[id]/pdf` - Dáta pre PDF
+- `POST /api/business-trips/[id]/approve` - submitted → approved (admin)
+- `POST /api/business-trips/[id]/reject` - submitted → rejected (admin)
+- `POST /api/business-trips/[id]/mark-paid` - approved → paid (admin)
+- `GET /api/business-trips/pending-count` - Počet submitted SC
+
+### Bezpečnosť
+- Vodič: ownership validácia (driver_id), len draft môže mazať
+- Admin: Supabase Auth pre approve/reject/mark-paid
+- Audit log pre všetky operácie
 

@@ -26,7 +26,8 @@ import {
   FileText,
   LogOut,
   ClipboardList,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Briefcase
 } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
@@ -64,6 +65,11 @@ const menuItems = [
     icon: FileSpreadsheet,
   },
   {
+    title: 'Služobné cesty',
+    href: '/admin/sluzobne-cesty',
+    icon: Briefcase,
+  },
+  {
     title: 'Reporty',
     href: '/admin/reporty',
     icon: FileText,
@@ -80,21 +86,27 @@ export function AppSidebar() {
   const router = useRouter()
   const supabase = createClient()
   const [pendingFuelCount, setPendingFuelCount] = useState(0)
+  const [pendingBusinessTripCount, setPendingBusinessTripCount] = useState(0)
 
   useEffect(() => {
-    const fetchPendingCount = async () => {
+    const fetchPendingCounts = async () => {
       try {
-        const res = await fetch('/api/fuel-records/pending-count')
-        const data = await res.json()
-        setPendingFuelCount(data.count || 0)
+        const [fuelRes, btRes] = await Promise.all([
+          fetch('/api/fuel-records/pending-count'),
+          fetch('/api/business-trips/pending-count'),
+        ])
+        const fuelData = await fuelRes.json()
+        const btData = await btRes.json()
+        setPendingFuelCount(fuelData.count || 0)
+        setPendingBusinessTripCount(btData.count || 0)
       } catch {
         setPendingFuelCount(0)
+        setPendingBusinessTripCount(0)
       }
     }
 
-    fetchPendingCount()
-    // Refresh každých 60 sekúnd
-    const interval = setInterval(fetchPendingCount, 60000)
+    fetchPendingCounts()
+    const interval = setInterval(fetchPendingCounts, 60000)
     return () => clearInterval(interval)
   }, [])
 
@@ -140,6 +152,11 @@ export function AppSidebar() {
                   {item.href === '/admin/phm' && pendingFuelCount > 0 && (
                     <SidebarMenuBadge className="bg-yellow-500 text-yellow-950">
                       {pendingFuelCount}
+                    </SidebarMenuBadge>
+                  )}
+                  {item.href === '/admin/sluzobne-cesty' && pendingBusinessTripCount > 0 && (
+                    <SidebarMenuBadge className="bg-blue-500 text-white">
+                      {pendingBusinessTripCount}
                     </SidebarMenuBadge>
                   )}
                 </SidebarMenuItem>

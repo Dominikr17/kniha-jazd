@@ -18,7 +18,7 @@ import { toast } from 'sonner'
 import { logAudit } from '@/lib/audit-logger'
 import { DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
 
-type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles' | 'fuel_inventory' | 'monthly_reports'
+type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles' | 'fuel_inventory' | 'monthly_reports' | 'business_trips'
 type UserType = 'admin' | 'driver'
 
 // Validácia časového limitu pre vodičov
@@ -82,20 +82,27 @@ export function DeleteButton({
 
     // Ownership a časová validácia pre vodičov
     if (userType === 'driver' && userId) {
-      // Pre trips a fuel_records overiť driver_id
-      if ((tableName === 'trips' || tableName === 'fuel_records') && oldData.driver_id !== userId) {
+      // Pre trips, fuel_records a business_trips overiť driver_id
+      if ((tableName === 'trips' || tableName === 'fuel_records' || tableName === 'business_trips') && oldData.driver_id !== userId) {
         toast.error('Nemáte oprávnenie vymazať tento záznam')
         setIsDeleting(false)
         return
       }
 
-      // Časový limit pre mazanie (rovnaký ako pre úpravu)
+      // Časový limit pre mazanie (rovnaký ako pre úpravu) - len pre trips a fuel_records
       if ((tableName === 'trips' || tableName === 'fuel_records') && oldData.created_at) {
         if (!isWithinEditTimeLimit(oldData.created_at)) {
           toast.error(`Čas na vymazanie vypršal (limit ${DRIVER_EDIT_TIME_LIMIT_MINUTES} minút)`)
           setIsDeleting(false)
           return
         }
+      }
+
+      // Business trips - len draft môže vodič zmazať
+      if (tableName === 'business_trips' && oldData.status !== 'draft') {
+        toast.error('Služobnú cestu je možné vymazať len v stave Rozpracovaná')
+        setIsDeleting(false)
+        return
       }
     }
 
