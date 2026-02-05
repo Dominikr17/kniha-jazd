@@ -163,6 +163,11 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                         <div className="max-w-[200px] truncate">
                           {trip.route_from} → {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}
                         </div>
+                        {trip.visit_place && (
+                          <div className="text-xs text-muted-foreground truncate max-w-[200px]">
+                            {trip.visit_place}
+                          </div>
+                        )}
                         <div className="text-xs text-muted-foreground truncate max-w-[200px]">
                           {trip.purpose}
                         </div>

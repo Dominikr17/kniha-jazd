@@ -25,6 +25,7 @@ interface StepTripsAndTypeProps {
     departureDate: string
     returnDate: string
     destinationCity: string
+    visitPlace: string
     purpose: string
     transportType: string
   }) => void
@@ -70,13 +71,27 @@ function deriveAutoFillData(trips: Trip[]) {
     destinationCity = latest.route_to || ''
   }
 
+  // visit_place: najčastejšie visit_place z vybraných jázd (vylúčiť null/prázdne)
+  const visitPlaceCounts: Record<string, number> = {}
+  for (const trip of trips) {
+    const vp = trip.visit_place?.trim()
+    if (vp) {
+      visitPlaceCounts[vp] = (visitPlaceCounts[vp] || 0) + 1
+    }
+  }
+  let visitPlace = ''
+  if (Object.keys(visitPlaceCounts).length > 0) {
+    visitPlace = Object.entries(visitPlaceCounts)
+      .sort((a, b) => b[1] - a[1])[0][0]
+  }
+
   // purpose: z prvej jazdy
   const purpose = earliest.purpose || ''
 
   // transport_type: ak jazda má vozidlo → služobné auto
   const transportType = earliest.vehicle_id ? 'AUS_sluzobne' : 'AUS_sluzobne'
 
-  return { departureDate, returnDate, destinationCity, purpose, transportType }
+  return { departureDate, returnDate, destinationCity, visitPlace, purpose, transportType }
 }
 
 export default function StepTripsAndType({

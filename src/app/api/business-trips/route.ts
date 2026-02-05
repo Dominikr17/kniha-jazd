@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
 
     const {
-      trip_type, destination_country, destination_city, purpose,
+      trip_type, destination_country, destination_city, visit_place, purpose,
       transport_type, companion, departure_date, return_date,
       advance_amount, advance_currency, notes,
       border_crossings, expenses, linked_trip_ids,
@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
         trip_type,
         destination_country: destination_country || null,
         destination_city,
+        visit_place: visit_place || null,
         purpose,
         transport_type,
         companion: companion || null,
@@ -185,6 +186,7 @@ export async function POST(request: NextRequest) {
             trip_type,
             destination_country: destination_country || null,
             destination_city,
+            visit_place: visit_place || null,
             purpose,
             transport_type,
             companion: mainDriverCompanion,

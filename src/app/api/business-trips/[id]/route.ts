@@ -64,7 +64,7 @@ export async function PUT(
     const body = await request.json()
 
     const {
-      trip_type, destination_country, destination_city, purpose,
+      trip_type, destination_country, destination_city, visit_place, purpose,
       transport_type, companion, departure_date, return_date,
       advance_amount, advance_currency, notes,
       border_crossings, expenses, linked_trip_ids,
@@ -80,6 +80,7 @@ export async function PUT(
         trip_type: trip_type || existing.trip_type,
         destination_country: destination_country ?? existing.destination_country,
         destination_city: destination_city || existing.destination_city,
+        visit_place: visit_place ?? existing.visit_place,
         purpose: purpose || existing.purpose,
         transport_type: transport_type || existing.transport_type,
         companion: companion ?? existing.companion,

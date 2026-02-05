@@ -37,6 +37,7 @@ interface StepSummaryProps {
   tripType: 'tuzemska' | 'zahranicna'
   destinationCountry: string
   destinationCity: string
+  visitPlace: string
   purpose: string
   transportType: TransportType
   companion: string
@@ -60,7 +61,7 @@ function formatEur(amount: number): string {
 }
 
 export default function StepSummary({
-  tripType, destinationCountry, destinationCity, purpose,
+  tripType, destinationCountry, destinationCity, visitPlace, purpose,
   transportType, companion, departureDate, returnDate,
   advanceAmount, notes, borderCrossings, calculatedAllowances,
   expenses, selectedTrips, totalAllowance, totalExpenses,
@@ -86,6 +87,13 @@ export default function StepSummary({
 
           <span className="text-muted-foreground">Cieľ:</span>
           <span>{destinationCity}</span>
+
+          {visitPlace && (
+            <>
+              <span className="text-muted-foreground">Miesto návštevy:</span>
+              <span>{visitPlace}</span>
+            </>
+          )}
 
           <span className="text-muted-foreground">Účel:</span>
           <span>{purpose}</span>

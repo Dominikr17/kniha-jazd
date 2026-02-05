@@ -124,6 +124,7 @@ export interface Trip {
   odometer_start: number
   odometer_end: number | null
   distance: number | null
+  visit_place: string | null
   round_trip: boolean
   notes: string | null
   created_at: string
@@ -616,6 +617,7 @@ export interface BusinessTrip {
   purpose: string
   transport_type: TransportType
   companion: string | null
+  visit_place: string | null
   group_id: string | null
   departure_date: string
   return_date: string

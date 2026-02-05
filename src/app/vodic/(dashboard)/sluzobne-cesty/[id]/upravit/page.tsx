@@ -65,6 +65,7 @@ export default function EditBusinessTripPage() {
 
   // Krok 2: Doplnenie údajov
   const [destinationCity, setDestinationCity] = useState('')
+  const [visitPlace, setVisitPlace] = useState('')
   const [purpose, setPurpose] = useState('')
   const [transportType, setTransportType] = useState<TransportType>('AUS_sluzobne')
   const [companion, setCompanion] = useState('')
@@ -127,6 +128,7 @@ export default function EditBusinessTripPage() {
         setTripType(trip.trip_type || 'tuzemska')
         setDestinationCountry(trip.destination_country || '')
         setDestinationCity(trip.destination_city || '')
+        setVisitPlace(trip.visit_place || '')
         setPurpose(trip.purpose || '')
         setTransportType(trip.transport_type || 'AUS_sluzobne')
         setCompanion(trip.companion || '')
@@ -194,12 +196,14 @@ export default function EditBusinessTripPage() {
     departureDate: string
     returnDate: string
     destinationCity: string
+    visitPlace: string
     purpose: string
     transportType: string
   }) => {
     setDepartureDate(data.departureDate)
     setReturnDate(data.returnDate)
     setDestinationCity(data.destinationCity)
+    setVisitPlace(data.visitPlace)
     setPurpose(data.purpose)
     if (data.transportType) {
       setTransportType(data.transportType as TransportType)
@@ -274,6 +278,7 @@ export default function EditBusinessTripPage() {
         trip_type: tripType,
         destination_country: tripType === 'zahranicna' ? destinationCountry : null,
         destination_city: destinationCity,
+        visit_place: visitPlace || null,
         purpose,
         transport_type: transportType,
         companion: companion || null,
@@ -407,6 +412,8 @@ export default function EditBusinessTripPage() {
           <StepDetails
             destinationCity={destinationCity}
             setDestinationCity={setDestinationCity}
+            visitPlace={visitPlace}
+            setVisitPlace={setVisitPlace}
             purpose={purpose}
             setPurpose={setPurpose}
             transportType={transportType}
@@ -447,6 +454,7 @@ export default function EditBusinessTripPage() {
             tripType={tripType}
             destinationCountry={destinationCountry}
             destinationCity={destinationCity}
+            visitPlace={visitPlace}
             purpose={purpose}
             transportType={transportType}
             companion={companion}

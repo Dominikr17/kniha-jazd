@@ -123,6 +123,7 @@ export async function generateBusinessTripPDF(data: BusinessTripPDFData): Promis
     ['Funkcia:', driverPosition || '—'],
     ['Typ cesty:', trip.trip_type === 'zahranicna' ? 'Zahraničná' : 'Tuzemská'],
     ['Cieľ cesty:', `${trip.destination_city}${trip.destination_country ? `, ${COUNTRY_NAMES[trip.destination_country] || trip.destination_country}` : ''}`],
+    ['Miesto návštevy:', trip.visit_place || '—'],
     ['Účel cesty:', trip.purpose],
     ['Dopravný prostriedok:', TRANSPORT_TYPES[trip.transport_type] || trip.transport_type],
     ['Odchod:', formatDateTime(trip.departure_date)],

@@ -50,6 +50,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
   const [customPurpose, setCustomPurpose] = useState(isPredefinedPurpose ? '' : trip.purpose)
   const [odometerStart, setOdometerStart] = useState(trip.odometer_start.toString())
   const [odometerEnd, setOdometerEnd] = useState(trip.odometer_end?.toString() || '')
+  const [visitPlace, setVisitPlace] = useState(trip.visit_place || '')
   const [roundTrip, setRoundTrip] = useState(trip.round_trip)
   const [notes, setNotes] = useState(trip.notes || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -102,6 +103,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       time_end: trip.time_end,
       route_from: trip.route_from,
       route_to: trip.route_to,
+      visit_place: trip.visit_place,
       purpose: trip.purpose,
       odometer_start: trip.odometer_start,
       odometer_end: trip.odometer_end,
@@ -116,6 +118,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       time_end: timeEnd || null,
       route_from: routeFrom.trim(),
       route_to: routeTo.trim(),
+      visit_place: visitPlace.trim(),
       purpose: finalPurpose.trim(),
       odometer_start: parseInt(odometerStart),
       odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
@@ -245,6 +248,19 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
         <Label htmlFor="roundTrip" className="font-normal cursor-pointer">
           Aj cesta späť (spiatočná jazda)
         </Label>
+      </div>
+
+      {/* Miesto návštevy */}
+      <div className="space-y-2">
+        <Label htmlFor="visitPlace">Miesto návštevy *</Label>
+        <Input
+          id="visitPlace"
+          value={visitPlace}
+          onChange={(e) => setVisitPlace(e.target.value)}
+          required
+          disabled={isSubmitting || !canEdit}
+          placeholder="Názov zákazníka, firmy alebo miesta"
+        />
       </div>
 
       {/* Účel cesty */}

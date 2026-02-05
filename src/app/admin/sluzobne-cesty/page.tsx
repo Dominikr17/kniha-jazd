@@ -143,7 +143,12 @@ export default async function AdminBusinessTripsPage({
                           {trip.trip_type === 'zahranicna' ? 'Zahraničná' : 'Tuzemská'}
                         </Badge>
                       </TableCell>
-                      <TableCell>{trip.destination_city}</TableCell>
+                      <TableCell>
+                        <div>{trip.destination_city}</div>
+                        {trip.visit_place && (
+                          <div className="text-xs text-muted-foreground">{trip.visit_place}</div>
+                        )}
+                      </TableCell>
                       <TableCell>
                         {format(new Date(trip.departure_date), 'd.M.yyyy', { locale: sk })}
                       </TableCell>
@@ -189,7 +194,7 @@ export default async function AdminBusinessTripsPage({
                     {driver ? `${driver.last_name} ${driver.first_name}` : '—'}
                   </div>
                   <div className="text-sm text-muted-foreground mt-1">
-                    {trip.destination_city} · {format(new Date(trip.departure_date), 'd.M.yyyy', { locale: sk })}
+                    {trip.destination_city}{trip.visit_place ? ` (${trip.visit_place})` : ''} · {format(new Date(trip.departure_date), 'd.M.yyyy', { locale: sk })}
                   </div>
                   <div className="flex items-center justify-between mt-2">
                     <Badge variant="outline">

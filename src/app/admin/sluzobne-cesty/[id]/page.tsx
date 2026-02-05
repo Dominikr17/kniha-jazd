@@ -105,6 +105,13 @@ export default async function AdminBusinessTripDetailPage({
           <span className="text-muted-foreground">Cieľ:</span>
           <span>{trip.destination_city}</span>
 
+          {trip.visit_place && (
+            <>
+              <span className="text-muted-foreground">Miesto návštevy:</span>
+              <span>{trip.visit_place}</span>
+            </>
+          )}
+
           <span className="text-muted-foreground">Účel:</span>
           <span>{trip.purpose}</span>
 

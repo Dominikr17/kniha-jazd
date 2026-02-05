@@ -63,6 +63,7 @@ export default function NewBusinessTripPage() {
 
   // Krok 2: Doplnenie údajov (auto-fill z jázd + ručné doplnenie)
   const [destinationCity, setDestinationCity] = useState('')
+  const [visitPlace, setVisitPlace] = useState('')
   const [purpose, setPurpose] = useState('')
   const [transportType, setTransportType] = useState<TransportType>('AUS_sluzobne')
   const [companion, setCompanion] = useState('')
@@ -107,12 +108,14 @@ export default function NewBusinessTripPage() {
     departureDate: string
     returnDate: string
     destinationCity: string
+    visitPlace: string
     purpose: string
     transportType: string
   }) => {
     setDepartureDate(data.departureDate)
     setReturnDate(data.returnDate)
     setDestinationCity(data.destinationCity)
+    setVisitPlace(data.visitPlace)
     setPurpose(data.purpose)
     if (data.transportType) {
       setTransportType(data.transportType as TransportType)
@@ -187,6 +190,7 @@ export default function NewBusinessTripPage() {
         trip_type: tripType,
         destination_country: tripType === 'zahranicna' ? destinationCountry : null,
         destination_city: destinationCity,
+        visit_place: visitPlace || null,
         purpose,
         transport_type: transportType,
         companion: companion || null,
@@ -312,6 +316,8 @@ export default function NewBusinessTripPage() {
           <StepDetails
             destinationCity={destinationCity}
             setDestinationCity={setDestinationCity}
+            visitPlace={visitPlace}
+            setVisitPlace={setVisitPlace}
             purpose={purpose}
             setPurpose={setPurpose}
             transportType={transportType}
@@ -352,6 +358,7 @@ export default function NewBusinessTripPage() {
             tripType={tripType}
             destinationCountry={destinationCountry}
             destinationCity={destinationCity}
+            visitPlace={visitPlace}
             purpose={purpose}
             transportType={transportType}
             companion={companion}

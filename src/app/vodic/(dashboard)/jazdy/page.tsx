@@ -123,7 +123,10 @@ export default async function DriverTripsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {trip.route_from} → {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}
+                          <div>{trip.route_from} → {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}</div>
+                          {trip.visit_place && (
+                            <div className="text-xs text-muted-foreground">{trip.visit_place}</div>
+                          )}
                         </TableCell>
                         <TableCell>{trip.purpose}</TableCell>
                         <TableCell>
@@ -161,6 +164,9 @@ export default async function DriverTripsPage() {
                         <div className="font-medium">
                           {trip.route_from} → {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}
                         </div>
+                        {trip.visit_place && (
+                          <div className="text-sm text-muted-foreground">{trip.visit_place}</div>
+                        )}
                         <div className="text-sm text-muted-foreground">
                           {format(parseISO(trip.date), 'd.M.yyyy', { locale: sk })}
                           {' '}

@@ -40,6 +40,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
   const [customPurpose, setCustomPurpose] = useState('')
   const [odometerStart, setOdometerStart] = useState('')
   const [odometerEnd, setOdometerEnd] = useState('')
+  const [visitPlace, setVisitPlace] = useState('')
   const [roundTrip, setRoundTrip] = useState(false)
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -129,6 +130,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
       time_end: timeEnd || null,
       route_from: routeFrom.trim(),
       route_to: routeTo.trim(),
+      visit_place: visitPlace.trim(),
       purpose: finalPurpose.trim(),
       odometer_start: parseInt(odometerStart),
       odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
@@ -291,6 +293,19 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
         <Label htmlFor="roundTrip" className="font-normal cursor-pointer">
           Aj cesta späť (spiatočná jazda)
         </Label>
+      </div>
+
+      {/* Miesto návštevy */}
+      <div className="space-y-2">
+        <Label htmlFor="visitPlace">Miesto návštevy *</Label>
+        <Input
+          id="visitPlace"
+          value={visitPlace}
+          onChange={(e) => setVisitPlace(e.target.value)}
+          required
+          disabled={isSubmitting}
+          placeholder="Názov zákazníka, firmy alebo miesta"
+        />
       </div>
 
       {/* Účel cesty */}

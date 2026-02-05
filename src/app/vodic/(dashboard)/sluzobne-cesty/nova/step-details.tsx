@@ -26,6 +26,8 @@ interface BorderCrossingInput {
 interface StepDetailsProps {
   destinationCity: string
   setDestinationCity: (v: string) => void
+  visitPlace: string
+  setVisitPlace: (v: string) => void
   purpose: string
   setPurpose: (v: string) => void
   transportType: TransportType
@@ -52,6 +54,7 @@ const NEIGHBOR_COUNTRIES = Object.keys(BORDER_CROSSINGS_SK)
 
 export default function StepDetails({
   destinationCity, setDestinationCity,
+  visitPlace, setVisitPlace,
   purpose, setPurpose,
   transportType, setTransportType,
   companion, setCompanion,
@@ -108,6 +111,16 @@ export default function StepDetails({
           value={destinationCity}
           onChange={(e) => setDestinationCity(e.target.value)}
           placeholder="napr. Bratislava, Viedeň"
+        />
+      </div>
+
+      <div>
+        <Label htmlFor="visitPlace">Miesto návštevy</Label>
+        <Input
+          id="visitPlace"
+          value={visitPlace}
+          onChange={(e) => setVisitPlace(e.target.value)}
+          placeholder="Názov zákazníka, firmy alebo miesta"
         />
       </div>
 
