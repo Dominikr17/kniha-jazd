@@ -53,6 +53,7 @@ src/
 │   │   ├── app-sidebar.tsx    # Admin sidebar
 │   │   └── driver-sidebar.tsx # Vodičovský sidebar
 │   ├── delete-button.tsx      # Generický DeleteButton pre mazanie záznamov
+│   ├── trip-form-fields.tsx   # Zdieľané polia formulárov jázd
 │   ├── route-combobox.tsx     # Autocomplete pre trasy (Odkiaľ/Kam)
 │   ├── receipt-scanner.tsx    # OCR skenovanie pokladničných blokov
 │   ├── pwa-register.tsx       # Registrácia Service Workera
@@ -92,6 +93,7 @@ src/
 - `src/lib/report-utils.ts` - Helper pre dátumové rozsahy a validáciu URL parametrov
 - `src/lib/report-calculations.ts` - Kalkulačné funkcie pre reporty (spotreba, náklady, agregácie)
 - `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles, fuel_inventory)
+- `src/components/trip-form-fields.tsx` - Zdieľané formulárové polia pre všetky 4 formuláre jázd (vozidlo, vodič, dátum, trasa, tachometer, účel, poznámky)
 - `src/components/route-combobox.tsx` - Autocomplete pre trasy (SK mestá + zahraničné s alt názvami)
 - `src/lib/cities.ts` - Zoznam miest: SK (~120) + CZ/PL/HU/AT/DE (~100), slovenské názvy s originálnymi aliasmi
 - `src/components/layout/driver-sidebar.tsx` - Vodičovský bočný panel
@@ -280,9 +282,11 @@ Stránka `/vodic/statistiky` zobrazuje vodičovi prehľad vlastných jázd a spo
 6. Client komponenty ('use client') pre interaktívne časti
 7. Toast notifikácie cez `sonner` (`toast.success()`, `toast.error()`)
 8. Pre mazanie záznamov používaj generický `<DeleteButton>` z `@/components/delete-button`
-9. Utility funkcie pridávaj do `src/lib/utils.ts`
-10. V `.map()` callbackoch používaj výstižné názvy premenných (vehicle, driver, trip - nie v, d, t)
-11. Pri redirecte z POST API route používaj **303 status** (`NextResponse.redirect(url, 303)`), aby sa zmenila metóda na GET
+9. Pre formuláre jázd používaj zdieľaný `<TripFormFields>` z `@/components/trip-form-fields` — každý formulár si ponecháva vlastný state a submit logiku
+10. Utility funkcie pridávaj do `src/lib/utils.ts`
+11. V `.map()` callbackoch používaj výstižné názvy premenných (vehicle, driver, trip - nie v, d, t)
+12. Pri redirecte z POST API route používaj **303 status** (`NextResponse.redirect(url, 303)`), aby sa zmenila metóda na GET
+13. **NIKDY nepoužívať `toISOString().split('T')[0]`** na lokálne dátumy — v CET (UTC+1) to posunie dátum o deň dozadu. Použiť `getFullYear()/getMonth()/getDate()` s `padStart(2, '0')`
 
 ## Automatický výpočet stavu nádrže
 Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
