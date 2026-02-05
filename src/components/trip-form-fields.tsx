@@ -198,6 +198,32 @@ export function TripFormFields({
         </div>
       )}
 
+      {/* Účel cesty */}
+      <div className="space-y-2">
+        <Label htmlFor="purpose">Účel cesty *</Label>
+        <Select value={purpose} onValueChange={onPurposeChange} disabled={disabled}>
+          <SelectTrigger id="purpose">
+            <SelectValue placeholder="Vyberte účel cesty" />
+          </SelectTrigger>
+          <SelectContent>
+            {TRIP_PURPOSES.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {purpose === 'Iné' && (
+          <Input
+            className="mt-2"
+            placeholder="Zadajte vlastný účel cesty"
+            value={customPurpose}
+            onChange={(e) => onCustomPurposeChange(e.target.value)}
+            disabled={disabled}
+          />
+        )}
+      </div>
+
       {/* Dátum a čas */}
       <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
@@ -290,32 +316,6 @@ export function TripFormFields({
           />
         </div>
       )}
-
-      {/* Účel cesty */}
-      <div className="space-y-2">
-        <Label htmlFor="purpose">Účel cesty *</Label>
-        <Select value={purpose} onValueChange={onPurposeChange} disabled={disabled}>
-          <SelectTrigger id="purpose">
-            <SelectValue placeholder="Vyberte účel cesty" />
-          </SelectTrigger>
-          <SelectContent>
-            {TRIP_PURPOSES.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {purpose === 'Iné' && (
-          <Input
-            className="mt-2"
-            placeholder="Zadajte vlastný účel cesty"
-            value={customPurpose}
-            onChange={(e) => onCustomPurposeChange(e.target.value)}
-            disabled={disabled}
-          />
-        )}
-      </div>
 
       {/* Tachometer */}
       <div className="space-y-4">
