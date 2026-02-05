@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import DriverAutocomplete from '@/components/driver-autocomplete'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue
 } from '@/components/ui/select'
@@ -153,12 +154,10 @@ export default function StepDetails({
       </div>
 
       <div>
-        <Label htmlFor="companion">Spolucestujúci</Label>
-        <Input
-          id="companion"
+        <Label>Spolucestujúci</Label>
+        <DriverAutocomplete
           value={companion}
-          onChange={(e) => setCompanion(e.target.value)}
-          placeholder="Mená spolucestujúcich"
+          onChange={setCompanion}
         />
       </div>
 
@@ -197,10 +196,10 @@ export default function StepDetails({
           </div>
 
           {borderCrossings.length === 0 && (
-            <Alert>
+            <Alert variant="destructive">
               <Info className="h-4 w-4" />
               <AlertDescription>
-                Pre zahraničnú cestu je potrebné zadať aspoň prechody pri výjazde a príjazde.
+                Pre zahraničnú cestu je povinné zadať aspoň jeden prechod hraníc.
               </AlertDescription>
             </Alert>
           )}

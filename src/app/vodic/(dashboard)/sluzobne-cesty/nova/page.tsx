@@ -172,6 +172,12 @@ export default function NewBusinessTripPage() {
       return
     }
 
+    if (tripType === 'zahranicna' && borderCrossings.length === 0) {
+      toast.error('Pre zahraničnú cestu zadajte aspoň jeden prechod hraníc')
+      setCurrentStep(1)
+      return
+    }
+
     const setter = submit ? setIsSubmitting : setIsSaving
     setter(true)
 
@@ -240,7 +246,9 @@ export default function NewBusinessTripPage() {
       case 0:
         return selectedTripIds.length > 0
       case 1:
-        return !!destinationCity && !!purpose && !!departureDate && !!returnDate
+        if (!destinationCity || !purpose || !departureDate || !returnDate) return false
+        if (tripType === 'zahranicna' && borderCrossings.length === 0) return false
+        return true
       case 2:
         return true
       case 3:
