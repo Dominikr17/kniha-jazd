@@ -19,6 +19,7 @@ import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Trip, TRIP_PURPOSES } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+import RouteCombobox from '@/components/route-combobox'
 
 interface EditTripFormProps {
   trip: Trip
@@ -194,20 +195,20 @@ export function EditTripForm({ trip, vehicles, drivers }: EditTripFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="routeFrom">Odkiaľ *</Label>
-          <Input
+          <RouteCombobox
             id="routeFrom"
             value={routeFrom}
-            onChange={(e) => setRouteFrom(e.target.value)}
+            onChange={setRouteFrom}
             required
             disabled={isSubmitting}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="routeTo">Kam *</Label>
-          <Input
+          <RouteCombobox
             id="routeTo"
             value={routeTo}
-            onChange={(e) => setRouteTo(e.target.value)}
+            onChange={setRouteTo}
             required
             disabled={isSubmitting}
           />

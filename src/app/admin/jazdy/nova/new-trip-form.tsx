@@ -21,6 +21,7 @@ import { Loader2, Save, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { TRIP_PURPOSES, TRIP_TYPES, TripType } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+import RouteCombobox from '@/components/route-combobox'
 
 interface NewTripFormProps {
   vehicles: { id: string; name: string; license_plate: string }[]
@@ -260,10 +261,10 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="routeFrom">Odkiaľ *</Label>
-          <Input
+          <RouteCombobox
             id="routeFrom"
             value={routeFrom}
-            onChange={(e) => setRouteFrom(e.target.value)}
+            onChange={setRouteFrom}
             required
             disabled={isSubmitting}
             placeholder="Miesto odchodu"
@@ -271,10 +272,10 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="routeTo">Kam *</Label>
-          <Input
+          <RouteCombobox
             id="routeTo"
             value={routeTo}
-            onChange={(e) => setRouteTo(e.target.value)}
+            onChange={setRouteTo}
             required
             disabled={isSubmitting}
             placeholder="Cieľové miesto"

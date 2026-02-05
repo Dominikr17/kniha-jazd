@@ -20,6 +20,7 @@ import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Trip, TRIP_PURPOSES, DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+import RouteCombobox from '@/components/route-combobox'
 
 // Backend validácia časového limitu
 function isWithinEditTimeLimit(createdAt: string): boolean {
@@ -217,20 +218,20 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="routeFrom">Odkiaľ *</Label>
-          <Input
+          <RouteCombobox
             id="routeFrom"
             value={routeFrom}
-            onChange={(e) => setRouteFrom(e.target.value)}
+            onChange={setRouteFrom}
             required
             disabled={isSubmitting || !canEdit}
           />
         </div>
         <div className="space-y-2">
           <Label htmlFor="routeTo">Kam *</Label>
-          <Input
+          <RouteCombobox
             id="routeTo"
             value={routeTo}
-            onChange={(e) => setRouteTo(e.target.value)}
+            onChange={setRouteTo}
             required
             disabled={isSubmitting || !canEdit}
           />
