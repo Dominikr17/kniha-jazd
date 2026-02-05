@@ -222,7 +222,7 @@ export default function StepTripsAndType({
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-sm">
-                    {trip.route_from} &rarr; {trip.route_to}
+                    {trip.route_from} &rarr; {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}
                   </span>
                   <span className="text-sm text-muted-foreground">
                     {trip.distance || 0} km
