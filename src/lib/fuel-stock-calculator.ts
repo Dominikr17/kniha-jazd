@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { FuelStockCalculation, FuelInventory, Vehicle } from '@/types'
+import { getLocalDateString } from '@/lib/utils'
 
 // Koeficient navýšenia normovanej spotreby (1.2 = 20% rezerva)
 const CONSUMPTION_COEFFICIENT = 1.2
@@ -160,7 +161,7 @@ export async function calculateMonthlyFuelStocks(params: CalculateMonthlyParams)
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
   const lastDayOfMonth = new Date(year, month, 0).getDate()
   const endDate = `${year}-${String(month).padStart(2, '0')}-${String(lastDayOfMonth).padStart(2, '0')}`
-  const dayBeforeStart = new Date(year, month - 1, 0).toISOString().split('T')[0]
+  const dayBeforeStart = getLocalDateString(new Date(year, month - 1, 0))
 
   // Nájsť posledný referenčný bod pred alebo na začiatku mesiaca
   const { data: initialReference } = await supabase

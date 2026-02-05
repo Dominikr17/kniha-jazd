@@ -5,30 +5,20 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { ArrowLeft, Loader2, Save, Info } from 'lucide-react'
+import { ArrowLeft, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { FUEL_TYPES, FUEL_COUNTRIES, PAYMENT_METHODS, FUEL_CURRENCIES, COUNTRY_CURRENCY_MAP, Vehicle, Driver, FuelCountry, PaymentMethod, FuelCurrency } from '@/types'
+import { FUEL_COUNTRIES, COUNTRY_CURRENCY_MAP, FUEL_CURRENCIES, Vehicle, Driver, FuelCountry, PaymentMethod, FuelCurrency } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+import { getLocalDateString } from '@/lib/utils'
+import { FuelFormFields } from '@/components/fuel-form-fields'
 
 export default function NewFuelPage() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [vehicleId, setVehicleId] = useState('')
   const [driverId, setDriverId] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(getLocalDateString())
   const [odometer, setOdometer] = useState('')
   const [liters, setLiters] = useState('')
   const [pricePerLiter, setPricePerLiter] = useState('')
@@ -42,9 +32,9 @@ export default function NewFuelPage() {
   const [isLoading, setIsLoading] = useState(true)
   // Podpora cudzej meny
   const [currency, setCurrency] = useState<FuelCurrency>('EUR')
-  const [confirmEurNow, setConfirmEurNow] = useState(false) // Admin môže potvrdiť EUR hneď
-  const [eurTotalPrice, setEurTotalPrice] = useState('') // EUR suma ak admin potvrdzuje hneď
-  const [exchangeRate, setExchangeRate] = useState('') // Kurz ak admin potvrdzuje hneď
+  const [confirmEurNow, setConfirmEurNow] = useState(false)
+  const [eurTotalPrice, setEurTotalPrice] = useState('')
+  const [exchangeRate, setExchangeRate] = useState('')
   const router = useRouter()
   const supabase = createClient()
 
@@ -218,305 +208,52 @@ export default function NewFuelPage() {
           <CardTitle>Údaje o tankovaní</CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="vehicle">Vozidlo *</Label>
-                <Select value={vehicleId} onValueChange={handleVehicleChange} disabled={isSubmitting}>
-                  <SelectTrigger id="vehicle">
-                    <SelectValue placeholder="Vyberte vozidlo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vehicles.map((vehicle) => (
-                      <SelectItem key={vehicle.id} value={vehicle.id}>
-                        {vehicle.name} ({vehicle.license_plate})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="driver">Vodič</Label>
-                <Select value={driverId} onValueChange={setDriverId} disabled={isSubmitting}>
-                  <SelectTrigger id="driver">
-                    <SelectValue placeholder="Vyberte vodiča (voliteľné)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {drivers.map((driver) => (
-                      <SelectItem key={driver.id} value={driver.id}>
-                        {driver.first_name} {driver.last_name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="space-y-2">
-                <Label htmlFor="date">Dátum *</Label>
-                <Input
-                  id="date"
-                  type="date"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="country">Krajina tankovania *</Label>
-                <Select value={country} onValueChange={(v) => handleCountryChange(v as FuelCountry)} disabled={isSubmitting}>
-                  <SelectTrigger id="country">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(FUEL_COUNTRIES).map(([code, data]) => (
-                      <SelectItem key={code} value={code}>
-                        {data.flag} {data.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {country === 'other' ? (
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Mena *</Label>
-                  <Select value={currency} onValueChange={(v) => setCurrency(v as FuelCurrency)} disabled={isSubmitting}>
-                    <SelectTrigger id="currency">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(FUEL_CURRENCIES).map(([code, data]) => (
-                        <SelectItem key={code} value={code}>
-                          {data.symbol} {data.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  <Label htmlFor="odometer">Stav tachometra (km)</Label>
-                  <Input
-                    id="odometer"
-                    type="number"
-                    value={odometer}
-                    onChange={(e) => setOdometer(e.target.value)}
-                    disabled={isSubmitting}
-                    min={0}
-                    placeholder="voliteľné"
-                  />
-                </div>
-              )}
-            </div>
-
-            {country === 'other' && (
-              <div className="space-y-2 max-w-[200px]">
-                <Label htmlFor="odometer">Stav tachometra (km)</Label>
-                <Input
-                  id="odometer"
-                  type="number"
-                  value={odometer}
-                  onChange={(e) => setOdometer(e.target.value)}
-                  disabled={isSubmitting}
-                  min={0}
-                  placeholder="voliteľné"
-                />
-              </div>
-            )}
-
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="space-y-2">
-                <Label htmlFor="liters">Množstvo (litre) *</Label>
-                <Input
-                  id="liters"
-                  type="number"
-                  step="0.01"
-                  value={liters}
-                  onChange={(e) => setLiters(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                  min={0}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="pricePerLiter">Cena za liter ({currencySymbol}) *</Label>
-                <Input
-                  id="pricePerLiter"
-                  type="number"
-                  step="0.001"
-                  value={pricePerLiter}
-                  onChange={(e) => setPricePerLiter(e.target.value)}
-                  required
-                  disabled={isSubmitting}
-                  min={0}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Celková suma ({currencySymbol})</Label>
-                <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                  {totalPrice ? `${totalPrice} ${currencySymbol}` : '-'}
-                </div>
-              </div>
-              {(!isForeignCurrency || confirmEurNow) && (
-                <div className="space-y-2">
-                  <Label>Bez DPH (EUR)</Label>
-                  <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                    {priceWithoutVat ? `${priceWithoutVat} EUR` : '-'}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {isForeignCurrency && (
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>Tankovanie v cudzej mene ({currency})</AlertTitle>
-                <AlertDescription>
-                  Môžete zadať EUR sumu hneď (ak máte bankový výpis), alebo nechať na doplnenie neskôr.
-                </AlertDescription>
-              </Alert>
-            )}
-
-            {isForeignCurrency && (
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="confirmEurNow"
-                    checked={confirmEurNow}
-                    onCheckedChange={(checked) => setConfirmEurNow(checked === true)}
-                    disabled={isSubmitting}
-                  />
-                  <Label htmlFor="confirmEurNow" className="text-sm font-medium cursor-pointer">
-                    Zadať EUR sumu teraz
-                  </Label>
-                </div>
-
-                {confirmEurNow && (
-                  <div className="grid gap-4 sm:grid-cols-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="eurTotalPrice">Celková suma v EUR *</Label>
-                      <Input
-                        id="eurTotalPrice"
-                        type="number"
-                        step="0.01"
-                        value={eurTotalPrice}
-                        onChange={(e) => setEurTotalPrice(e.target.value)}
-                        required={confirmEurNow}
-                        disabled={isSubmitting}
-                        min={0}
-                        placeholder="napr. 85.50"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="exchangeRate">Kurz ({currency}/EUR)</Label>
-                      <Input
-                        id="exchangeRate"
-                        type="number"
-                        step="0.0001"
-                        value={exchangeRate}
-                        onChange={(e) => setExchangeRate(e.target.value)}
-                        disabled={isSubmitting}
-                        min={0}
-                        placeholder="napr. 25.45"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Cena za liter (EUR)</Label>
-                      <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-                        {eurPricePerLiter ? `${eurPricePerLiter} EUR` : '-'}
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="fullTank"
-                checked={fullTank}
-                onCheckedChange={(checked) => setFullTank(checked === true)}
-                disabled={isSubmitting}
-              />
-              <Label htmlFor="fullTank" className="text-sm font-normal cursor-pointer">
-                Plná nádrž (tankovanie do plna)
-              </Label>
-            </div>
-
-            <div className="grid gap-4 grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="fuelType">Typ paliva *</Label>
-                <Select value={fuelType} onValueChange={setFuelType} disabled={isSubmitting}>
-                  <SelectTrigger id="fuelType">
-                    <SelectValue placeholder="Vyberte typ paliva" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(FUEL_TYPES).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="gasStation">Čerpacia stanica</Label>
-                <Input
-                  id="gasStation"
-                  value={gasStation}
-                  onChange={(e) => setGasStation(e.target.value)}
-                  disabled={isSubmitting}
-                  placeholder="Shell, OMV..."
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="paymentMethod">Spôsob platby *</Label>
-                <Select value={paymentMethod} onValueChange={(v) => setPaymentMethod(v as PaymentMethod)} disabled={isSubmitting}>
-                  <SelectTrigger id="paymentMethod">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Poznámky</Label>
-              <Textarea
-                id="notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                disabled={isSubmitting}
-                rows={2}
-              />
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Ukladám...
-                  </>
-                ) : (
-                  <>
-                    <Save className="mr-2 h-4 w-4" />
-                    Uložiť
-                  </>
-                )}
-              </Button>
-              <Button type="button" variant="outline" asChild disabled={isSubmitting}>
-                <Link href="/admin/phm">Zrušiť</Link>
-              </Button>
-            </div>
+          <form onSubmit={handleSubmit}>
+            <FuelFormFields
+              vehicles={vehicles}
+              vehicleId={vehicleId}
+              onVehicleChange={handleVehicleChange}
+              drivers={drivers}
+              driverId={driverId}
+              onDriverChange={setDriverId}
+              date={date}
+              onDateChange={setDate}
+              country={country}
+              onCountryChange={handleCountryChange}
+              currency={currency}
+              onCurrencyChange={setCurrency}
+              gasStation={gasStation}
+              onGasStationChange={setGasStation}
+              liters={liters}
+              onLitersChange={setLiters}
+              pricePerLiter={pricePerLiter}
+              onPricePerLiterChange={setPricePerLiter}
+              totalPrice={totalPrice}
+              priceWithoutVat={priceWithoutVat}
+              isForeignCurrency={isForeignCurrency}
+              currencySymbol={currencySymbol}
+              fullTank={fullTank}
+              onFullTankChange={setFullTank}
+              odometer={odometer}
+              onOdometerChange={setOdometer}
+              fuelType={fuelType}
+              onFuelTypeChange={setFuelType}
+              paymentMethod={paymentMethod}
+              onPaymentMethodChange={setPaymentMethod}
+              notes={notes}
+              onNotesChange={setNotes}
+              showEurConfirmation={true}
+              confirmEurNow={confirmEurNow}
+              onConfirmEurNowChange={setConfirmEurNow}
+              eurTotalPrice={eurTotalPrice}
+              onEurTotalPriceChange={setEurTotalPrice}
+              exchangeRate={exchangeRate}
+              onExchangeRateChange={setExchangeRate}
+              eurPricePerLiter={eurPricePerLiter}
+              disabled={isSubmitting}
+              isSubmitting={isSubmitting}
+              cancelHref="/admin/phm"
+            />
           </form>
         </CardContent>
       </Card>

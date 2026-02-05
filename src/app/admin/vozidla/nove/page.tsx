@@ -19,6 +19,7 @@ import { ArrowLeft, Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { FUEL_TYPES, TIRE_TYPES, TireType, Driver } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
+import { getLocalDateString } from '@/lib/utils'
 
 export default function NewVehiclePage() {
   const [drivers, setDrivers] = useState<Driver[]>([])
@@ -99,7 +100,7 @@ export default function NewVehiclePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vehicleId: data.id,
-          date: new Date().toISOString().split('T')[0],
+          date: getLocalDateString(),
           fuelAmount: parseFloat(initialFuelStock),
           notes: 'Počiatočný stav pri zavedení vozidla'
         })

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client'
+import { SupabaseClient } from '@supabase/supabase-js'
 
 interface AuditLogParams {
   tableName: string
@@ -12,9 +13,18 @@ interface AuditLogParams {
   description?: string
 }
 
+/**
+ * Logovanie do audit_logs (client-side)
+ */
 export async function logAudit(params: AuditLogParams) {
   const supabase = createClient()
+  await logAuditWithClient(supabase, params)
+}
 
+/**
+ * Logovanie do audit_logs s poskytnutým Supabase klientom (server-side)
+ */
+export async function logAuditWithClient(supabase: SupabaseClient, params: AuditLogParams) {
   const opText = { INSERT: 'vytvoril', UPDATE: 'upravil', DELETE: 'zmazal' }
   const description = params.description ||
     `${params.userName || 'Používateľ'} ${opText[params.operation]} záznam`

@@ -7,13 +7,7 @@ import { toast } from 'sonner'
 import { Trip, TRIP_PURPOSES, DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
 import { TripFormFields } from '@/components/trip-form-fields'
-
-function isWithinEditTimeLimit(createdAt: string): boolean {
-  const created = new Date(createdAt)
-  const now = new Date()
-  const diffMinutes = (now.getTime() - created.getTime()) / (1000 * 60)
-  return diffMinutes <= DRIVER_EDIT_TIME_LIMIT_MINUTES
-}
+import { isWithinEditTimeLimit } from '@/lib/utils'
 
 interface DriverEditTripFormProps {
   trip: Trip

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { MonthlyReport, MonthlyReportData, ReportStatus } from '@/types'
 import { calculateMonthlyFuelStocks } from '@/lib/fuel-stock-calculator'
+import { getLocalDateString } from '@/lib/utils'
 
 interface CalculateParams {
   vehicleId: string
@@ -26,7 +27,7 @@ export async function calculateMonthlyReportData(params: CalculateParams): Promi
 
   // Dátumy pre filtrovanie
   const startDate = `${year}-${String(month).padStart(2, '0')}-01`
-  const endDate = new Date(year, month, 0).toISOString().split('T')[0] // Posledný deň mesiaca
+  const endDate = getLocalDateString(new Date(year, month, 0)) // Posledný deň mesiaca
 
   // Načítanie jázd za mesiac
   const { data: trips } = await supabase

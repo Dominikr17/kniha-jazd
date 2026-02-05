@@ -8,6 +8,7 @@ import { differenceInDays, parseISO, format, startOfWeek, startOfMonth, startOfY
 import { sk } from 'date-fns/locale'
 import { VIGNETTE_COUNTRIES } from '@/types'
 import { PeriodFilter } from './period-filter'
+import { getLocalDateString } from '@/lib/utils'
 
 interface Alert {
   type: 'stk' | 'ek' | 'vignette'
@@ -55,7 +56,7 @@ function getStartDate(period: Period): string {
       start = startOfMonth(now)
   }
 
-  return start.toISOString().split('T')[0]
+  return getLocalDateString(start)
 }
 
 interface PageProps {

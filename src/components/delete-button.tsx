@@ -17,17 +17,10 @@ import { Trash2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { logAudit } from '@/lib/audit-logger'
 import { DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
+import { isWithinEditTimeLimit } from '@/lib/utils'
 
 type TableName = 'trips' | 'fuel_records' | 'drivers' | 'vehicles' | 'fuel_inventory' | 'monthly_reports' | 'business_trips'
 type UserType = 'admin' | 'driver'
-
-// Validácia časového limitu pre vodičov
-function isWithinEditTimeLimit(createdAt: string): boolean {
-  const created = new Date(createdAt)
-  const now = new Date()
-  const diffMinutes = (now.getTime() - created.getTime()) / (1000 * 60)
-  return diffMinutes <= DRIVER_EDIT_TIME_LIMIT_MINUTES
-}
 
 interface DeleteButtonProps {
   tableName: TableName

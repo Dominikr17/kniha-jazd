@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { logAuditWithClient } from '@/lib/audit-logger'
 
 export async function POST(
   request: NextRequest,
@@ -43,14 +44,14 @@ export async function POST(
       return NextResponse.json({ error: 'Chyba pri vrátení' }, { status: 500 })
     }
 
-    await supabase.from('audit_logs').insert({
-      table_name: 'business_trips',
-      record_id: id,
+    await logAuditWithClient(supabase, {
+      tableName: 'business_trips',
+      recordId: id,
       operation: 'UPDATE',
-      user_type: 'admin',
-      user_id: user.id,
-      user_name: user.email,
-      old_data: existing,
+      userType: 'admin',
+      userId: user.id,
+      userName: user.email,
+      oldData: existing,
       description: `Admin ${user.email} vrátil služobnú cestu ${existing.trip_number}: ${reason || 'bez dôvodu'}`,
     })
 
