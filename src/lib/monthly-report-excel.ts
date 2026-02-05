@@ -1,24 +1,30 @@
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import { MonthlyReportData, MONTHS_SK, REPORT_STATUS } from '@/types'
 
 export async function generateMonthlyReportExcel(data: MonthlyReportData): Promise<void> {
-  // Vytvorenie workbooku
-  const wb = XLSX.utils.book_new()
+  const wb = new ExcelJS.Workbook()
+  wb.creator = 'ZVL SLOVAKIA - Elektronicka kniha jazd'
+  wb.created = new Date()
 
-  // Dáta pre sheet
-  const sheetData = [
-    // Hlavička
+  const ws = wb.addWorksheet('Vykaz PHM')
+
+  // Nastavenie šírky stĺpcov
+  ws.columns = [
+    { width: 35 },
+    { width: 25 },
+    { width: 20 },
+  ]
+
+  const rows: (string | number)[][] = [
     ['MESACNY VYKAZ SPOTREBY PHM'],
     [`${MONTHS_SK[data.month - 1]} ${data.year}`],
     [],
 
-    // Informácie o vozidle
     ['Vozidlo', `${data.vehicleName} (${data.licensePlate})`],
     ['Zodpovedny vodic', data.responsibleDriverName || 'Nepriradeny'],
     ['Stav vykazu', REPORT_STATUS[data.status]],
     [],
 
-    // Zásoby a nákup PHM
     ['ZASOBY A NAKUP PHM'],
     ['Polozka', 'Litrov', 'Naklady (EUR)'],
     ['Pociatocna zasoba PHM', data.initialFuelStock.toFixed(2), ''],
@@ -28,7 +34,6 @@ export async function generateMonthlyReportExcel(data: MonthlyReportData): Promi
     ['Konecna zasoba PHM', data.finalFuelStock.toFixed(2), ''],
     [],
 
-    // Tachometer a kilometre
     ['TACHOMETER A KILOMETRE'],
     ['Polozka', 'Hodnota'],
     ['Pociatocny stav tachometra', `${data.initialOdometer.toLocaleString('sk-SK')} km`],
@@ -38,7 +43,6 @@ export async function generateMonthlyReportExcel(data: MonthlyReportData): Promi
     ['Kilometre spolu', `${data.kmTotal.toLocaleString('sk-SK')} km`],
     [],
 
-    // Spotreba
     ['SPOTREBA'],
     ['Polozka', 'Hodnota'],
     ['Celkova spotreba', `${data.fuelConsumption.toFixed(2)} l`],
@@ -46,37 +50,31 @@ export async function generateMonthlyReportExcel(data: MonthlyReportData): Promi
     ['Normovana spotreba', data.ratedConsumption ? `${data.ratedConsumption.toFixed(2)} l/100km` : 'N/A'],
     [],
 
-    // Podpisy
     ['PODPISY'],
     ['Predkladatel (zodp. vodic)', data.responsibleDriverName || 'Nepriradeny'],
     ['Schvalovatel', data.approvedBy || ''],
     ['Datum schvalenia', data.approvedAt ? new Date(data.approvedAt).toLocaleDateString('sk-SK') : ''],
     [],
 
-    // Poznámky
     ['POZNAMKY'],
     [data.notes || ''],
     [],
 
-    // Pätička
     ['Vytvorene', new Date().toLocaleDateString('sk-SK')],
-    ['System', 'ZVL SLOVAKIA - Elektronicka kniha jazd']
+    ['System', 'ZVL SLOVAKIA - Elektronicka kniha jazd'],
   ]
 
-  // Vytvorenie sheetu
-  const ws = XLSX.utils.aoa_to_sheet(sheetData)
+  ws.addRows(rows)
 
-  // Nastavenie šírky stĺpcov
-  ws['!cols'] = [
-    { wch: 35 },
-    { wch: 25 },
-    { wch: 20 }
-  ]
-
-  // Pridanie sheetu do workbooku
-  XLSX.utils.book_append_sheet(wb, ws, 'Vykaz PHM')
-
-  // Stiahnutie
+  // Stiahnutie cez buffer → Blob
+  const buffer = await wb.xlsx.writeBuffer()
+  const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+  const url = URL.createObjectURL(blob)
   const filename = `vykaz-phm-${data.licensePlate.replace(/\s/g, '-')}-${data.year}-${String(data.month).padStart(2, '0')}.xlsx`
-  XLSX.writeFile(wb, filename)
+
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  a.click()
+  URL.revokeObjectURL(url)
 }

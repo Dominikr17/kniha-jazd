@@ -15,7 +15,7 @@ import { format, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import * as XLSX from 'xlsx'
+import ExcelJS from 'exceljs'
 import { ROBOTO_REGULAR_BASE64 } from '@/lib/fonts/roboto-regular'
 import { ROBOTO_BOLD_BASE64 } from '@/lib/fonts/roboto-bold'
 
@@ -165,29 +165,58 @@ export function ExportButtons({ trips }: ExportButtonsProps) {
     setIsExporting(true)
 
     try {
-      const data = trips.map((trip) => ({
-        'Číslo': trip.trip_number,
-        'Dátum': format(parseISO(trip.date), 'd.M.yyyy', { locale: sk }),
-        'Čas od': trip.time_start.slice(0, 5),
-        'Čas do': trip.time_end?.slice(0, 5) || '',
-        'Vozidlo': trip.vehicle?.name || '',
-        'EČV': trip.vehicle?.license_plate || '',
-        'Vodič': `${trip.driver?.first_name || ''} ${trip.driver?.last_name || ''}`.trim(),
-        'Odkiaľ': trip.route_from,
-        'Kam': trip.route_to,
-        'Miesto návštevy': trip.visit_place || '',
-        'Účel cesty': trip.purpose,
-        'Tachometer začiatok': trip.odometer_start,
-        'Tachometer koniec': trip.odometer_end || '',
-        'Najazdené km': trip.distance || '',
-        'Poznámky': trip.notes || '',
-      }))
+      const wb = new ExcelJS.Workbook()
+      const ws = wb.addWorksheet('Kniha jazd')
 
-      const ws = XLSX.utils.json_to_sheet(data)
-      const wb = XLSX.utils.book_new()
-      XLSX.utils.book_append_sheet(wb, ws, 'Kniha jazd')
+      ws.columns = [
+        { header: 'Číslo', key: 'number', width: 10 },
+        { header: 'Dátum', key: 'date', width: 12 },
+        { header: 'Čas od', key: 'timeStart', width: 8 },
+        { header: 'Čas do', key: 'timeEnd', width: 8 },
+        { header: 'Vozidlo', key: 'vehicle', width: 18 },
+        { header: 'EČV', key: 'plate', width: 12 },
+        { header: 'Vodič', key: 'driver', width: 22 },
+        { header: 'Odkiaľ', key: 'from', width: 18 },
+        { header: 'Kam', key: 'to', width: 18 },
+        { header: 'Miesto návštevy', key: 'visit', width: 20 },
+        { header: 'Účel cesty', key: 'purpose', width: 22 },
+        { header: 'Tach. začiatok', key: 'odoStart', width: 14 },
+        { header: 'Tach. koniec', key: 'odoEnd', width: 14 },
+        { header: 'Najazdené km', key: 'distance', width: 12 },
+        { header: 'Poznámky', key: 'notes', width: 20 },
+      ]
 
-      XLSX.writeFile(wb, `kniha-jazd-${format(new Date(), 'yyyy-MM-dd')}.xlsx`)
+      // Tučná hlavička
+      ws.getRow(1).font = { bold: true }
+
+      trips.forEach((trip) => {
+        ws.addRow({
+          number: trip.trip_number,
+          date: format(parseISO(trip.date), 'd.M.yyyy', { locale: sk }),
+          timeStart: trip.time_start.slice(0, 5),
+          timeEnd: trip.time_end?.slice(0, 5) || '',
+          vehicle: trip.vehicle?.name || '',
+          plate: trip.vehicle?.license_plate || '',
+          driver: `${trip.driver?.first_name || ''} ${trip.driver?.last_name || ''}`.trim(),
+          from: trip.route_from,
+          to: trip.route_to,
+          visit: trip.visit_place || '',
+          purpose: trip.purpose,
+          odoStart: trip.odometer_start,
+          odoEnd: trip.odometer_end || '',
+          distance: trip.distance || '',
+          notes: trip.notes || '',
+        })
+      })
+
+      const buffer = await wb.xlsx.writeBuffer()
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `kniha-jazd-${format(new Date(), 'yyyy-MM-dd')}.xlsx`
+      a.click()
+      URL.revokeObjectURL(url)
       toast.success('Excel bol vygenerovaný')
     } catch (error) {
       console.error('Excel export error:', error)
