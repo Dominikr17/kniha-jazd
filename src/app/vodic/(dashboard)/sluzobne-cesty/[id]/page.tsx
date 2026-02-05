@@ -65,7 +65,7 @@ export default async function DriverBusinessTripDetailPage({
           </Link>
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-[#004B87]">
+          <h1 className="text-2xl font-bold">
             Služobná cesta {trip.trip_number}
           </h1>
           <div className="flex items-center gap-2 mt-1">

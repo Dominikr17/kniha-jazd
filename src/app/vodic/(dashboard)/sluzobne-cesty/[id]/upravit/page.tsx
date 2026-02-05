@@ -361,7 +361,7 @@ export default function EditBusinessTripPage() {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#004B87]">Upraviť služobnú cestu</h1>
+      <h1 className="text-2xl font-bold">Upraviť služobnú cestu</h1>
 
       {/* Stepper */}
       <div className="flex items-center gap-1">

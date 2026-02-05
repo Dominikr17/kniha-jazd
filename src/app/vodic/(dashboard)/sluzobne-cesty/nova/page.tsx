@@ -266,7 +266,7 @@ export default function NewBusinessTripPage() {
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#004B87]">Nová služobná cesta</h1>
+      <h1 className="text-2xl font-bold">Nová služobná cesta</h1>
 
       {/* Stepper */}
       <div className="flex items-center gap-1">
