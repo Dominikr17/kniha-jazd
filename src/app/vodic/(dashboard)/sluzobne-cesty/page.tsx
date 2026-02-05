@@ -87,7 +87,11 @@ export default async function DriverBusinessTripsPage() {
               <TableBody>
                 {businessTrips.map((trip) => (
                   <TableRow key={trip.id}>
-                    <TableCell className="font-mono text-sm">{trip.trip_number}</TableCell>
+                    <TableCell className="font-mono text-sm">
+                      <Link href={`/vodic/sluzobne-cesty/${trip.id}`} className="hover:underline text-[#004B87]">
+                        {trip.trip_number}
+                      </Link>
+                    </TableCell>
                     <TableCell>
                       <Badge variant="outline">
                         {trip.trip_type === 'zahranicna' ? 'Zahraničná' : 'Tuzemská'}
