@@ -47,7 +47,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
         .eq('vehicle_id', vehicleId)
         .not('odometer_end', 'is', null)
         .order('date', { ascending: false })
-        .order('time_start', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(1)
         .single()
 
