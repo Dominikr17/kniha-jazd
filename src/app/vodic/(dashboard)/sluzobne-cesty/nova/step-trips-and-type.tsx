@@ -5,13 +5,11 @@ import { createClient } from '@/lib/supabase/client'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue
-} from '@/components/ui/select'
+import CountryCombobox from '@/components/country-combobox'
 import { Loader2, Route, MapPin, Clock, Calendar } from 'lucide-react'
 import { format } from 'date-fns'
 import { sk } from 'date-fns/locale'
-import { FOREIGN_ALLOWANCE_RATES, type Trip } from '@/types'
+import type { Trip } from '@/types'
 
 interface StepTripsAndTypeProps {
   driverId: string
@@ -167,17 +165,8 @@ export default function StepTripsAndType({
 
       {tripType === 'zahranicna' && (
         <div>
-          <Label htmlFor="country">Krajina</Label>
-          <Select value={destinationCountry} onValueChange={setDestinationCountry}>
-            <SelectTrigger>
-              <SelectValue placeholder="Vyberte krajinu" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(FOREIGN_ALLOWANCE_RATES).map(([code, info]) => (
-                <SelectItem key={code} value={code}>{info.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label>Krajina</Label>
+          <CountryCombobox value={destinationCountry} onValueChange={setDestinationCountry} />
         </div>
       )}
 
