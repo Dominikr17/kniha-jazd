@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Input } from '@/components/ui/input'
 import { MapPin } from 'lucide-react'
-import { SLOVAK_CITIES } from '@/lib/cities'
+import { CITIES, type City } from '@/lib/cities'
 
 interface RouteComboboxProps {
   value: string
@@ -40,14 +40,20 @@ export default function RouteCombobox({
   const stripDiacritics = (str: string) =>
     str.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
+  const matchesQuery = (city: City, query: string): boolean => {
+    if (stripDiacritics(city.name.toLowerCase()).startsWith(query)) return true
+    if (city.alt && stripDiacritics(city.alt.toLowerCase()).startsWith(query)) return true
+    return false
+  }
+
   const getSuggestions = (query: string): string[] => {
     if (!query) return []
     const lower = stripDiacritics(query.toLowerCase())
     const results: string[] = []
 
-    for (const city of SLOVAK_CITIES) {
-      if (stripDiacritics(city.toLowerCase()).startsWith(lower)) {
-        results.push(city)
+    for (const city of CITIES) {
+      if (matchesQuery(city, lower)) {
+        results.push(city.name)
       }
       if (results.length >= 7) return results
     }

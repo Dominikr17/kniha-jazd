@@ -53,11 +53,13 @@ src/
 │   │   ├── app-sidebar.tsx    # Admin sidebar
 │   │   └── driver-sidebar.tsx # Vodičovský sidebar
 │   ├── delete-button.tsx      # Generický DeleteButton pre mazanie záznamov
+│   ├── route-combobox.tsx     # Autocomplete pre trasy (Odkiaľ/Kam)
 │   ├── receipt-scanner.tsx    # OCR skenovanie pokladničných blokov
 │   ├── pwa-register.tsx       # Registrácia Service Workera
 │   └── pwa-install-prompt.tsx # Inštalačný prompt pre PWA
 ├── lib/
 │   ├── supabase/              # Supabase klienty (client, server, middleware)
+│   ├── cities.ts              # Zoznam miest SK + zahraničie (autocomplete)
 │   └── driver-session.ts      # Helper pre vodičovské cookie
 ├── types/                     # TypeScript typy
 └── proxy.ts              # Auth middleware
@@ -90,6 +92,8 @@ src/
 - `src/lib/report-utils.ts` - Helper pre dátumové rozsahy a validáciu URL parametrov
 - `src/lib/report-calculations.ts` - Kalkulačné funkcie pre reporty (spotreba, náklady, agregácie)
 - `src/components/delete-button.tsx` - Generický DeleteButton (trips, fuel_records, drivers, vehicles, fuel_inventory)
+- `src/components/route-combobox.tsx` - Autocomplete pre trasy (SK mestá + zahraničné s alt názvami)
+- `src/lib/cities.ts` - Zoznam miest: SK (~120) + CZ/PL/HU/AT/DE (~100), slovenské názvy s originálnymi aliasmi
 - `src/components/layout/driver-sidebar.tsx` - Vodičovský bočný panel
 - `src/lib/driver-vehicles.ts` - Helper pre priradenie vozidiel vodičom
 - `src/lib/driver-stats.ts` - Helper pre štatistiky vodiča (km, spotreba, mesačné agregácie)
