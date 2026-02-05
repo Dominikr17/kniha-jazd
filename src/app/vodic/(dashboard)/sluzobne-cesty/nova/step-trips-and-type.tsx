@@ -28,6 +28,7 @@ interface StepTripsAndTypeProps {
     purpose: string
     transportType: string
   }) => void
+  editingBusinessTripId?: string
 }
 
 function deriveAutoFillData(trips: Trip[]) {
@@ -83,7 +84,7 @@ export default function StepTripsAndType({
   destinationCountry, setDestinationCountry,
   selectedTripIds, setSelectedTripIds,
   selectedTrips, setSelectedTrips,
-  onAutoFill,
+  onAutoFill, editingBusinessTripId,
 }: StepTripsAndTypeProps) {
   const [trips, setTrips] = useState<Trip[]>([])
   const [loading, setLoading] = useState(true)
@@ -104,12 +105,16 @@ export default function StepTripsAndType({
       if (error) console.error('Error fetching trips:', error)
 
       if (data) {
-        // Vyfiltrovať jazdy priradené k inej SC
+        // Vyfiltrovať jazdy priradené k inej SC (okrem editovanej)
         const { data: assigned } = await supabase
           .from('business_trip_trips')
-          .select('trip_id')
+          .select('trip_id, business_trip_id')
 
-        const assignedIds = new Set((assigned || []).map((a) => a.trip_id))
+        const assignedIds = new Set(
+          (assigned || [])
+            .filter((a) => a.business_trip_id !== editingBusinessTripId)
+            .map((a) => a.trip_id)
+        )
         const available = data.filter((trip) => !assignedIds.has(trip.id))
         setTrips(available)
       }
@@ -118,7 +123,7 @@ export default function StepTripsAndType({
     }
 
     fetchTrips()
-  }, [driverId])
+  }, [driverId, editingBusinessTripId])
 
   const handleToggle = (tripId: string, checked: boolean) => {
     let newIds: string[]

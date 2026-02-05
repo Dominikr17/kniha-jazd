@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Loader2, ChevronLeft, ChevronRight, Save, Send } from 'lucide-react'
@@ -16,11 +16,11 @@ import {
   type AllowanceCalculationInput,
 } from '@/lib/business-trip-calculator'
 
-// Krokové komponenty
-import StepTripsAndType from './step-trips-and-type'
-import StepDetails from './step-details'
-import StepMealsExpenses from './step-meals-expenses'
-import StepSummary from './step-summary'
+// Krokové komponenty (reuse z nova/)
+import StepTripsAndType from '../../nova/step-trips-and-type'
+import StepDetails from '../../nova/step-details'
+import StepMealsExpenses from '../../nova/step-meals-expenses'
+import StepSummary from '../../nova/step-summary'
 
 const STEPS = ['Jazdy a typ', 'Doplnenie údajov', 'Stravné a výdavky', 'Súhrn']
 
@@ -47,11 +47,13 @@ interface MealDeductions {
   dinner: boolean
 }
 
-export default function NewBusinessTripPage() {
+export default function EditBusinessTripPage() {
   const router = useRouter()
+  const { id } = useParams<{ id: string }>()
   const [currentStep, setCurrentStep] = useState(0)
   const [isSaving, setIsSaving] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [driverId, setDriverId] = useState<string | null>(null)
   const [driverName, setDriverName] = useState('')
 
@@ -61,7 +63,7 @@ export default function NewBusinessTripPage() {
   const [selectedTripIds, setSelectedTripIds] = useState<string[]>([])
   const [selectedTrips, setSelectedTrips] = useState<Trip[]>([])
 
-  // Krok 2: Doplnenie údajov (auto-fill z jázd + ručné doplnenie)
+  // Krok 2: Doplnenie údajov
   const [destinationCity, setDestinationCity] = useState('')
   const [purpose, setPurpose] = useState('')
   const [transportType, setTransportType] = useState<TransportType>('AUS_sluzobne')
@@ -85,22 +87,107 @@ export default function NewBusinessTripPage() {
   const [totalAmount, setTotalAmount] = useState(0)
   const [balance, setBalance] = useState(0)
 
-  // Načítať driver session
+  // Načítať driver session + existujúcu SC
   useEffect(() => {
-    const fetchDriver = async () => {
+    const fetchData = async () => {
       try {
-        const res = await fetch('/api/driver/me')
-        const data = await res.json()
-        if (data.driverId) {
-          setDriverId(data.driverId)
-          setDriverName(data.driverName || '')
+        // Načítať vodiča
+        const driverRes = await fetch('/api/driver/me')
+        const driverData = await driverRes.json()
+        if (driverData.driverId) {
+          setDriverId(driverData.driverId)
+          setDriverName(driverData.driverName || '')
+        }
+
+        // Načítať existujúcu SC
+        const tripRes = await fetch(`/api/business-trips/${id}`)
+        if (!tripRes.ok) {
+          toast.error('Služobná cesta nenájdená')
+          router.push('/vodic/sluzobne-cesty')
+          return
+        }
+
+        const trip = await tripRes.json()
+
+        // Overiť ownership
+        if (trip.driver_id !== driverData.driverId) {
+          toast.error('Nemáte oprávnenie upraviť túto cestu')
+          router.push('/vodic/sluzobne-cesty')
+          return
+        }
+
+        // Overiť status
+        if (trip.status !== 'draft' && trip.status !== 'rejected') {
+          toast.error('Upraviť je možné len rozpracovanú alebo vrátenú SC')
+          router.push(`/vodic/sluzobne-cesty/${id}`)
+          return
+        }
+
+        // Predvyplniť formulár
+        setTripType(trip.trip_type || 'tuzemska')
+        setDestinationCountry(trip.destination_country || '')
+        setDestinationCity(trip.destination_city || '')
+        setPurpose(trip.purpose || '')
+        setTransportType(trip.transport_type || 'AUS_sluzobne')
+        setCompanion(trip.companion || '')
+        setDepartureDate(trip.departure_date || '')
+        setReturnDate(trip.return_date || '')
+        setAdvanceAmount(Number(trip.advance_amount) || 0)
+        setNotes(trip.notes || '')
+
+        // Border crossings
+        if (trip.border_crossings && trip.border_crossings.length > 0) {
+          setBorderCrossings(trip.border_crossings.map((bc: BorderCrossingInput & { id?: string }) => ({
+            crossing_date: bc.crossing_date,
+            crossing_name: bc.crossing_name,
+            country_from: bc.country_from,
+            country_to: bc.country_to,
+            direction: bc.direction,
+          })))
+        }
+
+        // Linked trips
+        const linkedTrips = (trip.business_trip_trips || [])
+          .map((btt: { trip: Trip }) => btt.trip)
+          .filter(Boolean)
+        if (linkedTrips.length > 0) {
+          setSelectedTripIds(linkedTrips.map((t: Trip) => t.id))
+          setSelectedTrips(linkedTrips)
+        }
+
+        // Expenses
+        if (trip.trip_expenses && trip.trip_expenses.length > 0) {
+          setExpenses(trip.trip_expenses.map((e: ExpenseInput & { id?: string }) => ({
+            expense_type: e.expense_type,
+            description: e.description,
+            amount: Number(e.amount),
+            currency: e.currency || 'EUR',
+            date: e.date,
+            receipt_number: e.receipt_number || '',
+          })))
+        }
+
+        // Meals (rekonštruovať z allowances)
+        if (trip.trip_allowances && trip.trip_allowances.length > 0) {
+          const mealsMap: Record<string, MealDeductions> = {}
+          for (const a of trip.trip_allowances) {
+            mealsMap[a.date] = {
+              breakfast: Number(a.breakfast_deduction) > 0,
+              lunch: Number(a.lunch_deduction) > 0,
+              dinner: Number(a.dinner_deduction) > 0,
+            }
+          }
+          setMeals(mealsMap)
         }
       } catch {
-        toast.error('Chyba pri načítaní vodiča')
+        toast.error('Chyba pri načítaní dát')
+      } finally {
+        setIsLoading(false)
       }
     }
-    fetchDriver()
-  }, [])
+
+    fetchData()
+  }, [id, router])
 
   // Auto-fill callback z kroku 1
   const handleAutoFill = useCallback((data: {
@@ -119,7 +206,7 @@ export default function NewBusinessTripPage() {
     }
   }, [])
 
-  // Prepočítať stravné pri zmene relevantných dát
+  // Prepočítať stravné
   const recalculate = useCallback(() => {
     if (!departureDate || !returnDate) return
 
@@ -204,11 +291,10 @@ export default function NewBusinessTripPage() {
         total_amortization: totalAmortization,
         total_amount: totalAmount,
         balance,
-        companion_driver_ids: companionDriverIds,
       }
 
-      const res = await fetch('/api/business-trips', {
-        method: 'POST',
+      const res = await fetch(`/api/business-trips/${id}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       })
@@ -221,8 +307,8 @@ export default function NewBusinessTripPage() {
         return
       }
 
-      if (submit && data.data?.id) {
-        const submitRes = await fetch(`/api/business-trips/${data.data.id}/submit`, {
+      if (submit) {
+        const submitRes = await fetch(`/api/business-trips/${id}/submit`, {
           method: 'POST',
         })
         if (submitRes.ok) {
@@ -231,10 +317,10 @@ export default function NewBusinessTripPage() {
           toast.success('Služobná cesta bola uložená (odoslanie zlyhalo)')
         }
       } else {
-        toast.success('Služobná cesta bola uložená')
+        toast.success('Služobná cesta bola aktualizovaná')
       }
 
-      router.push('/vodic/sluzobne-cesty')
+      router.push(`/vodic/sluzobne-cesty/${id}`)
       router.refresh()
     } catch {
       toast.error('Chyba pri ukladaní')
@@ -260,9 +346,17 @@ export default function NewBusinessTripPage() {
     }
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-8 w-8 animate-spin text-[#004B87]" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
-      <h1 className="text-2xl font-bold text-[#004B87]">Nová služobná cesta</h1>
+      <h1 className="text-2xl font-bold text-[#004B87]">Upraviť služobnú cestu</h1>
 
       {/* Stepper */}
       <div className="flex items-center gap-1">
@@ -305,6 +399,7 @@ export default function NewBusinessTripPage() {
             selectedTrips={selectedTrips}
             setSelectedTrips={setSelectedTrips}
             onAutoFill={handleAutoFill}
+            editingBusinessTripId={id}
           />
         )}
 

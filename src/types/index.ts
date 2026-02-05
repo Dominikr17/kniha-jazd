@@ -615,6 +615,7 @@ export interface BusinessTrip {
   purpose: string
   transport_type: TransportType
   companion: string | null
+  group_id: string | null
   departure_date: string
   return_date: string
   advance_amount: number

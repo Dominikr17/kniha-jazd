@@ -123,7 +123,11 @@ export default async function AdminBusinessTripsPage({
                   const driver = trip.driver as { first_name: string; last_name: string } | null
                   return (
                     <TableRow key={trip.id}>
-                      <TableCell className="font-mono text-sm">{trip.trip_number}</TableCell>
+                      <TableCell className="font-mono text-sm">
+                        <Link href={`/admin/sluzobne-cesty/${trip.id}`} className="text-[#004B87] hover:underline">
+                          {trip.trip_number}
+                        </Link>
+                      </TableCell>
                       <TableCell>
                         {driver ? (
                           <Link

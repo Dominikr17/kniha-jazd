@@ -44,6 +44,8 @@ interface StepDetailsProps {
   destinationCountry: string
   borderCrossings: BorderCrossingInput[]
   setBorderCrossings: (crossings: BorderCrossingInput[]) => void
+  onCompanionDriverIdsChange?: (ids: string[]) => void
+  driverId?: string
 }
 
 const NEIGHBOR_COUNTRIES = Object.keys(BORDER_CROSSINGS_SK)
@@ -59,6 +61,7 @@ export default function StepDetails({
   notes, setNotes,
   tripType, destinationCountry,
   borderCrossings, setBorderCrossings,
+  onCompanionDriverIdsChange, driverId,
 }: StepDetailsProps) {
 
   // --- Border crossings logic ---
@@ -158,6 +161,8 @@ export default function StepDetails({
         <DriverAutocomplete
           value={companion}
           onChange={setCompanion}
+          onDriverIdsChange={onCompanionDriverIdsChange}
+          excludeDriverId={driverId}
         />
       </div>
 
