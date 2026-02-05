@@ -70,12 +70,12 @@ src/
 - `vehicle_documents` - Dokumenty vozidiel
 - `vehicle_inspections` - STK/EK kontroly
 - `vehicle_vignettes` - Diaľničné známky
-- `trips` - Jazdy (auto-číslovanie, + `trip_type`: sluzobna/sukromna)
+- `trips` - Jazdy (auto-číslovanie, + `trip_type`: sluzobna/sukromna, `visit_place`: miesto návštevy)
 - `fuel_records` - Tankovanie PHM (+ `country`, `price_without_vat`, `payment_method`, `full_tank`, `odometer` voliteľný, cudzia mena: `original_currency`, `original_total_price`, `eur_confirmed`)
 - `fuel_inventory` - Referenčné body stavu nádrže (pre automatický výpočet zásob PHM)
 - `audit_logs` - Žurnál aktivít (logovanie INSERT/UPDATE/DELETE)
 - `monthly_reports` - Mesačné výkazy PHM (zásoby, tachometer, status workflow)
-- `business_trips` - Služobné cesty (cestovné príkazy, status workflow)
+- `business_trips` - Služobné cesty (cestovné príkazy, status workflow, `visit_place`: miesto návštevy)
 - `border_crossings` - Prechody hraníc (FK na business_trips)
 - `trip_allowances` - Denné stravné
 - `trip_expenses` - Výdavky služobných ciest
@@ -409,7 +409,7 @@ Stránka s analýzami a prehľadmi vozového parku.
 Modul pre evidenciu služobných ciest s vyúčtovaním stravného a výdavkov.
 
 ### Databázové tabuľky
-- `business_trips` - Hlavička SC (trip_number, driver_id, status workflow, sumy)
+- `business_trips` - Hlavička SC (trip_number, driver_id, visit_place, status workflow, sumy)
 - `border_crossings` - Prechody hraníc (FK na business_trips, ON DELETE CASCADE)
 - `trip_allowances` - Denné stravné po dňoch
 - `trip_expenses` - Výdavky (ubytovanie, parkovné, mýto...)
@@ -444,7 +444,7 @@ Modul pre evidenciu služobných ciest s vyúčtovaním stravného a výdavkov.
 **Vodičovská sekcia:**
 - `src/app/vodic/(dashboard)/sluzobne-cesty/page.tsx` - Zoznam SC
 - `src/app/vodic/(dashboard)/sluzobne-cesty/nova/page.tsx` - Multi-step formulár (4 kroky)
-- `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-trips-and-type.tsx` - Krok 1: Výber jázd + typ cesty (auto-fill údajov)
+- `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-trips-and-type.tsx` - Krok 1: Výber jázd + typ cesty (auto-fill údajov vrátane visit_place)
 - `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-details.tsx` - Krok 2: Review auto-fill údajov + dopravný prostriedok + hranice
 - `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-meals-expenses.tsx` - Krok 3: Stravné a výdavky
 - `src/app/vodic/(dashboard)/sluzobne-cesty/nova/step-summary.tsx` - Krok 4: Súhrn
