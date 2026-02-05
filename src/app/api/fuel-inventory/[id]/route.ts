@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { logAudit } from '@/lib/audit-logger'
+import { isValidUUID } from '@/lib/report-utils'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -9,6 +10,14 @@ interface RouteParams {
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json(
+        { success: false, error: 'Neplatné ID' },
+        { status: 400 }
+      )
+    }
+
     const supabase = await createClient()
 
     // Overenie admin autentifikácie

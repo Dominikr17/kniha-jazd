@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createFuelInventory } from '@/lib/fuel-stock-calculator'
+import { isValidUUID } from '@/lib/report-utils'
 
 export async function POST(request: NextRequest) {
   try {
@@ -24,12 +25,37 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // UUID validácia
+    if (!isValidUUID(vehicleId)) {
+      return NextResponse.json(
+        { success: false, error: 'Neplatné ID vozidla' },
+        { status: 400 }
+      )
+    }
+
+    // Validácia dátumu
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return NextResponse.json(
+        { success: false, error: 'Neplatný formát dátumu' },
+        { status: 400 }
+      )
+    }
+
+    // Validácia množstva paliva
+    const parsedAmount = parseFloat(fuelAmount)
+    if (isNaN(parsedAmount) || parsedAmount < 0 || parsedAmount > 500) {
+      return NextResponse.json(
+        { success: false, error: 'Neplatné množstvo paliva (0-500 l)' },
+        { status: 400 }
+      )
+    }
+
     const result = await createFuelInventory({
       vehicleId,
       date,
-      fuelAmount: parseFloat(fuelAmount),
+      fuelAmount: parsedAmount,
       source: 'initial',
-      notes
+      notes: notes ? String(notes).slice(0, 500) : undefined
     })
 
     return NextResponse.json(result)

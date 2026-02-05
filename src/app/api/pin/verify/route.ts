@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 
 // In-memory rate limiting (v produkcii použiť Redis)
 const rateLimitMap = new Map<string, { attempts: number; blockedUntil: number }>()
@@ -86,7 +87,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (pin !== appPin) {
+    const pinStr = String(pin)
+    const pinMatch = pinStr.length === appPin.length &&
+      crypto.timingSafeEqual(Buffer.from(pinStr), Buffer.from(appPin))
+
+    if (!pinMatch) {
       recordFailedAttempt(clientIp)
       const remaining = MAX_ATTEMPTS - (rateLimitMap.get(clientIp)?.attempts || 0)
 

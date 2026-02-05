@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { setDriverCookie } from '@/lib/driver-session'
 import { createClient } from '@/lib/supabase/server'
+import { isValidUUID } from '@/lib/report-utils'
 
 export async function POST(request: NextRequest) {
   const formData = await request.formData()
@@ -9,6 +10,16 @@ export async function POST(request: NextRequest) {
 
   if (!driverId || !driverName) {
     return NextResponse.redirect(new URL('/?error=missing', request.url))
+  }
+
+  // UUID validácia
+  if (!isValidUUID(driverId)) {
+    return NextResponse.redirect(new URL('/?error=invalid', request.url))
+  }
+
+  // Ochrana pred príliš dlhým menom
+  if (driverName.length > 200) {
+    return NextResponse.redirect(new URL('/?error=invalid', request.url))
   }
 
   // Validácia - overiť že vodič existuje v databáze

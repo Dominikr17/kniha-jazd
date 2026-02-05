@@ -21,8 +21,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing fuelRecordId' }, { status: 400 })
     }
 
-    if (!eurTotalPrice || typeof eurTotalPrice !== 'number' || eurTotalPrice <= 0) {
-      return NextResponse.json({ error: 'Invalid eurTotalPrice' }, { status: 400 })
+    // UUID validácia
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(fuelRecordId)) {
+      return NextResponse.json({ error: 'Invalid fuelRecordId format' }, { status: 400 })
+    }
+
+    if (!eurTotalPrice || typeof eurTotalPrice !== 'number' || eurTotalPrice <= 0 || eurTotalPrice > 50000) {
+      return NextResponse.json({ error: 'Invalid eurTotalPrice (must be 0-50000)' }, { status: 400 })
     }
 
     // Načítanie záznamu
@@ -46,8 +52,8 @@ export async function POST(request: NextRequest) {
     const vatRate = FUEL_COUNTRIES[record.country as FuelCountry]?.vatRate || 0.20
     const eurPriceWithoutVat = eurTotalPrice / (1 + vatRate)
 
-    // Validácia kurzu (ak je zadaný)
-    const validatedExchangeRate = exchangeRate && typeof exchangeRate === 'number' && exchangeRate > 0
+    // Validácia kurzu (ak je zadaný) - realistický rozsah 0.001 - 1000
+    const validatedExchangeRate = exchangeRate && typeof exchangeRate === 'number' && exchangeRate > 0.001 && exchangeRate < 1000
       ? exchangeRate
       : null
 
