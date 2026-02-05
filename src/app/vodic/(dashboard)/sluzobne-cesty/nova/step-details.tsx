@@ -69,12 +69,13 @@ export default function StepDetails({
 
   // --- Border crossings logic ---
   const addCrossing = () => {
+    const isOutbound = borderCrossings.length % 2 === 0
     const newCrossing: BorderCrossingInput = {
-      crossing_date: '',
+      crossing_date: isOutbound ? departureDate : returnDate,
       crossing_name: '',
       country_from: borderCrossings.length === 0 ? 'SK' : '',
       country_to: borderCrossings.length === 0 ? (destinationCountry || '') : '',
-      direction: borderCrossings.length % 2 === 0 ? 'outbound' : 'inbound',
+      direction: isOutbound ? 'outbound' : 'inbound',
     }
     setBorderCrossings([...borderCrossings, newCrossing])
   }
