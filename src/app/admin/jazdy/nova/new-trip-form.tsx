@@ -2,26 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Loader2, Save, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
-import { TRIP_PURPOSES, TRIP_TYPES, TripType } from '@/types'
+import { TripType } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
-import RouteCombobox from '@/components/route-combobox'
+import { TripFormFields } from '@/components/trip-form-fields'
 
 interface NewTripFormProps {
   vehicles: { id: string; name: string; license_plate: string }[]
@@ -32,7 +17,10 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
   const [vehicleId, setVehicleId] = useState('')
   const [driverId, setDriverId] = useState('')
   const [tripType, setTripType] = useState<TripType>('sluzobna')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState(() => {
+    const now = new Date()
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+  })
   const [timeStart, setTimeStart] = useState('')
   const [timeEnd, setTimeEnd] = useState('')
   const [routeFrom, setRouteFrom] = useState('ZVL')
@@ -49,14 +37,10 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
   const router = useRouter()
   const supabase = createClient()
 
-  // Načítanie posledného stavu tachometra pre vybrané vozidlo
   useEffect(() => {
-    if (!vehicleId) {
-      return
-    }
+    if (!vehicleId) return
 
     const fetchLastOdometer = async () => {
-      // Najprv skúsime poslednú jazdu
       const { data: lastTrip } = await supabase
         .from('trips')
         .select('odometer_end')
@@ -71,7 +55,6 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
         setLastOdometer(lastTrip.odometer_end)
         setOdometerStart(lastTrip.odometer_end.toString())
       } else {
-        // Ak nie je jazda, použijeme počiatočný stav z vozidla
         const { data: vehicle } = await supabase
           .from('vehicles')
           .select('initial_odometer')
@@ -91,11 +74,8 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
     fetchLastOdometer()
   }, [vehicleId, supabase])
 
-  // Validácia tachometra - použitie useMemo namiesto useEffect
   const odometerWarning = (() => {
-    if (!odometerStart || lastOdometer === null) {
-      return null
-    }
+    if (!odometerStart || lastOdometer === null) return null
     const start = parseInt(odometerStart)
     if (start < lastOdometer) {
       return `Hodnota je nižšia ako posledný stav (${lastOdometer} km)`
@@ -113,9 +93,9 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
       return
     }
 
-    const finalPurpose = purpose === 'Iné' ? customPurpose : purpose
+    const resolvedPurpose = purpose === 'Iné' ? customPurpose : purpose
 
-    if (!finalPurpose.trim()) {
+    if (!resolvedPurpose.trim()) {
       toast.error('Zadajte účel cesty')
       return
     }
@@ -132,7 +112,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
       route_from: routeFrom.trim(),
       route_to: routeTo.trim(),
       visit_place: visitPlace.trim(),
-      purpose: finalPurpose.trim(),
+      purpose: resolvedPurpose.trim(),
       odometer_start: parseInt(odometerStart),
       odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
       round_trip: roundTrip,
@@ -170,246 +150,46 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Vozidlo a vodič */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="vehicle">Vozidlo *</Label>
-          <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting}>
-            <SelectTrigger id="vehicle">
-              <SelectValue placeholder="Vyberte vozidlo" />
-            </SelectTrigger>
-            <SelectContent>
-              {vehicles.map((vehicle) => (
-                <SelectItem key={vehicle.id} value={vehicle.id}>
-                  {vehicle.name} ({vehicle.license_plate})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="driver">Vodič *</Label>
-          <Select value={driverId} onValueChange={setDriverId} disabled={isSubmitting}>
-            <SelectTrigger id="driver">
-              <SelectValue placeholder="Vyberte vodiča" />
-            </SelectTrigger>
-            <SelectContent>
-              {drivers.map((driver) => (
-                <SelectItem key={driver.id} value={driver.id}>
-                  {driver.first_name} {driver.last_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* Typ jazdy */}
-      <div className="space-y-2">
-        <Label htmlFor="tripType">Typ jazdy *</Label>
-        <Select value={tripType} onValueChange={(v) => setTripType(v as TripType)} disabled={isSubmitting}>
-          <SelectTrigger id="tripType">
-            <SelectValue placeholder="Vyberte typ jazdy" />
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(TRIP_TYPES).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Dátum a čas */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="date">Dátum *</Label>
-          <Input
-            id="date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="timeStart">Čas odchodu *</Label>
-          <Input
-            id="timeStart"
-            type="time"
-            value={timeStart}
-            onChange={(e) => setTimeStart(e.target.value)}
-            required
-            disabled={isSubmitting}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="timeEnd">Čas príchodu</Label>
-          <Input
-            id="timeEnd"
-            type="time"
-            value={timeEnd}
-            onChange={(e) => setTimeEnd(e.target.value)}
-            disabled={isSubmitting}
-          />
-        </div>
-      </div>
-
-      {/* Trasa */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="routeFrom">Odkiaľ *</Label>
-          <RouteCombobox
-            id="routeFrom"
-            value={routeFrom}
-            onChange={setRouteFrom}
-            required
-            disabled={isSubmitting}
-            placeholder="Miesto odchodu"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="routeTo">Kam *</Label>
-          <RouteCombobox
-            id="routeTo"
-            value={routeTo}
-            onChange={setRouteTo}
-            required
-            disabled={isSubmitting}
-            placeholder="Cieľové miesto"
-          />
-        </div>
-      </div>
-
-      {/* Spiatočná jazda */}
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="roundTrip"
-          checked={roundTrip}
-          onCheckedChange={(checked) => setRoundTrip(checked === true)}
-          disabled={isSubmitting}
-        />
-        <Label htmlFor="roundTrip" className="font-normal cursor-pointer">
-          Aj cesta späť (spiatočná jazda)
-        </Label>
-      </div>
-
-      {/* Miesto návštevy */}
-      <div className="space-y-2">
-        <Label htmlFor="visitPlace">Miesto návštevy *</Label>
-        <Input
-          id="visitPlace"
-          value={visitPlace}
-          onChange={(e) => setVisitPlace(e.target.value)}
-          required
-          disabled={isSubmitting}
-          placeholder="Názov zákazníka, firmy alebo miesta"
-        />
-      </div>
-
-      {/* Účel cesty */}
-      <div className="space-y-2">
-        <Label htmlFor="purpose">Účel cesty *</Label>
-        <Select value={purpose} onValueChange={setPurpose} disabled={isSubmitting}>
-          <SelectTrigger id="purpose">
-            <SelectValue placeholder="Vyberte účel cesty" />
-          </SelectTrigger>
-          <SelectContent>
-            {TRIP_PURPOSES.map((purposeOption) => (
-              <SelectItem key={purposeOption} value={purposeOption}>
-                {purposeOption}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {purpose === 'Iné' && (
-          <Input
-            className="mt-2"
-            placeholder="Zadajte vlastný účel cesty"
-            value={customPurpose}
-            onChange={(e) => setCustomPurpose(e.target.value)}
-            disabled={isSubmitting}
-          />
-        )}
-      </div>
-
-      {/* Tachometer */}
-      <div className="space-y-4">
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="odometerStart">Tachometer začiatok (km) *</Label>
-            <Input
-              id="odometerStart"
-              type="number"
-              value={odometerStart}
-              onChange={(e) => setOdometerStart(e.target.value)}
-              required
-              disabled={isSubmitting}
-              min={0}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="odometerEnd">Tachometer koniec (km) *</Label>
-            <Input
-              id="odometerEnd"
-              type="number"
-              value={odometerEnd}
-              onChange={(e) => setOdometerEnd(e.target.value)}
-              required
-              disabled={isSubmitting}
-              min={odometerStart ? parseInt(odometerStart) : 0}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Najazdené km</Label>
-            <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-              {distance !== null && distance >= 0 ? `${distance} km` : '-'}
-            </div>
-          </div>
-        </div>
-
-        {odometerWarning && (
-          <Alert variant="destructive" className="bg-yellow-50 border-yellow-200 text-yellow-800">
-            <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{odometerWarning}</AlertDescription>
-          </Alert>
-        )}
-      </div>
-
-      {/* Poznámky */}
-      <div className="space-y-2">
-        <Label htmlFor="notes">Poznámky</Label>
-        <Textarea
-          id="notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          disabled={isSubmitting}
-          placeholder="Voliteľné poznámky k jazde"
-          rows={3}
-        />
-      </div>
-
-      {/* Tlačidlá */}
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Ukladám...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Uložiť jazdu
-            </>
-          )}
-        </Button>
-        <Button type="button" variant="outline" asChild disabled={isSubmitting}>
-          <Link href="/admin/jazdy">Zrušiť</Link>
-        </Button>
-      </div>
+      <TripFormFields
+        vehicles={vehicles}
+        vehicleId={vehicleId}
+        onVehicleChange={setVehicleId}
+        drivers={drivers}
+        driverId={driverId}
+        onDriverChange={setDriverId}
+        tripType={tripType}
+        onTripTypeChange={setTripType}
+        date={date}
+        onDateChange={setDate}
+        timeStart={timeStart}
+        onTimeStartChange={setTimeStart}
+        timeEnd={timeEnd}
+        onTimeEndChange={setTimeEnd}
+        routeFrom={routeFrom}
+        onRouteFromChange={setRouteFrom}
+        routeTo={routeTo}
+        onRouteToChange={setRouteTo}
+        roundTrip={roundTrip}
+        onRoundTripChange={setRoundTrip}
+        visitPlace={visitPlace}
+        onVisitPlaceChange={setVisitPlace}
+        purpose={purpose}
+        onPurposeChange={setPurpose}
+        customPurpose={customPurpose}
+        onCustomPurposeChange={setCustomPurpose}
+        odometerStart={odometerStart}
+        onOdometerStartChange={setOdometerStart}
+        odometerEnd={odometerEnd}
+        onOdometerEndChange={setOdometerEnd}
+        distance={distance}
+        odometerWarning={odometerWarning}
+        notes={notes}
+        onNotesChange={setNotes}
+        disabled={isSubmitting}
+        isSubmitting={isSubmitting}
+        submitLabel="Uložiť jazdu"
+        cancelHref="/admin/jazdy"
+      />
     </form>
   )
 }

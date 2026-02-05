@@ -2,27 +2,12 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Trip, TRIP_PURPOSES, DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
-import RouteCombobox from '@/components/route-combobox'
+import { TripFormFields } from '@/components/trip-form-fields'
 
-// Backend validácia časového limitu
 function isWithinEditTimeLimit(createdAt: string): boolean {
   const created = new Date(createdAt)
   const now = new Date()
@@ -61,16 +46,15 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const finalPurpose = purpose === 'Iné' ? customPurpose : purpose
+    const resolvedPurpose = purpose === 'Iné' ? customPurpose : purpose
 
-    if (!finalPurpose.trim()) {
+    if (!resolvedPurpose.trim()) {
       toast.error('Zadajte účel cesty')
       return
     }
 
     setIsSubmitting(true)
 
-    // Backend validácia - načítať aktuálne dáta a overiť časový limit
     const { data: currentTrip, error: fetchError } = await supabase
       .from('trips')
       .select('created_at, driver_id')
@@ -83,14 +67,12 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       return
     }
 
-    // Overenie vlastníctva
     if (currentTrip.driver_id !== driverId) {
       toast.error('Nemáte oprávnenie upraviť túto jazdu')
       setIsSubmitting(false)
       return
     }
 
-    // Overenie časového limitu
     if (!isWithinEditTimeLimit(currentTrip.created_at)) {
       toast.error(`Čas na úpravu vypršal (limit ${DRIVER_EDIT_TIME_LIMIT_MINUTES} minút)`)
       setIsSubmitting(false)
@@ -120,7 +102,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       route_from: routeFrom.trim(),
       route_to: routeTo.trim(),
       visit_place: visitPlace.trim(),
-      purpose: finalPurpose.trim(),
+      purpose: resolvedPurpose.trim(),
       odometer_start: parseInt(odometerStart),
       odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
       round_trip: roundTrip,
@@ -161,200 +143,40 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Vozidlo */}
-      <div className="space-y-2">
-        <Label htmlFor="vehicle">Vozidlo *</Label>
-        <Select value={vehicleId} onValueChange={setVehicleId} disabled={isSubmitting || !canEdit}>
-          <SelectTrigger id="vehicle">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {vehicles.map((vehicle) => (
-              <SelectItem key={vehicle.id} value={vehicle.id}>
-                {vehicle.name} ({vehicle.license_plate})
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Dátum a čas */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="date">Dátum *</Label>
-          <Input
-            id="date"
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            disabled={isSubmitting || !canEdit}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="timeStart">Čas odchodu *</Label>
-          <Input
-            id="timeStart"
-            type="time"
-            value={timeStart}
-            onChange={(e) => setTimeStart(e.target.value)}
-            required
-            disabled={isSubmitting || !canEdit}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="timeEnd">Čas príchodu</Label>
-          <Input
-            id="timeEnd"
-            type="time"
-            value={timeEnd}
-            onChange={(e) => setTimeEnd(e.target.value)}
-            disabled={isSubmitting || !canEdit}
-          />
-        </div>
-      </div>
-
-      {/* Trasa */}
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="routeFrom">Odkiaľ *</Label>
-          <RouteCombobox
-            id="routeFrom"
-            value={routeFrom}
-            onChange={setRouteFrom}
-            required
-            disabled={isSubmitting || !canEdit}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="routeTo">Kam *</Label>
-          <RouteCombobox
-            id="routeTo"
-            value={routeTo}
-            onChange={setRouteTo}
-            required
-            disabled={isSubmitting || !canEdit}
-          />
-        </div>
-      </div>
-
-      {/* Spiatočná jazda */}
-      <div className="flex items-center space-x-2">
-        <Checkbox
-          id="roundTrip"
-          checked={roundTrip}
-          onCheckedChange={(checked) => setRoundTrip(checked === true)}
-          disabled={isSubmitting || !canEdit}
-        />
-        <Label htmlFor="roundTrip" className="font-normal cursor-pointer">
-          Aj cesta späť (spiatočná jazda)
-        </Label>
-      </div>
-
-      {/* Miesto návštevy */}
-      <div className="space-y-2">
-        <Label htmlFor="visitPlace">Miesto návštevy *</Label>
-        <Input
-          id="visitPlace"
-          value={visitPlace}
-          onChange={(e) => setVisitPlace(e.target.value)}
-          required
-          disabled={isSubmitting || !canEdit}
-          placeholder="Názov zákazníka, firmy alebo miesta"
-        />
-      </div>
-
-      {/* Účel cesty */}
-      <div className="space-y-2">
-        <Label htmlFor="purpose">Účel cesty *</Label>
-        <Select value={purpose} onValueChange={setPurpose} disabled={isSubmitting || !canEdit}>
-          <SelectTrigger id="purpose">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {TRIP_PURPOSES.map((purposeOption) => (
-              <SelectItem key={purposeOption} value={purposeOption}>
-                {purposeOption}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {purpose === 'Iné' && (
-          <Input
-            className="mt-2"
-            placeholder="Zadajte vlastný účel cesty"
-            value={customPurpose}
-            onChange={(e) => setCustomPurpose(e.target.value)}
-            disabled={isSubmitting || !canEdit}
-          />
-        )}
-      </div>
-
-      {/* Tachometer */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="odometerStart">Tachometer začiatok (km) *</Label>
-          <Input
-            id="odometerStart"
-            type="number"
-            value={odometerStart}
-            onChange={(e) => setOdometerStart(e.target.value)}
-            required
-            disabled={isSubmitting || !canEdit}
-            min={0}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="odometerEnd">Tachometer koniec (km) *</Label>
-          <Input
-            id="odometerEnd"
-            type="number"
-            value={odometerEnd}
-            onChange={(e) => setOdometerEnd(e.target.value)}
-            required
-            disabled={isSubmitting || !canEdit}
-            min={odometerStart ? parseInt(odometerStart) : 0}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Najazdené km</Label>
-          <div className="h-10 px-3 py-2 border rounded-md bg-muted flex items-center font-medium">
-            {distance !== null && distance >= 0 ? `${distance} km` : '-'}
-          </div>
-        </div>
-      </div>
-
-      {/* Poznámky */}
-      <div className="space-y-2">
-        <Label htmlFor="notes">Poznámky</Label>
-        <Textarea
-          id="notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          disabled={isSubmitting || !canEdit}
-          rows={3}
-        />
-      </div>
-
-      {/* Tlačidlá */}
-      <div className="flex gap-3 pt-4">
-        <Button type="submit" disabled={isSubmitting || !canEdit}>
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Ukladám...
-            </>
-          ) : (
-            <>
-              <Save className="mr-2 h-4 w-4" />
-              Uložiť zmeny
-            </>
-          )}
-        </Button>
-        <Button type="button" variant="outline" asChild disabled={isSubmitting || !canEdit}>
-          <Link href="/vodic/jazdy">Zrušiť</Link>
-        </Button>
-      </div>
+      <TripFormFields
+        vehicles={vehicles}
+        vehicleId={vehicleId}
+        onVehicleChange={setVehicleId}
+        date={date}
+        onDateChange={setDate}
+        timeStart={timeStart}
+        onTimeStartChange={setTimeStart}
+        timeEnd={timeEnd}
+        onTimeEndChange={setTimeEnd}
+        routeFrom={routeFrom}
+        onRouteFromChange={setRouteFrom}
+        routeTo={routeTo}
+        onRouteToChange={setRouteTo}
+        roundTrip={roundTrip}
+        onRoundTripChange={setRoundTrip}
+        visitPlace={visitPlace}
+        onVisitPlaceChange={setVisitPlace}
+        purpose={purpose}
+        onPurposeChange={setPurpose}
+        customPurpose={customPurpose}
+        onCustomPurposeChange={setCustomPurpose}
+        odometerStart={odometerStart}
+        onOdometerStartChange={setOdometerStart}
+        odometerEnd={odometerEnd}
+        onOdometerEndChange={setOdometerEnd}
+        distance={distance}
+        notes={notes}
+        onNotesChange={setNotes}
+        disabled={isSubmitting || !canEdit}
+        isSubmitting={isSubmitting}
+        submitLabel="Uložiť zmeny"
+        cancelHref="/vodic/jazdy"
+      />
     </form>
   )
 }
