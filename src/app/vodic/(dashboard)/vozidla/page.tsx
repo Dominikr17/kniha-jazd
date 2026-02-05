@@ -19,11 +19,8 @@ export default async function MojeVozidlaPage() {
     <div className="container mx-auto max-w-4xl pb-20 sm:pb-0">
       {/* Hlavička */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <Car className="w-6 h-6" />
-          Moje vozidlá
-        </h1>
-        <p className="text-gray-500 mt-1">
+        <h1 className="text-2xl font-bold">Moje vozidlá</h1>
+        <p className="text-muted-foreground mt-1">
           Prehľad priradených vozidiel a ich termínov
         </p>
       </div>
