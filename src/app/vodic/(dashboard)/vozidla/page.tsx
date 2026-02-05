@@ -16,13 +16,10 @@ export default async function MojeVozidlaPage() {
   const vehicles = await getVehiclesWithDetails(supabase, driverId)
 
   return (
-    <div className="container mx-auto max-w-4xl pb-20 sm:pb-0">
-      {/* Hlavička */}
-      <div className="mb-6">
+    <div className="space-y-6 pb-20 sm:pb-6">
+      <div>
         <h1 className="text-2xl font-bold">Moje vozidlá</h1>
-        <p className="text-muted-foreground mt-1">
-          Prehľad priradených vozidiel a ich termínov
-        </p>
+        <p className="text-muted-foreground">Prehľad priradených vozidiel a ich termínov</p>
       </div>
 
       {/* Zoznam vozidiel */}
