@@ -43,7 +43,7 @@ export function DriverNewTripForm({ vehicles, driverId, driverName }: DriverNewT
   const [odometerStart, setOdometerStart] = useState('')
   const [odometerEnd, setOdometerEnd] = useState('')
   const [visitPlace, setVisitPlace] = useState('')
-  const [roundTrip, setRoundTrip] = useState(false)
+  const [roundTrip, setRoundTrip] = useState(true)
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastOdometer, setLastOdometer] = useState<number | null>(null)
@@ -332,12 +332,13 @@ export function DriverNewTripForm({ vehicles, driverId, driverName }: DriverNewT
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="odometerEnd">Tachometer koniec (km)</Label>
+            <Label htmlFor="odometerEnd">Tachometer koniec (km) *</Label>
             <Input
               id="odometerEnd"
               type="number"
               value={odometerEnd}
               onChange={(e) => setOdometerEnd(e.target.value)}
+              required
               disabled={isSubmitting}
               min={odometerStart ? parseInt(odometerStart) : 0}
             />

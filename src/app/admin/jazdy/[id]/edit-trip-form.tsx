@@ -256,12 +256,13 @@ export function EditTripForm({ trip, vehicles, drivers }: EditTripFormProps) {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="odometerEnd">Tachometer koniec (km)</Label>
+          <Label htmlFor="odometerEnd">Tachometer koniec (km) *</Label>
           <Input
             id="odometerEnd"
             type="number"
             value={odometerEnd}
             onChange={(e) => setOdometerEnd(e.target.value)}
+            required
             disabled={isSubmitting}
             min={odometerStart ? parseInt(odometerStart) : 0}
           />
