@@ -20,6 +20,19 @@ import { Car, Route, Fuel, BarChart3, Briefcase, LogOut, LucideIcon } from 'luci
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
+function getGreeting(): string {
+  const hour = new Date().getHours()
+  if (hour >= 6 && hour < 12) return 'Dobré ráno'
+  if (hour >= 12 && hour < 18) return 'Dobrý deň'
+  if (hour >= 18 && hour < 22) return 'Dobrý večer'
+  return 'Dobrý večer'
+}
+
+function getFirstName(name: string): string {
+  const parts = name.trim().split(/\s+/)
+  return parts[0]
+}
+
 interface MenuItem {
   title: string
   href: string
@@ -125,7 +138,9 @@ export function DriverSidebar({ driverName }: DriverSidebarProps) {
           />
         </Link>
         {driverName && (
-          <p className="mt-2 text-sm text-muted-foreground">{driverName}</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            {getGreeting()}, {getFirstName(driverName)}
+          </p>
         )}
       </SidebarHeader>
       <SidebarContent>
