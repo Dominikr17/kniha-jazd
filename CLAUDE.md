@@ -283,10 +283,12 @@ Stránka `/vodic/statistiky` zobrazuje vodičovi prehľad vlastných jázd a spo
 7. Toast notifikácie cez `sonner` (`toast.success()`, `toast.error()`)
 8. Pre mazanie záznamov používaj generický `<DeleteButton>` z `@/components/delete-button`
 9. Pre formuláre jázd používaj zdieľaný `<TripFormFields>` z `@/components/trip-form-fields` — každý formulár si ponecháva vlastný state a submit logiku
-10. Utility funkcie pridávaj do `src/lib/utils.ts`
-11. V `.map()` callbackoch používaj výstižné názvy premenných (vehicle, driver, trip - nie v, d, t)
-12. Pri redirecte z POST API route používaj **303 status** (`NextResponse.redirect(url, 303)`), aby sa zmenila metóda na GET
-13. **NIKDY nepoužívať `toISOString().split('T')[0]`** na lokálne dátumy — v CET (UTC+1) to posunie dátum o deň dozadu. Použiť `getFullYear()/getMonth()/getDate()` s `padStart(2, '0')`
+10. Pre formuláre tankovania používaj zdieľaný `<FuelFormFields>` z `@/components/fuel-form-fields`
+11. Utility funkcie pridávaj do `src/lib/utils.ts`
+12. V `.map()` callbackoch používaj výstižné názvy premenných (vehicle, driver, trip - nie v, d, t)
+13. Pri redirecte z POST API route používaj **303 status** (`NextResponse.redirect(url, 303)`), aby sa zmenila metóda na GET
+14. **NIKDY nepoužívať `toISOString().split('T')[0]`** na lokálne dátumy — použiť `getLocalDateString()` z `@/lib/utils`
+15. **Pred štylovaním nových komponentov** vždy overiť existujúce vzory (`grep` na podobné prvky) a dodržať zavedené konvencie (napr. h1 nadpisy bez farieb, `text-muted-foreground` pre popisy)
 
 ## Automatický výpočet stavu nádrže
 Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
