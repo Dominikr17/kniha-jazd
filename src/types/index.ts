@@ -124,6 +124,7 @@ export interface Trip {
   odometer_start: number
   odometer_end: number | null
   distance: number | null
+  round_trip: boolean
   notes: string | null
   created_at: string
   updated_at: string

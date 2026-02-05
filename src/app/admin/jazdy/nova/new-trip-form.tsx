@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Loader2, Save, AlertTriangle } from 'lucide-react'
 import { toast } from 'sonner'
 import { TRIP_PURPOSES, TRIP_TYPES, TripType } from '@/types'
@@ -39,6 +40,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
   const [customPurpose, setCustomPurpose] = useState('')
   const [odometerStart, setOdometerStart] = useState('')
   const [odometerEnd, setOdometerEnd] = useState('')
+  const [roundTrip, setRoundTrip] = useState(false)
   const [notes, setNotes] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [lastOdometer, setLastOdometer] = useState<number | null>(null)
@@ -130,6 +132,7 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
       purpose: finalPurpose.trim(),
       odometer_start: parseInt(odometerStart),
       odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
+      round_trip: roundTrip,
       notes: notes.trim() || null,
     }
 
@@ -275,6 +278,19 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
             placeholder="Cieľové miesto"
           />
         </div>
+      </div>
+
+      {/* Spiatočná jazda */}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="roundTrip"
+          checked={roundTrip}
+          onCheckedChange={(checked) => setRoundTrip(checked === true)}
+          disabled={isSubmitting}
+        />
+        <Label htmlFor="roundTrip" className="font-normal cursor-pointer">
+          Aj cesta späť (spiatočná jazda)
+        </Label>
       </div>
 
       {/* Účel cesty */}

@@ -15,6 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Checkbox } from '@/components/ui/checkbox'
 import { Loader2, Save } from 'lucide-react'
 import { toast } from 'sonner'
 import { Trip, TRIP_PURPOSES, DRIVER_EDIT_TIME_LIMIT_MINUTES } from '@/types'
@@ -49,6 +50,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
   const [customPurpose, setCustomPurpose] = useState(isPredefinedPurpose ? '' : trip.purpose)
   const [odometerStart, setOdometerStart] = useState(trip.odometer_start.toString())
   const [odometerEnd, setOdometerEnd] = useState(trip.odometer_end?.toString() || '')
+  const [roundTrip, setRoundTrip] = useState(trip.round_trip)
   const [notes, setNotes] = useState(trip.notes || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
@@ -103,6 +105,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       purpose: trip.purpose,
       odometer_start: trip.odometer_start,
       odometer_end: trip.odometer_end,
+      round_trip: trip.round_trip,
       notes: trip.notes,
     }
 
@@ -116,6 +119,7 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       purpose: finalPurpose.trim(),
       odometer_start: parseInt(odometerStart),
       odometer_end: odometerEnd ? parseInt(odometerEnd) : null,
+      round_trip: roundTrip,
       notes: notes.trim() || null,
     }
 
@@ -228,6 +232,19 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
             disabled={isSubmitting || !canEdit}
           />
         </div>
+      </div>
+
+      {/* Spiatočná jazda */}
+      <div className="flex items-center space-x-2">
+        <Checkbox
+          id="roundTrip"
+          checked={roundTrip}
+          onCheckedChange={(checked) => setRoundTrip(checked === true)}
+          disabled={isSubmitting || !canEdit}
+        />
+        <Label htmlFor="roundTrip" className="font-normal cursor-pointer">
+          Aj cesta späť (spiatočná jazda)
+        </Label>
       </div>
 
       {/* Účel cesty */}

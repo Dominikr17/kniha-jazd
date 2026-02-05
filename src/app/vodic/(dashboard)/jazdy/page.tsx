@@ -123,7 +123,7 @@ export default async function DriverTripsPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          {trip.route_from} - {trip.route_to}
+                          {trip.route_from} → {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}
                         </TableCell>
                         <TableCell>{trip.purpose}</TableCell>
                         <TableCell>
@@ -159,7 +159,7 @@ export default async function DriverTripsPage() {
                     <div className="flex justify-between items-start">
                       <div>
                         <div className="font-medium">
-                          {trip.route_from} - {trip.route_to}
+                          {trip.route_from} → {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {format(parseISO(trip.date), 'd.M.yyyy', { locale: sk })}

@@ -161,7 +161,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                       </TableCell>
                       <TableCell>
                         <div className="max-w-[200px] truncate">
-                          {trip.route_from} → {trip.route_to}
+                          {trip.route_from} → {trip.route_to}{trip.round_trip && ` → ${trip.route_from}`}
                         </div>
                         <div className="text-xs text-muted-foreground truncate max-w-[200px]">
                           {trip.purpose}
