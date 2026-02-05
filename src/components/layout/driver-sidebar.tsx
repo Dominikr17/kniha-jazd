@@ -38,7 +38,7 @@ const DRIVER_MENU_ITEMS: MenuItem[] = [
     icon: Fuel,
   },
   {
-    title: 'Služobné cesty',
+    title: 'Moje služobné cesty',
     href: '/vodic/sluzobne-cesty',
     icon: Briefcase,
   },
