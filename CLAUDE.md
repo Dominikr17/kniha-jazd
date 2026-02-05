@@ -167,14 +167,15 @@ npm run lint     # ESLint
 |-----------|-------|
 | **Rate limiting** | PIN: max 5 pokusov, potom 15 min blok |
 | **PIN session expirácia** | Cookie vyprší po 8 hodinách |
+| **PIN timing-safe** | Porovnanie PINu cez `crypto.timingSafeEqual` (ochrana pred timing attack) |
 | **Podpísané cookies** | Driver session používa HMAC SHA256 podpis |
 | **Open redirect ochrana** | Validácia redirect URL len na interné cesty |
-| **Admin API autorizácia** | Všetky admin API routes overujú Supabase Auth (vrátane fuel-inventory) |
+| **Admin API autorizácia** | Všetky admin API routes overujú Supabase Auth (vrátane fuel-inventory, pending-count) |
 | **Ownership validácia** | Vodič môže mazať/upravovať len svoje záznamy |
 | **Časový limit** | Vodič môže upraviť/vymazať jazdu/tankovanie len do 15 minút od vytvorenia |
 | **Backend validácia** | Časový limit a ownership sa overujú aj na backende (nie len frontend) |
-| **HTTP hlavičky** | X-Frame-Options, X-Content-Type-Options, Referrer-Policy |
-| **Input validácia** | Kontrola rozsahov, enum hodnôt, UUID formátu, dátumov |
+| **HTTP hlavičky** | X-Frame-Options, X-Content-Type-Options, Referrer-Policy, HSTS, CSP |
+| **Input validácia** | UUID formát, rozsahy čísel, enum hodnôt, formát dátumov, dĺžka reťazcov |
 | **Povinné env premenné** | DRIVER_SESSION_SECRET musí byť nastavený (žiadny fallback) |
 
 ### Environment variables
@@ -191,11 +192,11 @@ npm run lint     # ESLint
 ### Bezpečnostné súbory
 - `src/proxy.ts` - IP + PIN kontrola, bezpečnostné hlavičky
 - `src/app/pin/page.tsx` - PIN stránka s validáciou redirect
-- `src/app/api/pin/verify/route.ts` - Rate limiting, overenie PINu
+- `src/app/api/pin/verify/route.ts` - Rate limiting, timing-safe overenie PINu
 - `src/lib/driver-session.ts` - Podpísané driver cookies (HMAC)
 - `src/lib/report-utils.ts` - Validácia URL parametrov (isValidPeriod, isValidUUID, safeParseDate)
 - `src/components/delete-button.tsx` - Ownership validácia
-- `next.config.ts` - HTTP bezpečnostné hlavičky
+- `next.config.ts` - HTTP bezpečnostné hlavičky (HSTS, CSP, X-Frame-Options, ...)
 
 ## Prístupové role
 | Rola | Prístup | Funkcie |
