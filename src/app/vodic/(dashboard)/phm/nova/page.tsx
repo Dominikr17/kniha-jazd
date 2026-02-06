@@ -44,29 +44,40 @@ export default function DriverNewFuelPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Získanie driver ID z API (cookies sú httpOnly)
-      const driverRes = await fetch('/api/driver/me')
-      const driverData = await driverRes.json()
-      setDriverId(driverData.driverId || null)
-      setDriverName(driverData.driverName || null)
+      try {
+        // Získanie driver ID z API (cookies sú httpOnly)
+        const driverRes = await fetch('/api/driver/me')
+        const driverData = await driverRes.json()
+        if (!driverData.driverId) {
+          toast.error('Nie ste prihlásený ako vodič')
+          router.push('/vodic')
+          return
+        }
+        setDriverId(driverData.driverId)
+        setDriverName(driverData.driverName || null)
 
-      // Načítať len priradené vozidlá
-      const vehiclesRes = await fetch('/api/driver/vehicles')
-      const vehiclesData = await vehiclesRes.json()
-      const loadedVehicles = vehiclesData.vehicles || []
-      setVehicles(loadedVehicles)
+        // Načítať len priradené vozidlá
+        const vehiclesRes = await fetch('/api/driver/vehicles')
+        const vehiclesData = await vehiclesRes.json()
+        const loadedVehicles = vehiclesData.vehicles || []
+        setVehicles(loadedVehicles)
 
-      // Ak má vodič len jedno vozidlo, predvyplníme ho
-      if (loadedVehicles.length === 1) {
-        setVehicleId(loadedVehicles[0].id)
-        setFuelType(loadedVehicles[0].fuel_type)
+        // Ak má vodič len jedno vozidlo, predvyplníme ho
+        if (loadedVehicles.length === 1) {
+          setVehicleId(loadedVehicles[0].id)
+          setFuelType(loadedVehicles[0].fuel_type)
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        toast.error('Chyba pri načítaní údajov')
+        router.push('/vodic')
+      } finally {
+        setIsLoading(false)
       }
-
-      setIsLoading(false)
     }
 
     fetchData()
-  }, [])
+  }, [router])
 
   // Nastavenie typu paliva podľa vozidla
   const handleVehicleChange = (newVehicleId: string) => {

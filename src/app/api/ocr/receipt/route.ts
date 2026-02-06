@@ -136,7 +136,8 @@ export async function POST(request: NextRequest) {
     } catch {
       console.error('Failed to parse OCR response:', textBlock.text)
       return NextResponse.json({
-        success: true,
+        success: false,
+        error: 'Nepodarilo sa rozpoznať údaje z bloku',
         data: {},
       })
     }

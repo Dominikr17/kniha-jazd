@@ -6,40 +6,45 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params
-  const supabase = await createClient()
+  try {
+    const { id } = await params
+    const supabase = await createClient()
 
-  const { data: trip, error } = await supabase
-    .from('business_trips')
-    .select(`
-      *,
-      driver:drivers(*),
-      border_crossings(*),
-      trip_allowances(*),
-      trip_expenses(*),
-      business_trip_trips(*, trip:trips(*, vehicle:vehicles(*)))
-    `)
-    .eq('id', id)
-    .single()
+    const { data: trip, error } = await supabase
+      .from('business_trips')
+      .select(`
+        *,
+        driver:drivers(*),
+        border_crossings(*),
+        trip_allowances(*),
+        trip_expenses(*),
+        business_trip_trips(*, trip:trips(*, vehicle:vehicles(*)))
+      `)
+      .eq('id', id)
+      .single()
 
-  if (error || !trip) {
-    return NextResponse.json({ error: 'Služobná cesta nenájdená' }, { status: 404 })
+    if (error || !trip) {
+      return NextResponse.json({ error: 'Služobná cesta nenájdená' }, { status: 404 })
+    }
+
+    return NextResponse.json(trip)
+  } catch (error) {
+    console.error('Error getting business trip:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-
-  return NextResponse.json(trip)
 }
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params
-  const session = await getDriverSession()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
+    const { id } = await params
+    const session = await getDriverSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const supabase = await createClient()
 
     // Overiť ownership a status
@@ -104,13 +109,19 @@ export async function PUT(
     }
 
     // Nahradiť child záznamy (delete + insert)
-    await supabase.from('border_crossings').delete().eq('business_trip_id', id)
-    await supabase.from('trip_allowances').delete().eq('business_trip_id', id)
-    await supabase.from('trip_expenses').delete().eq('business_trip_id', id)
-    await supabase.from('business_trip_trips').delete().eq('business_trip_id', id)
+    const { error: delCrossingsErr } = await supabase.from('border_crossings').delete().eq('business_trip_id', id)
+    const { error: delAllowancesErr } = await supabase.from('trip_allowances').delete().eq('business_trip_id', id)
+    const { error: delExpensesErr } = await supabase.from('trip_expenses').delete().eq('business_trip_id', id)
+    const { error: delLinksErr } = await supabase.from('business_trip_trips').delete().eq('business_trip_id', id)
+
+    const deleteError = delCrossingsErr || delAllowancesErr || delExpensesErr || delLinksErr
+    if (deleteError) {
+      console.error('Error deleting child records:', deleteError)
+      return NextResponse.json({ error: 'Chyba pri aktualizácii podradených záznamov' }, { status: 500 })
+    }
 
     if (border_crossings && border_crossings.length > 0) {
-      await supabase.from('border_crossings').insert(
+      const { error: crossingsError } = await supabase.from('border_crossings').insert(
         border_crossings.map((bc: Record<string, unknown>) => ({
           business_trip_id: id,
           crossing_date: bc.crossing_date,
@@ -120,10 +131,14 @@ export async function PUT(
           direction: bc.direction,
         }))
       )
+      if (crossingsError) {
+        console.error('Error inserting border crossings:', crossingsError)
+        return NextResponse.json({ error: 'Chyba pri ukladaní prechodov hraníc' }, { status: 500 })
+      }
     }
 
     if (allowances && allowances.length > 0) {
-      await supabase.from('trip_allowances').insert(
+      const { error: allowancesError } = await supabase.from('trip_allowances').insert(
         allowances.map((a: Record<string, unknown>) => ({
           business_trip_id: id,
           date: a.date,
@@ -139,10 +154,14 @@ export async function PUT(
           currency: a.currency || 'EUR',
         }))
       )
+      if (allowancesError) {
+        console.error('Error inserting allowances:', allowancesError)
+        return NextResponse.json({ error: 'Chyba pri ukladaní stravného' }, { status: 500 })
+      }
     }
 
     if (expenses && expenses.length > 0) {
-      await supabase.from('trip_expenses').insert(
+      const { error: expensesError } = await supabase.from('trip_expenses').insert(
         expenses.map((e: Record<string, unknown>) => ({
           business_trip_id: id,
           expense_type: e.expense_type,
@@ -153,15 +172,23 @@ export async function PUT(
           receipt_number: e.receipt_number || null,
         }))
       )
+      if (expensesError) {
+        console.error('Error inserting expenses:', expensesError)
+        return NextResponse.json({ error: 'Chyba pri ukladaní výdavkov' }, { status: 500 })
+      }
     }
 
     if (linked_trip_ids && linked_trip_ids.length > 0) {
-      await supabase.from('business_trip_trips').insert(
+      const { error: linksError } = await supabase.from('business_trip_trips').insert(
         (linked_trip_ids as string[]).map((tripId: string) => ({
           business_trip_id: id,
           trip_id: tripId,
         }))
       )
+      if (linksError) {
+        console.error('Error inserting trip links:', linksError)
+        return NextResponse.json({ error: 'Chyba pri prepájaní jázd' }, { status: 500 })
+      }
     }
 
     // Audit log
@@ -187,13 +214,13 @@ export async function DELETE(
   _request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params
-  const session = await getDriverSession()
-  if (!session) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   try {
+    const { id } = await params
+    const session = await getDriverSession()
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const supabase = await createClient()
 
     const { data: existing, error: fetchError } = await supabase

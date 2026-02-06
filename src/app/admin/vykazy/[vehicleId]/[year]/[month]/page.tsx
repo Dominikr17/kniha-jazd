@@ -8,6 +8,8 @@ import { ReportForm } from './report-form'
 import { ExportButtons } from './export-buttons'
 import { DeleteReportButton } from './delete-report-button'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { isValidUUID } from '@/lib/report-utils'
+import { notFound } from 'next/navigation'
 
 interface PageProps {
   params: Promise<{
@@ -20,10 +22,22 @@ interface PageProps {
 export default async function ReportDetailPage({ params }: PageProps) {
   const { vehicleId, year, month } = await params
 
+  // Validácia parametrov
+  if (!isValidUUID(vehicleId)) {
+    notFound()
+  }
+
+  const parsedYear = parseInt(year)
+  const parsedMonth = parseInt(month)
+
+  if (isNaN(parsedYear) || isNaN(parsedMonth) || parsedYear < 2000 || parsedYear > 2100 || parsedMonth < 1 || parsedMonth > 12) {
+    notFound()
+  }
+
   const reportData = await calculateMonthlyReportData({
     vehicleId,
-    year: parseInt(year),
-    month: parseInt(month)
+    year: parsedYear,
+    month: parsedMonth
   })
 
   if (!reportData) {

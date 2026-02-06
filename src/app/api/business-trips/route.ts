@@ -89,7 +89,11 @@ export async function POST(request: NextRequest) {
         country_to: bc.country_to,
         direction: bc.direction,
       }))
-      await supabase.from('border_crossings').insert(crossingsToInsert)
+      const { error: crossingsError } = await supabase.from('border_crossings').insert(crossingsToInsert)
+      if (crossingsError) {
+        console.error('Error inserting border crossings:', crossingsError)
+        return NextResponse.json({ error: 'Chyba pri ukladaní prechodov hraníc' }, { status: 500 })
+      }
     }
 
     // Vložiť stravné
@@ -108,7 +112,11 @@ export async function POST(request: NextRequest) {
         net_amount: a.net_amount,
         currency: a.currency || 'EUR',
       }))
-      await supabase.from('trip_allowances').insert(allowancesToInsert)
+      const { error: allowancesError } = await supabase.from('trip_allowances').insert(allowancesToInsert)
+      if (allowancesError) {
+        console.error('Error inserting allowances:', allowancesError)
+        return NextResponse.json({ error: 'Chyba pri ukladaní stravného' }, { status: 500 })
+      }
     }
 
     // Vložiť výdavky
@@ -122,7 +130,11 @@ export async function POST(request: NextRequest) {
         date: e.date,
         receipt_number: e.receipt_number || null,
       }))
-      await supabase.from('trip_expenses').insert(expensesToInsert)
+      const { error: expensesError } = await supabase.from('trip_expenses').insert(expensesToInsert)
+      if (expensesError) {
+        console.error('Error inserting expenses:', expensesError)
+        return NextResponse.json({ error: 'Chyba pri ukladaní výdavkov' }, { status: 500 })
+      }
     }
 
     // Väzba na jazdy
@@ -131,7 +143,11 @@ export async function POST(request: NextRequest) {
         business_trip_id: businessTripId,
         trip_id: tripId,
       }))
-      await supabase.from('business_trip_trips').insert(linksToInsert)
+      const { error: linksError } = await supabase.from('business_trip_trips').insert(linksToInsert)
+      if (linksError) {
+        console.error('Error inserting trip links:', linksError)
+        return NextResponse.json({ error: 'Chyba pri prepájaní jázd' }, { status: 500 })
+      }
     }
 
     // Audit log

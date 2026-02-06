@@ -98,6 +98,10 @@ export default function EditBusinessTripPage() {
         if (driverData.driverId) {
           setDriverId(driverData.driverId)
           setDriverName(driverData.driverName || '')
+        } else {
+          toast.error('Nie ste prihlásený ako vodič')
+          router.push('/vodic')
+          return
         }
 
         // Načítať existujúcu SC

@@ -138,7 +138,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                           {format(parseISO(trip.date), 'd.M.yyyy', { locale: sk })}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {trip.time_start.slice(0, 5)}
+                          {trip.time_start ? trip.time_start.slice(0, 5) : '–'}
                           {trip.time_end && ` - ${trip.time_end.slice(0, 5)}`}
                         </div>
                       </TableCell>

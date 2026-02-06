@@ -21,6 +21,10 @@ export async function POST(
       return NextResponse.json({ error: 'Chýba dátum odchodu/návratu' }, { status: 400 })
     }
 
+    if (departure_date > return_date) {
+      return NextResponse.json({ error: 'Dátum odchodu nemôže byť po dátume návratu' }, { status: 400 })
+    }
+
     const calculationInput: AllowanceCalculationInput = {
       departureDate: departure_date,
       returnDate: return_date,

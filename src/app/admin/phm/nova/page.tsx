@@ -44,14 +44,25 @@ export default function NewFuelPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [{ data: vehiclesData }, { data: driversData }] = await Promise.all([
-        supabase.from('vehicles').select('*').order('name'),
-        supabase.from('drivers').select('*').order('last_name'),
-      ])
+      try {
+        const [{ data: vehiclesData, error: vehiclesError }, { data: driversData, error: driversError }] = await Promise.all([
+          supabase.from('vehicles').select('*').order('name'),
+          supabase.from('drivers').select('*').order('last_name'),
+        ])
 
-      setVehicles(vehiclesData || [])
-      setDrivers(driversData || [])
-      setIsLoading(false)
+        if (vehiclesError || driversError) {
+          console.error('Error fetching data:', vehiclesError || driversError)
+          toast.error('Chyba pri načítaní údajov')
+        }
+
+        setVehicles(vehiclesData || [])
+        setDrivers(driversData || [])
+      } catch (error) {
+        console.error('Error fetching data:', error)
+        toast.error('Chyba pri načítaní údajov')
+      } finally {
+        setIsLoading(false)
+      }
     }
 
     fetchData()

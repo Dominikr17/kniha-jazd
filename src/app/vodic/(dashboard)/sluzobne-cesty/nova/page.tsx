@@ -95,13 +95,17 @@ export default function NewBusinessTripPage() {
         if (data.driverId) {
           setDriverId(data.driverId)
           setDriverName(data.driverName || '')
+        } else {
+          toast.error('Nie ste prihlásený ako vodič')
+          router.push('/vodic')
         }
       } catch {
         toast.error('Chyba pri načítaní vodiča')
+        router.push('/vodic')
       }
     }
     fetchDriver()
-  }, [])
+  }, [router])
 
   // Auto-fill callback z kroku 1
   const handleAutoFill = useCallback((data: {
