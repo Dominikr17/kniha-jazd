@@ -251,7 +251,6 @@ export default async function DriverBusinessTripDetailPage({
         status={status}
         driverId={driverId}
         driverName={driverName || ''}
-        tripData={trip}
       />
     </div>
   )

@@ -14,11 +14,10 @@ interface BusinessTripActionsProps {
   status: BusinessTripStatus
   driverId: string
   driverName: string
-  tripData: Record<string, unknown>
 }
 
 export default function BusinessTripActions({
-  tripId, status, driverId, driverName, tripData,
+  tripId, status, driverId, driverName,
 }: BusinessTripActionsProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)

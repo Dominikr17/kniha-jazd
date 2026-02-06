@@ -8,15 +8,7 @@ import {
 import { Eye, Briefcase } from 'lucide-react'
 import { format } from 'date-fns'
 import { sk } from 'date-fns/locale'
-import { BUSINESS_TRIP_STATUS, type BusinessTripStatus } from '@/types'
-
-const STATUS_COLORS: Record<BusinessTripStatus, string> = {
-  draft: 'bg-gray-100 text-gray-800',
-  submitted: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-  paid: 'bg-purple-100 text-purple-800',
-}
+import { BUSINESS_TRIP_STATUS, BUSINESS_TRIP_STATUS_COLORS, type BusinessTripStatus } from '@/types'
 
 interface SearchParams {
   status?: string
@@ -74,7 +66,7 @@ export default async function AdminBusinessTripsPage({
           <Link key={key} href={`/admin/sluzobne-cesty?status=${key}${params.driver ? `&driver=${params.driver}` : ''}`}>
             <Badge
               variant={params.status === key ? 'default' : 'outline'}
-              className={`cursor-pointer ${params.status === key ? STATUS_COLORS[key as BusinessTripStatus] : ''}`}
+              className={`cursor-pointer ${params.status === key ? BUSINESS_TRIP_STATUS_COLORS[key as BusinessTripStatus] : ''}`}
             >
               {label}
             </Badge>
@@ -153,7 +145,7 @@ export default async function AdminBusinessTripsPage({
                         {format(new Date(trip.departure_date), 'd.M.yyyy', { locale: sk })}
                       </TableCell>
                       <TableCell>
-                        <Badge className={STATUS_COLORS[trip.status as BusinessTripStatus]}>
+                        <Badge className={BUSINESS_TRIP_STATUS_COLORS[trip.status as BusinessTripStatus]}>
                           {BUSINESS_TRIP_STATUS[trip.status as BusinessTripStatus]}
                         </Badge>
                       </TableCell>
@@ -186,7 +178,7 @@ export default async function AdminBusinessTripsPage({
                 >
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-mono text-sm text-muted-foreground">{trip.trip_number}</span>
-                    <Badge className={STATUS_COLORS[trip.status as BusinessTripStatus]}>
+                    <Badge className={BUSINESS_TRIP_STATUS_COLORS[trip.status as BusinessTripStatus]}>
                       {BUSINESS_TRIP_STATUS[trip.status as BusinessTripStatus]}
                     </Badge>
                   </div>

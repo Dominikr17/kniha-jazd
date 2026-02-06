@@ -307,6 +307,13 @@ export const AUDIT_OPERATIONS = {
 // Časový limit na úpravu jazdy vodičom (v minútach)
 export const DRIVER_EDIT_TIME_LIMIT_MINUTES = 15
 
+// Prahy expirácie dokumentov (v dňoch)
+export const EXPIRY_CRITICAL_DAYS = 7
+export const EXPIRY_WARNING_DAYS = 30
+
+// Tolerancia spotreby paliva (20% nad normu)
+export const FUEL_CONSUMPTION_TOLERANCE = 0.2
+
 // Názvy mesiacov po slovensky
 export const MONTHS_SK = [
   'Január', 'Február', 'Marec', 'Apríl', 'Máj', 'Jún',
@@ -450,6 +457,14 @@ export const BUSINESS_TRIP_STATUS = {
 } as const
 
 export type BusinessTripStatus = keyof typeof BUSINESS_TRIP_STATUS
+
+export const BUSINESS_TRIP_STATUS_COLORS: Record<BusinessTripStatus, string> = {
+  draft: 'bg-gray-100 text-gray-800',
+  submitted: 'bg-blue-100 text-blue-800',
+  approved: 'bg-green-100 text-green-800',
+  rejected: 'bg-red-100 text-red-800',
+  paid: 'bg-purple-100 text-purple-800',
+}
 
 // Dopravné prostriedky
 export const TRANSPORT_TYPES = {

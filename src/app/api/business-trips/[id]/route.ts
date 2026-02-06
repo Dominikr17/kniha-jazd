@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getDriverSession } from '@/lib/driver-session'
 import { isValidUUID } from '@/lib/report-utils'
+import type { BorderCrossingInsert, TripAllowanceInsert, TripExpenseInsert } from '@/types'
 
 export async function GET(
   _request: NextRequest,
@@ -146,7 +147,7 @@ export async function PUT(
 
     if (border_crossings && border_crossings.length > 0) {
       const { error: crossingsError } = await supabase.from('border_crossings').insert(
-        border_crossings.map((bc: Record<string, unknown>) => ({
+        border_crossings.map((bc: Partial<BorderCrossingInsert>) => ({
           business_trip_id: id,
           crossing_date: bc.crossing_date,
           crossing_name: bc.crossing_name,
@@ -163,7 +164,7 @@ export async function PUT(
 
     if (allowances && allowances.length > 0) {
       const { error: allowancesError } = await supabase.from('trip_allowances').insert(
-        allowances.map((a: Record<string, unknown>) => ({
+        allowances.map((a: Partial<TripAllowanceInsert>) => ({
           business_trip_id: id,
           date: a.date,
           country: a.country,
@@ -186,7 +187,7 @@ export async function PUT(
 
     if (expenses && expenses.length > 0) {
       const { error: expensesError } = await supabase.from('trip_expenses').insert(
-        expenses.map((e: Record<string, unknown>) => ({
+        expenses.map((e: Partial<TripExpenseInsert>) => ({
           business_trip_id: id,
           expense_type: e.expense_type,
           description: e.description,

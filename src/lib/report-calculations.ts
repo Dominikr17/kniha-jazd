@@ -1,4 +1,4 @@
-import { Trip, FuelRecord, Vehicle, Driver } from '@/types'
+import { Trip, FuelRecord, Vehicle, Driver, FUEL_CONSUMPTION_TOLERANCE } from '@/types'
 
 /**
  * Vypočíta priemernú spotrebu paliva z fuel records (l/100km)
@@ -54,7 +54,7 @@ export function getConsumptionStatus(
 ): 'excellent' | 'good' | 'warning' | 'critical' | 'unknown' {
   if (!rated || actual === 0) return 'unknown'
 
-  const tolerance = rated * 0.2 // 20% tolerancia
+  const tolerance = rated * FUEL_CONSUMPTION_TOLERANCE
   const limit = rated + tolerance
 
   if (actual <= rated) return 'excellent'

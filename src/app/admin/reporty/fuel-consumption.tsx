@@ -16,7 +16,7 @@ import {
   Line,
   ReferenceLine,
 } from 'recharts'
-import { FuelRecord, Vehicle } from '@/types'
+import { FuelRecord, Vehicle, FUEL_CONSUMPTION_TOLERANCE } from '@/types'
 import { format, subMonths } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import { getConsumptionStatus, formatNumber } from '@/lib/report-calculations'
@@ -50,7 +50,7 @@ export function FuelConsumption({ vehicles, fuelRecords }: FuelConsumptionProps)
 
     const avgConsumption = totalDistance > 0 ? (totalLiters / totalDistance) * 100 : 0
     const ratedConsumption = vehicle.rated_consumption
-    const tolerance = ratedConsumption ? ratedConsumption * 0.2 : 0 // 20% tolerancia
+    const tolerance = ratedConsumption ? ratedConsumption * FUEL_CONSUMPTION_TOLERANCE : 0
     const limit = ratedConsumption ? ratedConsumption + tolerance : null
     const difference = ratedConsumption && avgConsumption > 0
       ? Number((avgConsumption - ratedConsumption).toFixed(1))

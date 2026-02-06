@@ -10,16 +10,8 @@ import {
 import { Plus, Briefcase, Eye } from 'lucide-react'
 import { format } from 'date-fns'
 import { sk } from 'date-fns/locale'
-import { BUSINESS_TRIP_STATUS, type BusinessTripStatus } from '@/types'
+import { BUSINESS_TRIP_STATUS, BUSINESS_TRIP_STATUS_COLORS, type BusinessTripStatus } from '@/types'
 import { DeleteButton } from '@/components/delete-button'
-
-const STATUS_COLORS: Record<BusinessTripStatus, string> = {
-  draft: 'bg-gray-100 text-gray-800',
-  submitted: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-  paid: 'bg-purple-100 text-purple-800',
-}
 
 export default async function DriverBusinessTripsPage() {
   const driverId = await getDriverId()
@@ -107,7 +99,7 @@ export default async function DriverBusinessTripsPage() {
                       {format(new Date(trip.departure_date), 'd.M.yyyy', { locale: sk })}
                     </TableCell>
                     <TableCell>
-                      <Badge className={STATUS_COLORS[trip.status as BusinessTripStatus]}>
+                      <Badge className={BUSINESS_TRIP_STATUS_COLORS[trip.status as BusinessTripStatus]}>
                         {BUSINESS_TRIP_STATUS[trip.status as BusinessTripStatus]}
                       </Badge>
                     </TableCell>
@@ -153,7 +145,7 @@ export default async function DriverBusinessTripsPage() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <span className="font-mono text-sm text-muted-foreground">{trip.trip_number}</span>
-                  <Badge className={STATUS_COLORS[trip.status as BusinessTripStatus]}>
+                  <Badge className={BUSINESS_TRIP_STATUS_COLORS[trip.status as BusinessTripStatus]}>
                     {BUSINESS_TRIP_STATUS[trip.status as BusinessTripStatus]}
                   </Badge>
                 </div>

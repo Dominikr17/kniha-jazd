@@ -2,6 +2,7 @@
 
 import { differenceInDays, parseISO, format } from 'date-fns'
 import { sk } from 'date-fns/locale'
+import { EXPIRY_CRITICAL_DAYS, EXPIRY_WARNING_DAYS } from '@/types'
 
 interface StatusBadgeProps {
   label: string
@@ -39,10 +40,10 @@ function getExpiryStatus(validUntil: string | null | undefined): { type: StatusT
   if (daysUntilExpiry === 0) {
     return { type: 'critical', text: 'DNES!' }
   }
-  if (daysUntilExpiry < 7) {
+  if (daysUntilExpiry < EXPIRY_CRITICAL_DAYS) {
     return { type: 'critical', text: formatDaysText(daysUntilExpiry) }
   }
-  if (daysUntilExpiry < 30) {
+  if (daysUntilExpiry < EXPIRY_WARNING_DAYS) {
     return { type: 'warning', text: formatDaysText(daysUntilExpiry) }
   }
 

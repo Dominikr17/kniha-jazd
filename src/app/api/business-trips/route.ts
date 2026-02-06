@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getDriverSession } from '@/lib/driver-session'
+import type { BorderCrossingInsert, TripAllowanceInsert, TripExpenseInsert } from '@/types'
 
 export async function POST(request: NextRequest) {
   const session = await getDriverSession()
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     // Vložiť prechody hraníc
     if (border_crossings && border_crossings.length > 0) {
-      const crossingsToInsert = border_crossings.map((bc: Record<string, unknown>) => ({
+      const crossingsToInsert = border_crossings.map((bc: Partial<BorderCrossingInsert>) => ({
         business_trip_id: businessTripId,
         crossing_date: bc.crossing_date,
         crossing_name: bc.crossing_name,
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
 
     // Vložiť stravné
     if (allowances && allowances.length > 0) {
-      const allowancesToInsert = allowances.map((a: Record<string, unknown>) => ({
+      const allowancesToInsert = allowances.map((a: Partial<TripAllowanceInsert>) => ({
         business_trip_id: businessTripId,
         date: a.date,
         country: a.country,
@@ -121,7 +122,7 @@ export async function POST(request: NextRequest) {
 
     // Vložiť výdavky
     if (expenses && expenses.length > 0) {
-      const expensesToInsert = expenses.map((e: Record<string, unknown>) => ({
+      const expensesToInsert = expenses.map((e: Partial<TripExpenseInsert>) => ({
         business_trip_id: businessTripId,
         expense_type: e.expense_type,
         description: e.description,
@@ -231,7 +232,7 @@ export async function POST(request: NextRequest) {
 
         // Klonovať prechody hraníc
         if (border_crossings && border_crossings.length > 0) {
-          const cloneCrossings = border_crossings.map((bc: Record<string, unknown>) => ({
+          const cloneCrossings = border_crossings.map((bc: Partial<BorderCrossingInsert>) => ({
             business_trip_id: clonedTripId,
             crossing_date: bc.crossing_date,
             crossing_name: bc.crossing_name,
@@ -244,7 +245,7 @@ export async function POST(request: NextRequest) {
 
         // Klonovať stravné
         if (allowances && allowances.length > 0) {
-          const cloneAllowances = allowances.map((a: Record<string, unknown>) => ({
+          const cloneAllowances = allowances.map((a: Partial<TripAllowanceInsert>) => ({
             business_trip_id: clonedTripId,
             date: a.date,
             country: a.country,
@@ -263,7 +264,7 @@ export async function POST(request: NextRequest) {
 
         // Klonovať výdavky
         if (expenses && expenses.length > 0) {
-          const cloneExpenses = expenses.map((e: Record<string, unknown>) => ({
+          const cloneExpenses = expenses.map((e: Partial<TripExpenseInsert>) => ({
             business_trip_id: clonedTripId,
             expense_type: e.expense_type,
             description: e.description,

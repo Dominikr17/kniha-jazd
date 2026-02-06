@@ -7,18 +7,10 @@ import { ArrowLeft } from 'lucide-react'
 import { format } from 'date-fns'
 import { sk } from 'date-fns/locale'
 import {
-  BUSINESS_TRIP_STATUS, TRANSPORT_TYPES, EXPENSE_TYPES, COUNTRY_NAMES,
+  BUSINESS_TRIP_STATUS, BUSINESS_TRIP_STATUS_COLORS, TRANSPORT_TYPES, EXPENSE_TYPES, COUNTRY_NAMES,
   type BusinessTripStatus,
 } from '@/types'
 import AdminActions from './admin-actions'
-
-const STATUS_COLORS: Record<BusinessTripStatus, string> = {
-  draft: 'bg-gray-100 text-gray-800',
-  submitted: 'bg-blue-100 text-blue-800',
-  approved: 'bg-green-100 text-green-800',
-  rejected: 'bg-red-100 text-red-800',
-  paid: 'bg-purple-100 text-purple-800',
-}
 
 export default async function AdminBusinessTripDetailPage({
   params,
@@ -64,7 +56,7 @@ export default async function AdminBusinessTripDetailPage({
             {trip.trip_number}
           </h1>
           <div className="flex items-center gap-2 mt-1">
-            <Badge className={STATUS_COLORS[status]}>
+            <Badge className={BUSINESS_TRIP_STATUS_COLORS[status]}>
               {BUSINESS_TRIP_STATUS[status]}
             </Badge>
             <span className="text-sm text-muted-foreground">
@@ -270,7 +262,6 @@ export default async function AdminBusinessTripDetailPage({
         tripId={trip.id}
         status={status}
         tripNumber={trip.trip_number}
-        tripData={trip}
         driverName={driverName}
         driverPosition={driver?.position || null}
       />

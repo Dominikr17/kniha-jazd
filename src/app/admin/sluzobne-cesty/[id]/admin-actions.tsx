@@ -18,13 +18,12 @@ interface AdminActionsProps {
   tripId: string
   status: BusinessTripStatus
   tripNumber: string
-  tripData: Record<string, unknown>
   driverName: string
   driverPosition: string | null
 }
 
 export default function AdminActions({
-  tripId, status, tripNumber, tripData, driverName, driverPosition,
+  tripId, status, tripNumber, driverName, driverPosition,
 }: AdminActionsProps) {
   const router = useRouter()
   const [isApproving, setIsApproving] = useState(false)

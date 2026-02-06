@@ -32,7 +32,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { Plus, Trash2, Loader2, CreditCard } from 'lucide-react'
 import { toast } from 'sonner'
-import { VehicleVignette, VIGNETTE_COUNTRIES } from '@/types'
+import { VehicleVignette, VIGNETTE_COUNTRIES, EXPIRY_CRITICAL_DAYS, EXPIRY_WARNING_DAYS } from '@/types'
 import { logAudit } from '@/lib/audit-logger'
 import { format, differenceInDays, parseISO } from 'date-fns'
 import { sk } from 'date-fns/locale'
@@ -55,10 +55,10 @@ function getStatusBadge(validUntil: string) {
   if (daysLeft < 0) {
     return <Badge variant="destructive">Vypršaná</Badge>
   }
-  if (daysLeft <= 7) {
+  if (daysLeft <= EXPIRY_CRITICAL_DAYS) {
     return <Badge variant="destructive">Expiruje o {daysLeft} dní</Badge>
   }
-  if (daysLeft <= 30) {
+  if (daysLeft <= EXPIRY_WARNING_DAYS) {
     return <Badge className="bg-orange-500">Expiruje o {daysLeft} dní</Badge>
   }
   return <Badge className="bg-green-500">Platná</Badge>
