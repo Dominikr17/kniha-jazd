@@ -137,7 +137,7 @@ export function FilterPanel({ vehicles, drivers }: FilterPanelProps) {
                 Použiť
               </Button>
               {hasActiveFilters && (
-                <Button variant="outline" size="icon" onClick={resetFilters}>
+                <Button variant="outline" size="icon" onClick={resetFilters} aria-label="Zrušiť filtre">
                   <X className="h-4 w-4" />
                 </Button>
               )}

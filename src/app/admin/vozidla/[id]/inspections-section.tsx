@@ -250,6 +250,7 @@ export function InspectionsSection({ vehicleId, inspections }: InspectionsSectio
                       className="text-destructive hover:text-destructive"
                       onClick={() => handleDelete(inspection.id)}
                       disabled={deletingId === inspection.id}
+                      aria-label="Vymazať kontrolu"
                     >
                       {deletingId === inspection.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

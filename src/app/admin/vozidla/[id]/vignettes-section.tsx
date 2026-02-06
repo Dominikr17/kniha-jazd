@@ -301,6 +301,7 @@ export function VignettesSection({ vehicleId, vignettes }: VignettesSectionProps
                         className="text-destructive hover:text-destructive"
                         onClick={() => handleDelete(vignette.id)}
                         disabled={deletingId === vignette.id}
+                        aria-label="Vymazať známku"
                       >
                         {deletingId === vignette.id ? (
                           <Loader2 className="h-4 w-4 animate-spin" />

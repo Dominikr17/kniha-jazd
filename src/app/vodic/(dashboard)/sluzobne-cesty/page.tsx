@@ -116,7 +116,7 @@ export default async function DriverBusinessTripsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" asChild>
+                        <Button variant="ghost" size="icon" asChild aria-label="Zobraziť detail">
                           <Link href={`/vodic/sluzobne-cesty/${trip.id}`}>
                             <Eye className="h-4 w-4" />
                           </Link>

@@ -211,7 +211,7 @@ export function VehiclesTable({ vehicles }: VehiclesTableProps) {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="icon" asChild>
+                      <Button variant="ghost" size="icon" asChild aria-label="Upraviť vozidlo">
                         <Link href={`/admin/vozidla/${vehicle.id}`}>
                           <Pencil className="h-4 w-4" />
                         </Link>

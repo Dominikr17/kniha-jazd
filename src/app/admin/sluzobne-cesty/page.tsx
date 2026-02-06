@@ -161,7 +161,7 @@ export default async function AdminBusinessTripsPage({
                         {Number(trip.total_amount).toFixed(2)} €
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button variant="ghost" size="icon" asChild>
+                        <Button variant="ghost" size="icon" asChild aria-label="Zobraziť detail">
                           <Link href={`/admin/sluzobne-cesty/${trip.id}`}>
                             <Eye className="h-4 w-4" />
                           </Link>

@@ -178,7 +178,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="icon" asChild>
+                          <Button variant="ghost" size="icon" asChild aria-label="Upraviť jazdu">
                             <Link href={`/admin/jazdy/${trip.id}`}>
                               <Pencil className="h-4 w-4" />
                             </Link>

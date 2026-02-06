@@ -192,7 +192,7 @@ export function DriversTable({ drivers }: DriversTableProps) {
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" asChild>
+                    <Button variant="ghost" size="icon" asChild aria-label="Upraviť vodiča">
                       <Link href={`/admin/vodici/${driver.id}`}>
                         <Pencil className="h-4 w-4" />
                       </Link>

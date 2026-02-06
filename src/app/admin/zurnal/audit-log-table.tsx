@@ -184,7 +184,7 @@ export function AuditLogTable({ logs, initialFilters }: AuditLogTableProps) {
                 Filtrovať
               </Button>
               {hasFilters && (
-                <Button variant="outline" onClick={clearFilters}>
+                <Button variant="outline" onClick={clearFilters} aria-label="Zrušiť filtre">
                   <X className="h-4 w-4" />
                 </Button>
               )}
@@ -237,7 +237,7 @@ export function AuditLogTable({ logs, initialFilters }: AuditLogTableProps) {
                     <TableCell>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <Button variant="ghost" size="icon">
+                          <Button variant="ghost" size="icon" aria-label="Zobraziť zmeny">
                             <Eye className="h-4 w-4" />
                           </Button>
                         </DialogTrigger>

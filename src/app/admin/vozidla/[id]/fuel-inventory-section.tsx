@@ -267,6 +267,7 @@ export function FuelInventorySection({ vehicleId, fuelInventory, tankCapacity }:
                       className="text-destructive hover:text-destructive"
                       onClick={() => handleDelete(record.id)}
                       disabled={deletingId === record.id}
+                      aria-label="Vymazať záznam"
                     >
                       {deletingId === record.id ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
