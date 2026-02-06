@@ -30,9 +30,12 @@ function calculateDayAllowance(input: DayAllowanceInput): Omit<TripAllowance, 'i
   let ratePercentage = 100
   let grossAmount = 0
 
+  let currency = 'EUR'
+
   if (isForeign) {
     const countryRate = FOREIGN_ALLOWANCE_RATES[country]
     baseRate = countryRate ? countryRate.rate : 45
+    currency = countryRate ? countryRate.currency : 'EUR'
 
     if (hours <= 0) {
       ratePercentage = 0
@@ -82,7 +85,7 @@ function calculateDayAllowance(input: DayAllowanceInput): Omit<TripAllowance, 'i
     lunch_deduction: lunchDeduction,
     dinner_deduction: dinnerDeduction,
     net_amount: netAmount,
-    currency: 'EUR',
+    currency,
   }
 }
 

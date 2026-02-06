@@ -514,56 +514,58 @@ export const VEHICLE_AMORTIZATION = {
   MOV: 0.090
 } as const
 
-// Zahraničné sadzby stravného (EUR/deň pri 100%)
-export const FOREIGN_ALLOWANCE_RATES: Record<string, { name: string; rate: number }> = {
+// Zahraničné sadzby stravného (deň pri 100%) - zdroj: cestovnenahrady.sk, Opatrenie MF SR
+export const FOREIGN_ALLOWANCE_RATES: Record<string, { name: string; rate: number; currency: string }> = {
   // Susedné krajiny
-  CZ: { name: 'Česko', rate: 45 },
-  PL: { name: 'Poľsko', rate: 45 },
-  HU: { name: 'Maďarsko', rate: 45 },
-  AT: { name: 'Rakúsko', rate: 55 },
-  UA: { name: 'Ukrajina', rate: 45 },
+  CZ: { name: 'Česko', rate: 600, currency: 'CZK' },
+  PL: { name: 'Poľsko', rate: 37, currency: 'EUR' },
+  HU: { name: 'Maďarsko', rate: 39, currency: 'EUR' },
+  AT: { name: 'Rakúsko', rate: 45, currency: 'EUR' },
+  UA: { name: 'Ukrajina', rate: 37, currency: 'EUR' },
   // Západná Európa
-  DE: { name: 'Nemecko', rate: 55 },
-  FR: { name: 'Francúzsko', rate: 55 },
-  BE: { name: 'Belgicko', rate: 55 },
-  NL: { name: 'Holandsko', rate: 55 },
-  LU: { name: 'Luxembursko', rate: 50 },
-  CH: { name: 'Švajčiarsko', rate: 60 },
-  GB: { name: 'Veľká Británia', rate: 55 },
-  IE: { name: 'Írsko', rate: 53 },
+  DE: { name: 'Nemecko', rate: 45, currency: 'EUR' },
+  FR: { name: 'Francúzsko', rate: 45, currency: 'EUR' },
+  BE: { name: 'Belgicko', rate: 45, currency: 'EUR' },
+  NL: { name: 'Holandsko', rate: 45, currency: 'EUR' },
+  LU: { name: 'Luxembursko', rate: 50, currency: 'EUR' },
+  CH: { name: 'Švajčiarsko', rate: 80, currency: 'CHF' },
+  GB: { name: 'Veľká Británia', rate: 37, currency: 'GBP' },
+  IE: { name: 'Írsko', rate: 53, currency: 'EUR' },
   // Škandinávske krajiny
-  DK: { name: 'Dánsko', rate: 51 },
-  SE: { name: 'Švédsko', rate: 40 },
-  NO: { name: 'Nórsko', rate: 36 },
-  FI: { name: 'Fínsko', rate: 50 },
-  IS: { name: 'Island', rate: 55 },
+  DK: { name: 'Dánsko', rate: 380, currency: 'DKK' },
+  SE: { name: 'Švédsko', rate: 455, currency: 'SEK' },
+  FI: { name: 'Fínsko', rate: 50, currency: 'EUR' },
   // Pobaltské krajiny
-  EE: { name: 'Estónsko', rate: 42 },
-  LV: { name: 'Lotyšsko', rate: 40 },
-  LT: { name: 'Litva', rate: 40 },
+  EE: { name: 'Estónsko', rate: 42, currency: 'EUR' },
+  LV: { name: 'Lotyšsko', rate: 40, currency: 'EUR' },
+  LT: { name: 'Litva', rate: 40, currency: 'EUR' },
   // Južná Európa
-  IT: { name: 'Taliansko', rate: 55 },
-  ES: { name: 'Španielsko', rate: 43 },
-  PT: { name: 'Portugalsko', rate: 43 },
-  GR: { name: 'Grécko', rate: 42 },
-  CY: { name: 'Cyprus', rate: 41 },
-  MT: { name: 'Malta', rate: 45 },
+  IT: { name: 'Taliansko', rate: 45, currency: 'EUR' },
+  ES: { name: 'Španielsko', rate: 43, currency: 'EUR' },
+  GR: { name: 'Grécko', rate: 42, currency: 'EUR' },
+  // Škandinávske krajiny (pokračovanie)
+  NO: { name: 'Nórsko', rate: 420, currency: 'NOK' },
+  IS: { name: 'Island', rate: 55, currency: 'EUR' },
+  // Južná Európa (pokračovanie)
+  PT: { name: 'Portugalsko', rate: 43, currency: 'EUR' },
+  CY: { name: 'Cyprus', rate: 41, currency: 'EUR' },
+  MT: { name: 'Malta', rate: 45, currency: 'EUR' },
   // Balkán a juhovýchod
-  SI: { name: 'Slovinsko', rate: 50 },
-  HR: { name: 'Chorvátsko', rate: 50 },
-  RS: { name: 'Srbsko', rate: 40 },
-  BA: { name: 'Bosna a Hercegovina', rate: 40 },
-  ME: { name: 'Čierna Hora', rate: 40 },
-  MK: { name: 'Severné Macedónsko', rate: 37 },
-  AL: { name: 'Albánsko', rate: 33 },
-  XK: { name: 'Kosovo', rate: 35 },
-  RO: { name: 'Rumunsko', rate: 40 },
-  BG: { name: 'Bulharsko', rate: 40 },
-  TR: { name: 'Turecko', rate: 44 },
-  MD: { name: 'Moldavsko', rate: 40 },
+  SI: { name: 'Slovinsko', rate: 38, currency: 'EUR' },
+  HR: { name: 'Chorvátsko', rate: 40, currency: 'EUR' },
+  RS: { name: 'Srbsko', rate: 43, currency: 'EUR' },
+  BA: { name: 'Bosna a Hercegovina', rate: 40, currency: 'EUR' },
+  ME: { name: 'Čierna Hora', rate: 40, currency: 'EUR' },
+  MK: { name: 'Severné Macedónsko', rate: 37, currency: 'EUR' },
+  AL: { name: 'Albánsko', rate: 33, currency: 'EUR' },
+  XK: { name: 'Kosovo', rate: 43, currency: 'EUR' },
+  RO: { name: 'Rumunsko', rate: 43, currency: 'EUR' },
+  BG: { name: 'Bulharsko', rate: 36, currency: 'EUR' },
+  TR: { name: 'Turecko', rate: 44, currency: 'EUR' },
+  MD: { name: 'Moldavsko', rate: 40, currency: 'EUR' },
   // Východná Európa
-  RU: { name: 'Rusko', rate: 45 },
-  BY: { name: 'Bielorusko', rate: 45 },
+  RU: { name: 'Rusko', rate: 39, currency: 'EUR' },
+  BY: { name: 'Bielorusko', rate: 39, currency: 'EUR' },
 } as const
 
 // Slovenské názvy krajín
