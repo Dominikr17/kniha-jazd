@@ -9,12 +9,12 @@ import { CostsTab } from './components/costs-tab'
 import { DriversTab } from './components/drivers-tab'
 import {
   getDateRangeFromPeriod,
-  isDateInRange,
   isValidPeriod,
   isValidUUID,
   type PeriodType,
 } from '@/lib/report-utils'
 import { aggregateVehicleStats } from '@/lib/report-calculations'
+import { getLocalDateString } from '@/lib/utils'
 import { Vehicle, Trip, FuelRecord, Driver } from '@/types'
 
 interface ReportsPageProps {
@@ -31,7 +31,31 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const params = await searchParams
   const supabase = await createClient()
 
-  // Načítanie všetkých potrebných dát
+  // Validácia a spracovanie filtrov pred dotazmi
+  const period: PeriodType = params.period && isValidPeriod(params.period) ? params.period : 'all'
+  const vehicleFilter = params.vehicle && isValidUUID(params.vehicle) ? params.vehicle : null
+  const driverFilter = params.driver && isValidUUID(params.driver) ? params.driver : null
+  const dateRange = getDateRangeFromPeriod(period, params.from, params.to)
+
+  // Filtrovanie priamo v Supabase namiesto načítania všetkých dát do pamäte
+  let tripsQuery = supabase.from('trips').select('*')
+  let fuelQuery = supabase.from('fuel_records').select('*')
+
+  if (dateRange) {
+    const fromStr = getLocalDateString(dateRange.from)
+    const toStr = getLocalDateString(dateRange.to)
+    tripsQuery = tripsQuery.gte('date', fromStr).lte('date', toStr)
+    fuelQuery = fuelQuery.gte('date', fromStr).lte('date', toStr)
+  }
+  if (vehicleFilter) {
+    tripsQuery = tripsQuery.eq('vehicle_id', vehicleFilter)
+    fuelQuery = fuelQuery.eq('vehicle_id', vehicleFilter)
+  }
+  if (driverFilter) {
+    tripsQuery = tripsQuery.eq('driver_id', driverFilter)
+    fuelQuery = fuelQuery.eq('driver_id', driverFilter)
+  }
+
   const [
     { data: vehicles },
     { data: trips },
@@ -39,38 +63,13 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     { data: drivers },
   ] = await Promise.all([
     supabase.from('vehicles').select('id, name, license_plate, rated_consumption, tank_capacity').order('name'),
-    supabase.from('trips').select('*'),
-    supabase.from('fuel_records').select('*'),
+    tripsQuery,
+    fuelQuery,
     supabase.from('drivers').select('id, first_name, last_name, position').order('last_name'),
   ])
 
-  // Validácia a spracovanie filtrov
-  const period: PeriodType = params.period && isValidPeriod(params.period) ? params.period : 'all'
-  const vehicleFilter = params.vehicle && isValidUUID(params.vehicle) ? params.vehicle : null
-  const driverFilter = params.driver && isValidUUID(params.driver) ? params.driver : null
-  const dateRange = getDateRangeFromPeriod(period, params.from, params.to)
-
-  // Filtrovanie dát
-  let filteredTrips = (trips || []) as Trip[]
-  let filteredFuelRecords = (fuelRecords || []) as FuelRecord[]
-
-  // Filter podľa obdobia
-  if (dateRange) {
-    filteredTrips = filteredTrips.filter((trip) => isDateInRange(trip.date, dateRange))
-    filteredFuelRecords = filteredFuelRecords.filter((record) => isDateInRange(record.date, dateRange))
-  }
-
-  // Filter podľa vozidla (vehicleFilter je buď platné UUID alebo null)
-  if (vehicleFilter) {
-    filteredTrips = filteredTrips.filter((trip) => trip.vehicle_id === vehicleFilter)
-    filteredFuelRecords = filteredFuelRecords.filter((record) => record.vehicle_id === vehicleFilter)
-  }
-
-  // Filter podľa vodiča (driverFilter je buď platné UUID alebo null)
-  if (driverFilter) {
-    filteredTrips = filteredTrips.filter((trip) => trip.driver_id === driverFilter)
-    filteredFuelRecords = filteredFuelRecords.filter((record) => record.driver_id === driverFilter)
-  }
+  const filteredTrips = (trips || []) as Trip[]
+  const filteredFuelRecords = (fuelRecords || []) as FuelRecord[]
 
   // Agregované štatistiky vozidiel
   const vehicleStats = (vehicles || []).map((vehicle) =>

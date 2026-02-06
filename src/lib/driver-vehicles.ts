@@ -193,55 +193,35 @@ export async function getVehiclesWithDetails(
 
   const vehicleIds = driverVehicles.map(dv => dv.vehicle_id)
 
-  // Načítaj vozidlá
-  const { data: vehicles } = await supabase
-    .from('vehicles')
-    .select('*')
-    .in('id', vehicleIds)
-    .order('name')
+  // Batch: načítaj všetko naraz namiesto per-vehicle dotazov
+  const [
+    { data: vehicles },
+    { data: allInspections },
+    { data: allVignettes },
+    { data: recentTrips },
+  ] = await Promise.all([
+    supabase.from('vehicles').select('*').in('id', vehicleIds).order('name'),
+    supabase.from('vehicle_inspections').select('*').in('vehicle_id', vehicleIds).order('valid_until', { ascending: false }),
+    supabase.from('vehicle_vignettes').select('*').in('vehicle_id', vehicleIds).order('valid_until', { ascending: true }),
+    supabase.from('trips').select('vehicle_id, odometer_end').in('vehicle_id', vehicleIds).not('odometer_end', 'is', null).order('date', { ascending: false }).order('created_at', { ascending: false }),
+  ])
 
   if (!vehicles) return []
 
-  // Pre každé vozidlo načítaj termíny
-  const vehiclesWithDetails = await Promise.all(
-    vehicles.map(async (vehicle) => {
-      // Načítaj STK a EK
-      const { data: inspections } = await supabase
-        .from('vehicle_inspections')
-        .select('*')
-        .eq('vehicle_id', vehicle.id)
-        .order('valid_until', { ascending: false })
+  return vehicles.map((vehicle) => {
+    const inspections = (allInspections || []).filter(i => i.vehicle_id === vehicle.id)
+    const vignettes = (allVignettes || []).filter(v => v.vehicle_id === vehicle.id)
+    const lastTrip = (recentTrips || []).find(t => t.vehicle_id === vehicle.id)
 
-      // Načítaj diaľničné známky
-      const { data: vignettes } = await supabase
-        .from('vehicle_vignettes')
-        .select('*')
-        .eq('vehicle_id', vehicle.id)
-        .order('valid_until', { ascending: true })
+    const stk = inspections.find(i => i.inspection_type === 'stk') || null
+    const ek = inspections.find(i => i.inspection_type === 'ek') || null
 
-      // Načítaj posledný stav tachometra z jázd
-      const { data: lastTrip } = await supabase
-        .from('trips')
-        .select('odometer_end')
-        .eq('vehicle_id', vehicle.id)
-        .not('odometer_end', 'is', null)
-        .order('date', { ascending: false })
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      const stk = inspections?.find(i => i.inspection_type === 'stk') || null
-      const ek = inspections?.find(i => i.inspection_type === 'ek') || null
-
-      return {
-        ...vehicle,
-        currentOdometer: lastTrip?.odometer_end || vehicle.initial_odometer || 0,
-        stk,
-        ek,
-        vignettes: vignettes || []
-      } as VehicleWithDetails
-    })
-  )
-
-  return vehiclesWithDetails
+    return {
+      ...vehicle,
+      currentOdometer: lastTrip?.odometer_end || vehicle.initial_odometer || 0,
+      stk,
+      ek,
+      vignettes,
+    } as VehicleWithDetails
+  })
 }

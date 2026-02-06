@@ -43,6 +43,7 @@ export default async function TripsPage({ searchParams }: TripsPageProps) {
     `)
     .order('date', { ascending: false })
     .order('time_start', { ascending: false })
+    .limit(1000)
 
   // Aplikovanie filtrov
   if (params.vehicle) {

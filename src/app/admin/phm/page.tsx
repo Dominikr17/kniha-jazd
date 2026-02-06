@@ -29,7 +29,8 @@ export default async function FuelPage() {
         vehicle:vehicles(id, name, license_plate),
         driver:drivers(id, first_name, last_name)
       `)
-      .order('date', { ascending: false }),
+      .order('date', { ascending: false })
+      .limit(1000),
     supabase
       .from('fuel_records')
       .select('*', { count: 'exact', head: true })
@@ -40,28 +41,29 @@ export default async function FuelPage() {
     console.error('Error loading fuel records:', error)
   }
 
-  // Výpočet spotreby pre každý záznam
-  const recordsWithConsumption = await Promise.all(
-    (fuelRecords || []).map(async (record) => {
-      // Nájdeme predchádzajúce tankovanie pre toto vozidlo
-      const { data: prevRecord } = await supabase
-        .from('fuel_records')
-        .select('odometer')
-        .eq('vehicle_id', record.vehicle_id)
-        .lt('date', record.date)
-        .order('date', { ascending: false })
-        .limit(1)
-        .single()
+  // Výpočet spotreby z už načítaných dát (bez N+1 dotazov)
+  const allRecords = fuelRecords || []
+  const sortedAsc = [...allRecords].sort((a, b) => a.date.localeCompare(b.date))
+  const prevByVehicle = new Map<string, number>()
+  const consumptionMap = new Map<string, number | null>()
 
-      let consumption = null
-      if (prevRecord && record.odometer > prevRecord.odometer) {
-        const distance = record.odometer - prevRecord.odometer
-        consumption = (record.liters / distance) * 100
-      }
+  for (const record of sortedAsc) {
+    const prevOdometer = prevByVehicle.get(record.vehicle_id)
+    let consumption: number | null = null
+    if (prevOdometer && record.odometer && record.odometer > prevOdometer) {
+      const distance = record.odometer - prevOdometer
+      consumption = (record.liters / distance) * 100
+    }
+    consumptionMap.set(record.id, consumption)
+    if (record.odometer) {
+      prevByVehicle.set(record.vehicle_id, record.odometer)
+    }
+  }
 
-      return { ...record, consumption }
-    })
-  )
+  const recordsWithConsumption = allRecords.map((record) => ({
+    ...record,
+    consumption: consumptionMap.get(record.id) ?? null,
+  }))
 
   return (
     <div className="space-y-6">
