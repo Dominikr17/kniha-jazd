@@ -290,6 +290,13 @@ Stránka `/vodic/statistiky` zobrazuje vodičovi prehľad vlastných jázd a spo
 13. Pri redirecte z POST API route používaj **303 status** (`NextResponse.redirect(url, 303)`), aby sa zmenila metóda na GET
 14. **NIKDY nepoužívať `toISOString().split('T')[0]`** na lokálne dátumy — použiť `getLocalDateString()` z `@/lib/utils`
 15. **Pred štylovaním nových komponentov** vždy overiť existujúce vzory (`grep` na podobné prvky) a dodržať zavedené konvencie (napr. h1 nadpisy bez farieb, `text-muted-foreground` pre popisy)
+16. **Každý API route handler musí mať try/catch** obalujúci celú logiku vrátane auth checkov
+17. **Každý `[id]` route handler musí validovať UUID** cez `isValidUUID()` z `@/lib/report-utils` hneď na začiatku
+18. **GET/PDF endpointy musia overovať autorizáciu** — admin (`supabase.auth.getUser()`) alebo vlastník (`getDriverSession()` + ownership check)
+19. **Supabase child inserty musia mať error check** — destructure `{ error }` a vrátiť 500 pri chybe
+20. **Client fetch failures musia redirectovať** — pri chýbajúcom driverId redirect na `/vodic` s toast
+21. **OCR endpoint**: limit veľkosti (5MB, status 413), generická error message (bez interných detailov)
+22. **Validácia parametrov stránok**: `isValidUUID()` + `parseInt()` s range check + `notFound()` pre neplatné
 
 ## Automatický výpočet stavu nádrže
 Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
