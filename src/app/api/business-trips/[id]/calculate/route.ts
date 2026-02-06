@@ -1,12 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { calculateTripAllowances, calculateAmortization, calculateTotalAmount, type AllowanceCalculationInput } from '@/lib/business-trip-calculator'
 import type { BorderCrossing, Trip, TripExpense } from '@/types'
+import { isValidUUID } from '@/lib/report-utils'
 
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  await params // consume params
+  const { id } = await params
+
+  if (!isValidUUID(id)) {
+    return NextResponse.json({ error: 'Neplatné ID' }, { status: 400 })
+  }
 
   try {
     const body = await request.json()

@@ -91,6 +91,15 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Limit veľkosti obrázka (5MB base64 ≈ 3.75MB raw)
+    const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+    if (imageDataUrl.length > MAX_IMAGE_SIZE) {
+      return NextResponse.json(
+        { success: false, error: 'Obrázok je príliš veľký (max 5 MB)' },
+        { status: 413 }
+      )
+    }
+
     const mediaType = detectMediaType(imageDataUrl)
     const imageBase64 = extractBase64Data(imageDataUrl)
 
@@ -142,11 +151,10 @@ export async function POST(request: NextRequest) {
       })
     }
   } catch (error) {
-    console.error('OCR error:', error)
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    console.error('OCR error details:', errorMessage)
+    console.error('OCR error:', errorMessage)
     return NextResponse.json(
-      { success: false, error: `Chyba pri spracovaní obrázka: ${errorMessage}` },
+      { success: false, error: 'Chyba pri spracovaní obrázka' },
       { status: 500 }
     )
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getDriverSession } from '@/lib/driver-session'
+import { isValidUUID } from '@/lib/report-utils'
 
 export async function POST(
   _request: NextRequest,
@@ -8,6 +9,11 @@ export async function POST(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'Neplatné ID' }, { status: 400 })
+    }
+
     const session = await getDriverSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

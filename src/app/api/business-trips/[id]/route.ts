@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { getDriverSession } from '@/lib/driver-session'
+import { isValidUUID } from '@/lib/report-utils'
 
 export async function GET(
   _request: NextRequest,
@@ -8,7 +9,20 @@ export async function GET(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'Neplatné ID' }, { status: 400 })
+    }
+
     const supabase = await createClient()
+
+    // Overiť autorizáciu — admin alebo vodič
+    const session = await getDriverSession()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!session && !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
     const { data: trip, error } = await supabase
       .from('business_trips')
@@ -27,6 +41,11 @@ export async function GET(
       return NextResponse.json({ error: 'Služobná cesta nenájdená' }, { status: 404 })
     }
 
+    // Vodič môže vidieť len vlastné SC
+    if (session && !user && trip.driver_id !== session.id) {
+      return NextResponse.json({ error: 'Nemáte oprávnenie' }, { status: 403 })
+    }
+
     return NextResponse.json(trip)
   } catch (error) {
     console.error('Error getting business trip:', error)
@@ -40,6 +59,11 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'Neplatné ID' }, { status: 400 })
+    }
+
     const session = await getDriverSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -216,6 +240,11 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params
+
+    if (!isValidUUID(id)) {
+      return NextResponse.json({ error: 'Neplatné ID' }, { status: 400 })
+    }
+
     const session = await getDriverSession()
     if (!session) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
