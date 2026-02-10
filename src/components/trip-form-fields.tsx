@@ -282,7 +282,7 @@ export function TripFormFields({
             onChange={onRouteToChange}
             required
             disabled={disabled}
-            placeholder="Cieľové miesto"
+            placeholder="Cieľové mesto"
           />
         </div>
       </div>
