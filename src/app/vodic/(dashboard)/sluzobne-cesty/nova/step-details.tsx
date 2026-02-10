@@ -105,7 +105,7 @@ export default function StepDetails({
         </p>
       </div>
 
-      <div>
+      <div className="space-y-1.5">
         <Label htmlFor="city">Cieľové mesto *</Label>
         <Input
           id="city"
@@ -115,7 +115,7 @@ export default function StepDetails({
         />
       </div>
 
-      <div>
+      <div className="space-y-1.5">
         <Label htmlFor="visitPlace">Miesto návštevy</Label>
         <Input
           id="visitPlace"
@@ -125,7 +125,7 @@ export default function StepDetails({
         />
       </div>
 
-      <div>
+      <div className="space-y-1.5">
         <Label htmlFor="purpose">Účel cesty *</Label>
         <Input
           id="purpose"
@@ -136,7 +136,7 @@ export default function StepDetails({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
+        <div className="space-y-1.5">
           <Label htmlFor="departure">Dátum a čas odchodu *</Label>
           <Input
             id="departure"
@@ -145,7 +145,7 @@ export default function StepDetails({
             onChange={(e) => setDepartureDate(e.target.value)}
           />
         </div>
-        <div>
+        <div className="space-y-1.5">
           <Label htmlFor="return">Dátum a čas návratu *</Label>
           <Input
             id="return"
@@ -156,7 +156,7 @@ export default function StepDetails({
         </div>
       </div>
 
-      <div>
+      <div className="space-y-1.5">
         <Label htmlFor="transport">Dopravný prostriedok</Label>
         <Select value={transportType} onValueChange={(v) => setTransportType(v as TransportType)}>
           <SelectTrigger>
@@ -170,7 +170,7 @@ export default function StepDetails({
         </Select>
       </div>
 
-      <div>
+      <div className="space-y-1.5">
         <Label>Spolucestujúci</Label>
         <DriverAutocomplete
           value={companion}
@@ -180,7 +180,7 @@ export default function StepDetails({
         />
       </div>
 
-      <div>
+      <div className="space-y-1.5">
         <Label htmlFor="advance">Preddavok (€)</Label>
         <Input
           id="advance"
@@ -193,7 +193,7 @@ export default function StepDetails({
         />
       </div>
 
-      <div>
+      <div className="space-y-1.5">
         <Label htmlFor="notes">Poznámky</Label>
         <Textarea
           id="notes"
@@ -235,7 +235,7 @@ export default function StepDetails({
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div>
+                <div className="space-y-1.5">
                   <Label>Dátum a čas</Label>
                   <Input
                     type="datetime-local"
@@ -244,7 +244,7 @@ export default function StepDetails({
                   />
                 </div>
 
-                <div>
+                <div className="space-y-1.5">
                   <Label>Smer</Label>
                   <Select
                     value={crossing.direction}
@@ -260,7 +260,7 @@ export default function StepDetails({
                   </Select>
                 </div>
 
-                <div>
+                <div className="space-y-1.5">
                   <Label>Z krajiny</Label>
                   <Select
                     value={crossing.country_from}
@@ -285,7 +285,7 @@ export default function StepDetails({
                   </Select>
                 </div>
 
-                <div>
+                <div className="space-y-1.5">
                   <Label>Do krajiny</Label>
                   <Select
                     value={crossing.country_to}
@@ -311,7 +311,7 @@ export default function StepDetails({
                 </div>
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label>Hraničný prechod</Label>
                 {getCrossingsForCountries(crossing.country_from, crossing.country_to).length > 0 ? (
                   <Select

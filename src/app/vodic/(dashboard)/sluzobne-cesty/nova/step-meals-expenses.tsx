@@ -195,7 +195,7 @@ export default function StepMealsExpenses({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <div>
+              <div className="space-y-1.5">
                 <Label>Typ výdavku</Label>
                 <Select
                   value={expense.expense_type}
@@ -212,7 +212,7 @@ export default function StepMealsExpenses({
                 </Select>
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label>Dátum</Label>
                 <Input
                   type="date"
@@ -221,7 +221,7 @@ export default function StepMealsExpenses({
                 />
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label>Popis</Label>
                 <Input
                   value={expense.description}
@@ -230,7 +230,7 @@ export default function StepMealsExpenses({
                 />
               </div>
 
-              <div>
+              <div className="space-y-1.5">
                 <Label>Suma (€)</Label>
                 <Input
                   type="number"
