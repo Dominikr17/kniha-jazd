@@ -31,6 +31,7 @@ interface AllowanceDisplay {
   hours: number
   gross_amount: number
   net_amount: number
+  currency: string
 }
 
 interface StepSummaryProps {
@@ -56,8 +57,13 @@ interface StepSummaryProps {
   balance: number
 }
 
-function formatEur(amount: number): string {
-  return `${amount.toFixed(2)} €`
+function formatAmount(amount: number, currency: string = 'EUR'): string {
+  return `${amount.toFixed(2)} ${currency}`
+}
+
+function getMainCurrency(allowances: AllowanceDisplay[]): string {
+  const currencies = [...new Set(allowances.map((a) => a.currency || 'EUR'))]
+  return currencies.length === 1 ? currencies[0] : 'EUR'
 }
 
 export default function StepSummary({
@@ -117,7 +123,7 @@ export default function StepSummary({
           {advanceAmount > 0 && (
             <>
               <span className="text-muted-foreground">Preddavok:</span>
-              <span>{formatEur(advanceAmount)}</span>
+              <span>{formatAmount(advanceAmount)}</span>
             </>
           )}
 
@@ -181,12 +187,12 @@ export default function StepSummary({
               {' '}
               ({allowance.hours}h)
             </span>
-            <span className="font-medium">{formatEur(allowance.net_amount)}</span>
+            <span className="font-medium">{formatAmount(allowance.net_amount, allowance.currency)}</span>
           </div>
         ))}
         <div className="text-sm font-medium flex justify-between border-t pt-2">
           <span>Celkom stravné:</span>
-          <span>{formatEur(totalAllowance)}</span>
+          <span>{formatAmount(totalAllowance, getMainCurrency(calculatedAllowances))}</span>
         </div>
       </div>
 
@@ -199,12 +205,12 @@ export default function StepSummary({
               <span>
                 {EXPENSE_TYPES[expense.expense_type]} – {expense.description}
               </span>
-              <span className="font-medium">{formatEur(expense.amount)}</span>
+              <span className="font-medium">{formatAmount(expense.amount)}</span>
             </div>
           ))}
           <div className="text-sm font-medium flex justify-between border-t pt-2">
             <span>Celkom výdavky:</span>
-            <span>{formatEur(totalExpenses)}</span>
+            <span>{formatAmount(totalExpenses)}</span>
           </div>
         </div>
       )}
@@ -215,32 +221,32 @@ export default function StepSummary({
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
             <span>Stravné:</span>
-            <span>{formatEur(totalAllowance)}</span>
+            <span>{formatAmount(totalAllowance, getMainCurrency(calculatedAllowances))}</span>
           </div>
           <div className="flex justify-between">
             <span>Výdavky:</span>
-            <span>{formatEur(totalExpenses)}</span>
+            <span>{formatAmount(totalExpenses)}</span>
           </div>
           {totalAmortization > 0 && (
             <div className="flex justify-between">
               <span>Amortizácia:</span>
-              <span>{formatEur(totalAmortization)}</span>
+              <span>{formatAmount(totalAmortization)}</span>
             </div>
           )}
           <div className="flex justify-between font-bold border-t pt-2">
             <span>Celkový nárok:</span>
-            <span>{formatEur(totalAmount)}</span>
+            <span>{formatAmount(totalAmount, getMainCurrency(calculatedAllowances))}</span>
           </div>
           {advanceAmount > 0 && (
             <>
               <div className="flex justify-between">
                 <span>Preddavok:</span>
-                <span>{formatEur(advanceAmount)}</span>
+                <span>{formatAmount(advanceAmount)}</span>
               </div>
               <div className="flex justify-between font-bold">
                 <span>{balance >= 0 ? 'Preplatok:' : 'Doplatok:'}</span>
                 <span className={balance >= 0 ? 'text-green-600' : 'text-red-600'}>
-                  {formatEur(Math.abs(balance))}
+                  {formatAmount(Math.abs(balance), getMainCurrency(calculatedAllowances))}
                 </span>
               </div>
             </>

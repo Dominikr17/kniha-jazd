@@ -56,8 +56,8 @@ function formatDateTime(dateStr: string): string {
   return `${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()} ${hours}:${mins}`
 }
 
-function formatEur(amount: number): string {
-  return `${amount.toFixed(2)} €`
+function formatAmount(amount: number, currency: string = 'EUR'): string {
+  return `${amount.toFixed(2)} ${currency}`
 }
 
 interface BusinessTripPDFData {
@@ -200,15 +200,16 @@ export async function generateBusinessTripPDF(data: BusinessTripPDFData): Promis
 
   doc.setFont('Roboto', 'normal')
   for (const allowance of allowances) {
+    const cur = allowance.currency || 'EUR'
     doc.text(formatDate(allowance.date), margin + 2, y)
     doc.text(COUNTRY_NAMES[allowance.country] || allowance.country, margin + 28, y)
     doc.text(String(allowance.hours), margin + 55, y)
-    doc.text(formatEur(allowance.base_rate), margin + 75, y)
+    doc.text(formatAmount(allowance.base_rate, cur), margin + 75, y)
     doc.text(`${allowance.rate_percentage}%`, margin + 95, y)
-    doc.text(formatEur(allowance.gross_amount), margin + 108, y)
+    doc.text(formatAmount(allowance.gross_amount, cur), margin + 108, y)
     const totalDed = allowance.breakfast_deduction + allowance.lunch_deduction + allowance.dinner_deduction
-    doc.text(totalDed > 0 ? `-${formatEur(totalDed)}` : '—', margin + 128, y)
-    doc.text(formatEur(allowance.net_amount), margin + 155, y)
+    doc.text(totalDed > 0 ? `-${formatAmount(totalDed, cur)}` : '—', margin + 128, y)
+    doc.text(formatAmount(allowance.net_amount, cur), margin + 155, y)
     y += 4.5
   }
 
@@ -238,7 +239,7 @@ export async function generateBusinessTripPDF(data: BusinessTripPDFData): Promis
       doc.text(formatDate(expense.date), margin + 2, y)
       doc.text(EXPENSE_TYPES[expense.expense_type] || expense.expense_type, margin + 28, y)
       doc.text(expense.description.substring(0, 40), margin + 65, y)
-      doc.text(formatEur(expense.amount), margin + 140, y)
+      doc.text(formatAmount(expense.amount), margin + 140, y)
       y += 4.5
     }
   }
@@ -281,13 +282,16 @@ export async function generateBusinessTripPDF(data: BusinessTripPDFData): Promis
 
   doc.setFontSize(9)
   doc.setTextColor(0, 0, 0)
+  const allowanceCurrencies = [...new Set(allowances.map((a) => a.currency || 'EUR'))]
+  const allowanceCurrency = allowanceCurrencies.length === 1 ? allowanceCurrencies[0] : 'EUR'
+
   const summaryRows = [
-    ['Stravné:', formatEur(trip.total_allowance)],
-    ['Výdavky:', formatEur(trip.total_expenses)],
-    ['Amortizácia:', formatEur(trip.total_amortization)],
-    ['Celkový nárok:', formatEur(trip.total_amount)],
-    ['Preddavok:', formatEur(trip.advance_amount)],
-    [trip.balance >= 0 ? 'Preplatok:' : 'Doplatok:', formatEur(Math.abs(trip.balance))],
+    ['Stravné:', formatAmount(trip.total_allowance, allowanceCurrency)],
+    ['Výdavky:', formatAmount(trip.total_expenses)],
+    ['Amortizácia:', formatAmount(trip.total_amortization)],
+    ['Celkový nárok:', formatAmount(trip.total_amount, allowanceCurrency)],
+    ['Preddavok:', formatAmount(trip.advance_amount)],
+    [trip.balance >= 0 ? 'Preplatok:' : 'Doplatok:', formatAmount(Math.abs(trip.balance), allowanceCurrency)],
   ]
 
   for (const [label, value] of summaryRows) {

@@ -22,6 +22,7 @@ const countries = Object.entries(FOREIGN_ALLOWANCE_RATES).map(([code, info]) => 
   value: code,
   label: info.name,
   rate: info.rate,
+  currency: info.currency,
 }))
 
 export default function CountryCombobox({
@@ -41,7 +42,7 @@ export default function CountryCombobox({
           className="w-full justify-between font-normal"
         >
           {selected ? (
-            <span>{selected.label} ({selected.rate} €/deň)</span>
+            <span>{selected.label} ({selected.rate} {selected.currency}/deň)</span>
           ) : (
             <span className="text-muted-foreground">{placeholder}</span>
           )}
@@ -68,7 +69,7 @@ export default function CountryCombobox({
                     value === country.value ? 'opacity-100' : 'opacity-0'
                   )} />
                   <span className="flex-1">{country.label}</span>
-                  <span className="text-muted-foreground text-xs">{country.rate} €</span>
+                  <span className="text-muted-foreground text-xs">{country.rate} {country.currency}</span>
                 </CommandItem>
               ))}
             </CommandGroup>

@@ -42,6 +42,10 @@ export default async function AdminBusinessTripDetailPage({
   const expenses = trip.trip_expenses || []
   const borderCrossings = trip.border_crossings || []
   const linkedTrips = (trip.business_trip_trips || []).map((btt: { trip: unknown }) => btt.trip).filter(Boolean)
+  const allowanceCurrency = (() => {
+    const currencies = [...new Set((allowances as { currency?: string }[]).map((a) => a.currency || 'EUR'))]
+    return currencies.length === 1 ? currencies[0] : 'EUR'
+  })()
 
   return (
     <div className="space-y-6 max-w-3xl mx-auto">
@@ -171,7 +175,7 @@ export default async function AdminBusinessTripDetailPage({
       {allowances.length > 0 && (
         <div className="rounded-lg border p-4 space-y-2">
           <h3 className="font-medium text-sm text-[#004B87]">Stravné</h3>
-          {allowances.map((allowance: { id: string; date: string; country: string; hours: number; net_amount: number; gross_amount: number; breakfast_deduction: number; lunch_deduction: number; dinner_deduction: number }) => (
+          {allowances.map((allowance: { id: string; date: string; country: string; hours: number; net_amount: number; gross_amount: number; breakfast_deduction: number; lunch_deduction: number; dinner_deduction: number; currency: string }) => (
             <div key={allowance.id} className="text-sm flex justify-between">
               <span>
                 {format(new Date(allowance.date), 'EEEE d.M.', { locale: sk })}
@@ -187,12 +191,12 @@ export default async function AdminBusinessTripDetailPage({
                   </span>
                 )}
               </span>
-              <span className="font-medium">{Number(allowance.net_amount).toFixed(2)} €</span>
+              <span className="font-medium">{Number(allowance.net_amount).toFixed(2)} {allowance.currency || 'EUR'}</span>
             </div>
           ))}
           <div className="text-sm font-medium flex justify-between border-t pt-2">
             <span>Celkom:</span>
-            <span>{Number(trip.total_allowance).toFixed(2)} €</span>
+            <span>{Number(trip.total_allowance).toFixed(2)} {allowanceCurrency}</span>
           </div>
         </div>
       )}
@@ -224,32 +228,32 @@ export default async function AdminBusinessTripDetailPage({
         <div className="space-y-1 text-sm">
           <div className="flex justify-between">
             <span>Stravné:</span>
-            <span>{Number(trip.total_allowance).toFixed(2)} €</span>
+            <span>{Number(trip.total_allowance).toFixed(2)} {allowanceCurrency}</span>
           </div>
           <div className="flex justify-between">
             <span>Výdavky:</span>
-            <span>{Number(trip.total_expenses).toFixed(2)} €</span>
+            <span>{Number(trip.total_expenses).toFixed(2)} EUR</span>
           </div>
           {Number(trip.total_amortization) > 0 && (
             <div className="flex justify-between">
               <span>Amortizácia:</span>
-              <span>{Number(trip.total_amortization).toFixed(2)} €</span>
+              <span>{Number(trip.total_amortization).toFixed(2)} EUR</span>
             </div>
           )}
           <div className="flex justify-between font-bold border-t pt-2">
             <span>Celkový nárok:</span>
-            <span>{Number(trip.total_amount).toFixed(2)} €</span>
+            <span>{Number(trip.total_amount).toFixed(2)} {allowanceCurrency}</span>
           </div>
           {Number(trip.advance_amount) > 0 && (
             <>
               <div className="flex justify-between">
                 <span>Preddavok:</span>
-                <span>{Number(trip.advance_amount).toFixed(2)} €</span>
+                <span>{Number(trip.advance_amount).toFixed(2)} EUR</span>
               </div>
               <div className="flex justify-between font-bold">
                 <span>{Number(trip.balance) >= 0 ? 'Preplatok:' : 'Doplatok:'}</span>
                 <span className={Number(trip.balance) >= 0 ? 'text-green-600' : 'text-red-600'}>
-                  {Math.abs(Number(trip.balance)).toFixed(2)} €
+                  {Math.abs(Number(trip.balance)).toFixed(2)} {allowanceCurrency}
                 </span>
               </div>
             </>

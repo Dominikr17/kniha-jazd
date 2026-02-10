@@ -43,6 +43,7 @@ interface StepMealsExpensesProps {
     breakfast_deduction: number
     lunch_deduction: number
     dinner_deduction: number
+    currency: string
   }[]
 }
 
@@ -128,11 +129,11 @@ export default function StepMealsExpenses({
                   {allowance && (
                     <div className="text-right">
                       <span className="text-sm font-medium">
-                        {allowance.net_amount.toFixed(2)} €
+                        {allowance.net_amount.toFixed(2)} {allowance.currency}
                       </span>
                       {allowance.gross_amount !== allowance.net_amount && (
                         <span className="text-xs text-muted-foreground ml-1">
-                          (z {allowance.gross_amount.toFixed(2)} €)
+                          (z {allowance.gross_amount.toFixed(2)} {allowance.currency})
                         </span>
                       )}
                     </div>
