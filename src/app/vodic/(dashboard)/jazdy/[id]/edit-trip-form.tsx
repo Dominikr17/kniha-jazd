@@ -47,6 +47,11 @@ export function DriverEditTripForm({ trip, vehicles, driverId, driverName, canEd
       return
     }
 
+    if (timeStart && timeEnd && timeEnd < timeStart) {
+      toast.error('Čas príchodu nemôže byť skôr ako čas odchodu')
+      return
+    }
+
     setIsSubmitting(true)
 
     const { data: currentTrip, error: fetchError } = await supabase

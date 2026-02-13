@@ -100,6 +100,11 @@ export function NewTripForm({ vehicles, drivers }: NewTripFormProps) {
       return
     }
 
+    if (timeStart && timeEnd && timeEnd < timeStart) {
+      toast.error('Čas príchodu nemôže byť skôr ako čas odchodu')
+      return
+    }
+
     setIsSubmitting(true)
 
     const tripData = {

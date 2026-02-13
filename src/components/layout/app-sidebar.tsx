@@ -16,6 +16,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarMenuBadge,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import {
   Car,
@@ -85,6 +86,7 @@ export function AppSidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
+  const { setOpenMobile } = useSidebar()
   const [pendingFuelCount, setPendingFuelCount] = useState(0)
   const [pendingBusinessTripCount, setPendingBusinessTripCount] = useState(0)
 
@@ -144,7 +146,7 @@ export function AppSidebar() {
                         : pathname.startsWith(item.href)
                     }
                   >
-                    <Link href={item.href}>
+                    <Link href={item.href} onClick={() => setOpenMobile(false)}>
                       <item.icon className="h-4 w-4" />
                       <span>{item.title}</span>
                     </Link>

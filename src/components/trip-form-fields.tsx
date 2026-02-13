@@ -225,40 +225,45 @@ export function TripFormFields({
       </div>
 
       {/* Dátum a čas */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="space-y-2">
-          <Label htmlFor="date">Dátum *</Label>
-          <Input
-            id="date"
-            type="date"
-            value={date}
-            onChange={(e) => onDateChange(e.target.value)}
-            required
-            disabled={disabled}
-          />
+      <div className="space-y-2">
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div className="space-y-2">
+            <Label htmlFor="date">Dátum *</Label>
+            <Input
+              id="date"
+              type="date"
+              value={date}
+              onChange={(e) => onDateChange(e.target.value)}
+              required
+              disabled={disabled}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="timeStart">Čas odchodu *</Label>
+            <Input
+              id="timeStart"
+              type="time"
+              value={timeStart}
+              onChange={(e) => onTimeStartChange(e.target.value)}
+              required
+              disabled={disabled}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="timeEnd">Čas príchodu *</Label>
+            <Input
+              id="timeEnd"
+              type="time"
+              value={timeEnd}
+              onChange={(e) => onTimeEndChange(e.target.value)}
+              required
+              disabled={disabled}
+            />
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="timeStart">Čas odchodu *</Label>
-          <Input
-            id="timeStart"
-            type="time"
-            value={timeStart}
-            onChange={(e) => onTimeStartChange(e.target.value)}
-            required
-            disabled={disabled}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="timeEnd">Čas príchodu *</Label>
-          <Input
-            id="timeEnd"
-            type="time"
-            value={timeEnd}
-            onChange={(e) => onTimeEndChange(e.target.value)}
-            required
-            disabled={disabled}
-          />
-        </div>
+        {timeStart && timeEnd && timeEnd < timeStart && (
+          <p className="text-sm text-destructive">Čas príchodu nemôže byť skôr ako čas odchodu</p>
+        )}
       </div>
 
       {/* Trasa */}
