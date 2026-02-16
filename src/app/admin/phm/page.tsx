@@ -113,6 +113,7 @@ export default async function FuelPage() {
                   <TableRow>
                     <TableHead>Dátum</TableHead>
                     <TableHead className="hidden md:table-cell">Vozidlo</TableHead>
+                    <TableHead className="hidden lg:table-cell">Vodič</TableHead>
                     <TableHead className="hidden sm:table-cell">Krajina</TableHead>
                     <TableHead>Palivo</TableHead>
                     <TableHead className="text-right">Litre</TableHead>
@@ -136,6 +137,13 @@ export default async function FuelPage() {
                         <div className="text-xs text-muted-foreground">
                           {record.vehicle?.license_plate}
                         </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell">
+                        {record.driver ? (
+                          `${record.driver.last_name} ${record.driver.first_name}`
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="hidden sm:table-cell">
                         {record.country && FUEL_COUNTRIES[record.country as keyof typeof FUEL_COUNTRIES] ? (
