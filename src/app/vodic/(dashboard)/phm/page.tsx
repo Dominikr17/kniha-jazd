@@ -32,7 +32,7 @@ export default async function DriverFuelPage() {
     const { data } = await supabase
       .from('fuel_records')
       .select('*, vehicle:vehicles(name, license_plate)')
-      .in('vehicle_id', assignedVehicleIds)
+      .eq('driver_id', driverId)
       .order('date', { ascending: false })
       .limit(50)
     fuelRecords = data
