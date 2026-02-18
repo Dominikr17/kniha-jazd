@@ -99,26 +99,31 @@ export default async function ReportDetailPage({ params }: PageProps) {
         </Alert>
       )}
 
-      {reportData.fuelStockCalculation && reportData.fuelStockCalculation.warnings.length > 0 && (
-        <Alert>
-          <Info className="h-4 w-4" />
-          <AlertDescription>
-            <ul className="list-disc list-inside space-y-1">
-              {reportData.fuelStockCalculation.warnings.map((warning, index) => (
-                <li key={index}>{warning}</li>
-              ))}
-            </ul>
-            {(!reportData.fuelStockCalculation.tankCapacity || !reportData.fuelStockCalculation.ratedConsumption) && (
-              <Link
-                href={`/admin/vozidla/${reportData.vehicleId}`}
-                className="text-blue-600 hover:underline mt-2 inline-block"
-              >
-                Upraviť nastavenia vozidla
-              </Link>
-            )}
-          </AlertDescription>
-        </Alert>
-      )}
+      {reportData.fuelStockCalculation && (() => {
+        const warnings = reportData.fuelStockCalculation.hasReferencePoint
+          ? reportData.fuelStockCalculation.warnings.filter(w => !w.startsWith('Chýba referenčný bod'))
+          : reportData.fuelStockCalculation.warnings
+        return warnings.length > 0 ? (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <ul className="list-disc list-inside space-y-1">
+                {warnings.map((warning, index) => (
+                  <li key={index}>{warning}</li>
+                ))}
+              </ul>
+              {(!reportData.fuelStockCalculation.tankCapacity || !reportData.fuelStockCalculation.ratedConsumption) && (
+                <Link
+                  href={`/admin/vozidla/${reportData.vehicleId}`}
+                  className="text-blue-600 hover:underline mt-2 inline-block"
+                >
+                  Upraviť nastavenia vozidla
+                </Link>
+              )}
+            </AlertDescription>
+          </Alert>
+        ) : null
+      })()}
 
       {reportData.fuelStockCalculation && reportData.fuelStockCalculation.hasReferencePoint && (
         <Alert className="border-green-200 bg-green-50">

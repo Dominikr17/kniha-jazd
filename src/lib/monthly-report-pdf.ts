@@ -37,6 +37,11 @@ function registerFonts(doc: jsPDF) {
   doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold')
 }
 
+// Formátovanie čísla pre jsPDF — nahradí nezlomiteľné medzery (U+00A0) bežnými
+function formatNumber(value: number): string {
+  return value.toLocaleString('sk-SK').replace(/\u00A0/g, ' ')
+}
+
 export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise<void> {
   const doc = new jsPDF()
   const pageWidth = doc.internal.pageSize.getWidth()
@@ -131,12 +136,12 @@ export async function generateMonthlyReportPDF(data: MonthlyReportData): Promise
 
   y += 12
   doc.setFont('Roboto', 'normal')
-  addRow('Počiatočný stav tachometra:', `${data.initialOdometer.toLocaleString('sk-SK')} km`)
-  addRow('Konečný stav tachometra:', `${data.finalOdometer.toLocaleString('sk-SK')} km`)
-  addRow('Kilometre služobne:', `${data.kmBusiness.toLocaleString('sk-SK')} km`)
-  addRow('Kilometre súkromne:', `${data.kmPrivate.toLocaleString('sk-SK')} km`)
+  addRow('Počiatočný stav tachometra:', `${formatNumber(data.initialOdometer)} km`)
+  addRow('Konečný stav tachometra:', `${formatNumber(data.finalOdometer)} km`)
+  addRow('Kilometre služobne:', `${formatNumber(data.kmBusiness)} km`)
+  addRow('Kilometre súkromne:', `${formatNumber(data.kmPrivate)} km`)
   doc.setFont('Roboto', 'bold')
-  addRow('Kilometre spolu:', `${data.kmTotal.toLocaleString('sk-SK')} km`)
+  addRow('Kilometre spolu:', `${formatNumber(data.kmTotal)} km`)
 
   // Sekcia: Spotreba
   y += 6
