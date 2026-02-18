@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { TimeInput } from '@/components/ui/time-input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
@@ -241,20 +240,22 @@ export function TripFormFields({
           </div>
           <div className="space-y-2">
             <Label htmlFor="timeStart">Čas odchodu *</Label>
-            <TimeInput
+            <Input
               id="timeStart"
+              type="time"
               value={timeStart}
-              onChange={onTimeStartChange}
+              onChange={(e) => onTimeStartChange(e.target.value)}
               required
               disabled={disabled}
             />
           </div>
           <div className="space-y-2">
             <Label htmlFor="timeEnd">Čas príchodu *</Label>
-            <TimeInput
+            <Input
               id="timeEnd"
+              type="time"
               value={timeEnd}
-              onChange={onTimeEndChange}
+              onChange={(e) => onTimeEndChange(e.target.value)}
               required
               disabled={disabled}
             />
