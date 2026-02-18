@@ -299,6 +299,8 @@ Stránka `/vodic/statistiky` zobrazuje vodičovi prehľad vlastných jázd a spo
 22. **Validácia parametrov stránok**: `isValidUUID()` + `parseInt()` s range check + `notFound()` pre neplatné
 23. **Responzívne headery stránok**: vždy `flex flex-col sm:flex-row sm:items-center justify-between gap-4` (nie `flex items-center justify-between` — na mobile sa nadpis a tlačidlá musia stackovať pod seba)
 24. **Validácia časov v jazdách**: čas príchodu (`timeEnd`) nesmie byť skôr ako čas odchodu (`timeStart`) — vizuálne upozornenie v `TripFormFields` + toast v submit handleri
+25. **`toLocaleString('sk-SK')` v jsPDF**: generuje nezlomiteľné medzery (U+00A0) — vždy nahradiť `.replace(/\u00A0/g, ' ')` alebo použiť `formatNumber()` helper
+26. **Enum validácia v API routes**: pri validácii enum kľúčov používať `Object.keys(ENUM)` (nie `Object.values()` — tie vracajú slovenské labely)
 
 ## Automatický výpočet stavu nádrže
 Systém automaticky počíta zásoby PHM v mesačných výkazoch na základe:
