@@ -218,6 +218,34 @@ export function ReportForm({ reportData }: ReportFormProps) {
             />
           </div>
 
+          {/* Živý náhľad spotreby */}
+          <div className="rounded-lg border bg-muted/50 p-4">
+            <p className="text-sm font-medium mb-2">Náhľad spotreby (podľa aktuálnych hodnôt)</p>
+            <div className="grid gap-2 sm:grid-cols-3 text-sm">
+              <div>
+                <span className="text-muted-foreground">Celková spotreba: </span>
+                <span className="font-medium">
+                  {(formData.initialFuelStock + reportData.fuelPurchaseTotal - formData.finalFuelStock).toFixed(2)} l
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Priem. spotreba: </span>
+                <span className="font-medium">
+                  {reportData.kmTotal > 0
+                    ? (((formData.initialFuelStock + reportData.fuelPurchaseTotal - formData.finalFuelStock) / reportData.kmTotal) * 100).toFixed(2)
+                    : '0.00'
+                  } l/100km
+                </span>
+              </div>
+              {reportData.ratedConsumption && (
+                <div>
+                  <span className="text-muted-foreground">Normovaná: </span>
+                  <span className="font-medium">{reportData.ratedConsumption.toFixed(2)} l/100km</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-end gap-3">
             {hasAutoCalculation && (
               <Button

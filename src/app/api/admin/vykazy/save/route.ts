@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     }
 
     // Validácia status enum
-    const validStatuses = Object.values(REPORT_STATUS)
+    const validStatuses = Object.keys(REPORT_STATUS)
     if (status && !validStatuses.includes(status)) {
       return NextResponse.json(
         { success: false, error: 'Neplatný status' },
